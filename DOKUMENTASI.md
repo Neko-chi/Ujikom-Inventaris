@@ -34,7 +34,7 @@ Prasyarat: XAMPP (Apache + MySQL aktif), PHP 8.2, Composer, Node.js.
 7. Jalankan server: `php artisan serve` lalu buka `http://localhost:8000`
 8. Menjalankan pengujian unit: `php artisan test`
 
-Langkah mengunggah ke GitHub dan menjalankan aplikasi secara online (Render + database Supabase) dijelaskan di file `TUTORIAL_DEPLOY.md`.
+Langkah mengunggah ke GitHub dan menjalankan aplikasi secara online (Vercel + database Supabase) dijelaskan di file `TUTORIAL_DEPLOY.md`.
 
 Akun login (data sampel):
 
@@ -291,7 +291,8 @@ Laravel memakai pola **Model - View - Controller**. Alur satu permintaan: Browse
 | `resources/views/partials/` | Potongan tampilan: pesan notifikasi (`flash`) dan navigasi halaman (`pagination`) |
 | `resources/css/app.css`, `resources/js/app.js` | Token desain (warna, font), kelas komponen (`btn-primary`, `card`, `input`, ...) dan interaksi kecil (menu HP, tutup notifikasi, lihat password) |
 | `tests/Unit`, `tests/Feature` | Pengujian unit dan pengujian fitur |
-| `Dockerfile`, `docker/entrypoint.sh` | Konfigurasi server untuk hosting online (PHP 8.2 + Apache + PostgreSQL) |
+| `vercel.json`, `api/index.php` | Konfigurasi hosting online di Vercel (runtime PHP, region Singapura, cache Laravel di `/tmp`) |
+| `Dockerfile`, `docker/entrypoint.sh` | Konfigurasi alternatif untuk hosting berbasis Docker |
 
 ### 6.1 Desain Antarmuka
 

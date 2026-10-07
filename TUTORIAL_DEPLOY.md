@@ -1,17 +1,19 @@
-# Tutorial Deploy: GitHub + Render + Supabase
+# Tutorial Deploy: GitHub + Vercel + Supabase
 
-Panduan ini mengunggah kode ke **GitHub**, menyimpan database di **Supabase** (PostgreSQL), dan menjalankan aplikasi secara online di **Render**. Semuanya memakai paket gratis.
+Panduan ini mengunggah kode ke **GitHub**, menyimpan database di **Supabase** (PostgreSQL), dan menjalankan aplikasi secara online di **Vercel**. Ketiganya gratis dan **tidak membutuhkan kartu kredit/debit**: cukup daftar memakai akun GitHub.
 
 ```
- Laptop (XAMPP) ──git push──▶ GitHub ──deploy otomatis──▶ Render (aplikasi Laravel)
+ Laptop (XAMPP) ──git push──▶ GitHub ──deploy otomatis──▶ Vercel (aplikasi Laravel)
                                                               │
                                                               ▼
                                                      Supabase (database PostgreSQL)
 ```
 
+> **Kenapa tidak Supabase saja?** Supabase hanya menyediakan database (plus login, penyimpanan file, dan Edge Functions berbahasa TypeScript). Supabase tidak bisa menjalankan PHP/Laravel, jadi aplikasinya dijalankan di Vercel dan datanya disimpan di Supabase.
+
 Yang perlu disiapkan:
 
-- Akun **GitHub** (github.com), **Supabase** (supabase.com), dan **Render** (render.com). Daftar ke Supabase dan Render bisa memakai akun GitHub.
+- Akun **GitHub** (github.com). Akun **Supabase** (supabase.com) dan **Vercel** (vercel.com) dibuat dengan tombol *Continue with GitHub*.
 - **Git** sudah terpasang di laptop (cek dengan `git --version`).
 - Proyek sudah berjalan normal di lokal dan `php artisan test` lulus.
 
@@ -19,10 +21,11 @@ File pendukung deploy yang sudah ada di proyek:
 
 | File | Fungsi |
 |---|---|
-| `Dockerfile` | Resep membangun server (PHP 8.2 + Apache + ekstensi PostgreSQL) dan build CSS |
-| `docker/entrypoint.sh` | Dijalankan saat server menyala: cache konfigurasi, migrasi database, menyalakan Apache |
-| `.dockerignore` | Daftar file yang tidak ikut dibangun ke server |
+| `vercel.json` | Pengaturan Vercel: runtime PHP 8.3 (`vercel-php`), region Singapura, dan aturan alamat (file CSS/JS langsung dari `public/`, sisanya ke Laravel) |
+| `api/index.php` | Pintu masuk Laravel di Vercel. Mengarahkan cache ke `/tmp` (satu-satunya folder yang bisa ditulisi di Vercel), menyimpan sesi di cookie, dan mengirim log ke menu Logs |
+| `public/build/` | Hasil `npm run build` (CSS/JS). Ikut di-commit karena Vercel tidak membuild ulang tampilan |
 | `database/migrations/..._enable_row_level_security.php` | Mengamankan tabel di Supabase (penjelasan di Bagian 2.6) |
+| `Dockerfile`, `docker/` | Hanya untuk alternatif hosting berbasis Docker (Lampiran), tidak dipakai Vercel |
 
 ---
 
@@ -49,10 +52,13 @@ git config --global user.email "email-github-kamu@gmail.com"
 
 ### 1.3 Push kode dari laptop
 
-Masuk ke folder proyek:
+Masuk ke folder proyek, lalu build tampilan terlebih dahulu (hasilnya ikut di-upload):
 
 ```bash
 cd C:\xampp\htdocs\inventaris
+```
+```bash
+npm run build
 ```
 
 Jadikan folder ini repository Git dan masukkan semua file:
@@ -70,7 +76,7 @@ git add .
 git status
 ```
 
-Di daftar itu **tidak boleh** ada `.env`, `.env.supabase`, folder `vendor/`, atau `node_modules/`. Semuanya sudah diabaikan lewat `.gitignore`. Kalau ternyata muncul, berhenti dan periksa `.gitignore`.
+Di daftar itu **tidak boleh** ada `.env`, `.env.supabase`, folder `vendor/`, atau `node_modules/`. Semuanya sudah diabaikan lewat `.gitignore`. Folder `public/build/` **boleh dan memang harus** ikut.
 
 Lanjutkan:
 
@@ -97,17 +103,17 @@ Saat push pertama, akan muncul jendela login GitHub (Git Credential Manager). Lo
 
 ### 2.1 Buat project
 
-1. Login ke supabase.com, lalu klik **New project**.
+1. Login ke supabase.com (*Continue with GitHub*), lalu klik **New project**.
 2. Isi **Project name**, misalnya `gudang-sekolah`.
 3. Isi **Database Password**. Klik **Generate a password**, lalu **salin dan simpan** karena password ini diperlukan nanti.
-4. **Region**: pilih **Southeast Asia (Singapore)**, yang paling dekat dengan Indonesia dan sama dengan region Render nanti.
+4. **Region**: pilih **Southeast Asia (Singapore)**, yang paling dekat dengan Indonesia dan sama dengan region Vercel di `vercel.json`.
 5. Klik **Create new project** dan tunggu sekitar 1–2 menit.
 
 ### 2.2 Ambil data koneksi
 
 1. Di halaman project, klik tombol **Connect** di bagian atas.
 2. Pilih tab **Session pooler**.
-   - **Jangan** pakai *Direct connection*. Koneksi langsung hanya mendukung IPv6, sedangkan Render dan kebanyakan jaringan rumah/sekolah memakai IPv4.
+   - **Jangan** pakai *Direct connection*. Koneksi langsung hanya mendukung IPv6, sedangkan Vercel dan kebanyakan jaringan rumah/sekolah memakai IPv4.
    - **Jangan** pakai *Transaction pooler* (port 6543), karena tidak cocok untuk Laravel.
 3. Catat nilai-nilai berikut (contoh):
 
@@ -121,7 +127,7 @@ Saat push pertama, akan muncul jendela login GitHub (Git Credential Manager). Lo
 
 ### 2.3 Aktifkan driver PostgreSQL di XAMPP
 
-Langkah ini diperlukan agar laptop bisa mengisi data awal ke Supabase.
+Langkah ini diperlukan agar laptop bisa membuat tabel dan mengisi data awal ke Supabase.
 
 1. Buka `C:\xampp\php\php.ini` dengan editor teks.
 2. Cari dua baris berikut dan **hapus tanda titik koma** di depannya:
@@ -183,7 +189,7 @@ Supabase otomatis membuka tabel-tabel di database lewat REST API publiknya. Supa
 
 ---
 
-## Bagian 3 — Hosting Aplikasi di Render
+## Bagian 3 — Hosting Aplikasi di Vercel
 
 ### 3.1 Siapkan APP_KEY
 
@@ -195,39 +201,33 @@ php artisan key:generate --show
 
 Hasilnya berupa teks seperti `base64:xxxxxxxx...`. Salin teks ini untuk langkah 3.3.
 
-### 3.2 Buat Web Service
+### 3.2 Import project dari GitHub
 
-1. Login ke render.com, lalu klik **New +** → **Web Service**.
-2. Pilih **Git Provider: GitHub**, izinkan Render mengakses repo, lalu pilih repo `inventaris-gudang-sekolah`.
-3. Isi pengaturan:
+1. Login ke vercel.com dengan **Continue with GitHub**. Pilih paket **Hobby** (gratis, tanpa kartu).
+2. Klik **Add New…** → **Project**.
+3. Di daftar **Import Git Repository**, klik **Import** pada repo `inventaris-gudang-sekolah`. Kalau repo tidak muncul, klik **Adjust GitHub App Permissions** dan izinkan Vercel mengakses repo tersebut.
+4. Pengaturan proyek:
 
 | Pengaturan | Nilai |
 |---|---|
-| Name | `inventaris-gudang-sekolah` (menjadi alamat `https://inventaris-gudang-sekolah.onrender.com`) |
-| Language | **Docker** (otomatis terdeteksi dari `Dockerfile`) |
-| Branch | `main` |
-| Region | **Singapore** |
-| Instance Type | **Free** |
+| Project Name | `inventaris-gudang-sekolah` (menjadi alamat `https://inventaris-gudang-sekolah.vercel.app`) |
+| Framework Preset | **Other** |
+| Root Directory | `./` |
+| Build & Output Settings | Biarkan saja; sudah diatur oleh `vercel.json` |
 
 ### 3.3 Isi Environment Variables
 
-Di bagian **Environment Variables**, tambahkan variabel berikut. Bisa juga lewat **Add from .env**, lalu tempel semuanya sekaligus.
+Masih di halaman yang sama, buka **Environment Variables**. Tempel teks berikut ke kolom *Key* (Vercel otomatis memecahnya per baris), lalu sesuaikan nilainya:
 
 ```
 APP_NAME="Inventaris Gudang Sekolah"
 APP_ENV=production
 APP_KEY=base64:xxxxxxxx (hasil langkah 3.1)
 APP_DEBUG=false
-APP_URL=https://inventaris-gudang-sekolah.onrender.com
+APP_URL=https://inventaris-gudang-sekolah.vercel.app
 APP_TIMEZONE=Asia/Jakarta
 APP_LOCALE=id
 APP_FALLBACK_LOCALE=en
-
-LOG_CHANNEL=stderr
-SESSION_DRIVER=cookie
-CACHE_STORE=file
-QUEUE_CONNECTION=sync
-
 DB_CONNECTION=pgsql
 DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com
 DB_PORT=5432
@@ -235,29 +235,33 @@ DB_DATABASE=postgres
 DB_USERNAME=postgres.abcdefghijklmnop
 DB_PASSWORD=password-database-kamu
 DB_SSLMODE=require
-
-RUN_MIGRATIONS=true
 ```
 
 Penjelasan singkat:
 
 - `APP_DEBUG=false`: detail error tidak ditampilkan ke pengunjung (wajib untuk server online).
-- `LOG_CHANNEL=stderr`: log error tampil di menu **Logs** Render.
-- `SESSION_DRIVER=cookie`: sesi login disimpan di cookie terenkripsi. Server Render gratis bisa restart kapan saja, dan file sesi akan hilang saat itu terjadi.
-- `RUN_MIGRATIONS=true`: setiap deploy, server menjalankan `php artisan migrate --force`. Perintah ini hanya menambah tabel/kolom baru dan **tidak menghapus data**.
+- `APP_URL`: alamat website. Kalau nama project berbeda, sesuaikan setelah deploy pertama (lihat langkah 3.5).
+- Sesi login (cookie), cache, dan log **tidak perlu** diisi karena sudah diatur otomatis oleh `api/index.php`.
 
 ### 3.4 Deploy
 
-1. (Opsional) Di **Advanced** → **Health Check Path**, isi `/up`.
-2. Klik **Deploy Web Service**.
-3. Tunggu proses build di tab **Logs** (pertama kali sekitar 5–10 menit). Deploy selesai saat muncul status **Live** dan log `Apache ... resuming normal operations`.
-4. Buka `https://inventaris-gudang-sekolah.onrender.com`, lalu login dengan `admin_marco` / `@admin123` atau `operator_ohim` / `operator123`.
+1. Klik **Deploy**.
+2. Tunggu proses build (sekitar 1–3 menit). Di log akan terlihat `🐘 Installing Composer dependencies`.
+3. Setelah muncul halaman **Congratulations**, klik **Continue to Dashboard**, lalu **Visit**.
+4. Login dengan `admin_marco` / `@admin123` atau `operator_ohim` / `operator123`.
 
-### 3.5 Catatan paket gratis Render
+### 3.5 Bila alamat website berbeda
 
-- Server **tidur** setelah 15 menit tidak ada pengunjung. Saat dibuka lagi, halaman pertama butuh sekitar **30–60 detik** untuk bangun. **Buka website beberapa menit sebelum demo ke asesor.**
-- Paket gratis tidak punya menu *Shell*. Karena itu pengisian data awal dilakukan dari laptop (Bagian 2.5).
-- Project Supabase gratis akan di-*pause* bila tidak dipakai selama 1 minggu. Aktifkan lagi lewat dashboard Supabase (**Restore project**).
+Lihat alamat asli website di **Dashboard → Domains**. Kalau berbeda dengan `APP_URL`:
+
+1. Buka **Settings → Environment Variables**, lalu ubah `APP_URL`.
+2. Buka **Deployments**, klik titik tiga pada deployment teratas, lalu **Redeploy**. Perubahan environment variable baru berlaku setelah redeploy.
+
+### 3.6 Catatan paket gratis
+
+- Vercel Hobby **tidak tidur** seperti hosting gratis lain. Akses pertama setelah lama tidak dibuka mungkin butuh 1–3 detik lebih lama.
+- Vercel tidak menjalankan migration otomatis. Kalau nanti ada migration baru, jalankan dari laptop: `php artisan migrate --env=supabase`.
+- Project Supabase gratis akan di-*pause* bila tidak dipakai selama 1 minggu. Aktifkan lagi lewat dashboard Supabase (**Restore project**). **Buka website sehari sebelum demo** untuk memastikan semuanya aktif.
 
 ---
 
@@ -265,6 +269,9 @@ Penjelasan singkat:
 
 Setiap kali ada perubahan kode di laptop:
 
+```bash
+npm run build
+```
 ```bash
 git add .
 ```
@@ -275,7 +282,7 @@ git commit -m "Jelaskan perubahan yang dibuat"
 git push
 ```
 
-Render otomatis membangun ulang dan men-deploy versi terbaru (pantau di tab **Events / Logs**). Kalau ada migration baru, migration itu ikut dijalankan karena `RUN_MIGRATIONS=true`.
+`npm run build` **wajib** dijalankan bila ada perubahan tampilan (file Blade, CSS, atau JS), supaya `public/build/` ikut terbarui. Setelah push, Vercel otomatis membangun dan men-deploy versi terbaru (pantau di tab **Deployments**).
 
 Untuk mengembalikan data online ke kondisi data sampel (misalnya sebelum demo):
 
@@ -293,11 +300,12 @@ php artisan migrate:fresh --seed --env=supabase
 | `Network is unreachable` / `timeout` saat koneksi ke Supabase | Memakai *Direct connection* (IPv6) | Pakai host **Session pooler** (langkah 2.2) |
 | `password authentication failed` | Username/password salah | Username harus `postgres.<kode-project>`. Password bisa di-reset di Supabase: **Project Settings → Database → Reset database password** |
 | `prepared statement ... already exists` | Memakai Transaction pooler (port 6543) | Ganti `DB_PORT` ke `5432` (Session pooler) |
-| Render: `No application encryption key has been specified` | `APP_KEY` kosong | Isi `APP_KEY` dari langkah 3.1 |
-| Halaman error 500 di Render | Bermacam-macam | Buka tab **Logs** di Render. Bila perlu, sementara ubah `APP_DEBUG=true`, lihat pesannya, lalu kembalikan ke `false` |
-| Tampilan tanpa CSS / berantakan | `APP_URL` salah | Isi `APP_URL` dengan alamat `https://...onrender.com` yang tepat |
+| Vercel: `No application encryption key has been specified` | `APP_KEY` kosong | Isi `APP_KEY` dari langkah 3.1, lalu **Redeploy** |
+| Vercel: `Vite manifest not found` | Folder `public/build` belum ikut di-push | Jalankan `npm run build`, lalu `git add .`, `git commit`, `git push` |
+| Halaman error 500 | Bermacam-macam | Buka deployment, lalu tab **Logs**. Bila perlu, sementara ubah `APP_DEBUG=true`, redeploy, lihat pesannya, lalu kembalikan ke `false` |
+| Tampilan tanpa CSS / berantakan | `public/build` belum terbaru atau `APP_URL` salah | Jalankan `npm run build` dan push ulang; cek `APP_URL` (langkah 3.5) |
 | `419 Page Expired` saat login | `APP_KEY` berubah atau cookie lama | Muat ulang halaman login; hapus cookie situs bila masih terjadi |
-| Website lama sekali saat dibuka | Server gratis sedang bangun dari tidur | Tunggu sekitar 1 menit, normal untuk paket gratis |
+| Website sangat lambat | Region tidak sama | Pastikan region Supabase **Singapore** (Vercel sudah diatur ke Singapura di `vercel.json`) |
 
 ---
 
@@ -305,4 +313,10 @@ php artisan migrate:fresh --seed --env=supabase
 
 - **Jangan pernah** meng-commit `.env`, `.env.supabase`, password database, atau `APP_KEY`.
 - Akun sampel (`admin_marco`, `operator_ohim`) memakai password yang tertulis di dokumentasi. Kalau website akan dipakai sungguhan setelah ujikom, ganti password-nya lewat menu **Pengguna**.
-- Bila password database Supabase pernah tersebar, segera reset di **Project Settings → Database**, lalu perbarui `DB_PASSWORD` di Render dan `.env.supabase`.
+- Bila password database Supabase pernah tersebar, segera reset di **Project Settings → Database**, lalu perbarui `DB_PASSWORD` di Vercel (lalu Redeploy) dan di `.env.supabase`.
+
+---
+
+## Lampiran — Alternatif Hosting Berbasis Docker
+
+Proyek juga menyertakan `Dockerfile` (PHP 8.2 + Apache + PostgreSQL) untuk hosting yang mendukung Docker, misalnya Render atau Koyeb. Layanan-layanan tersebut umumnya meminta verifikasi kartu, jadi tutorial ini memakai Vercel. Bila suatu saat memakai hosting Docker, isi environment variables yang sama seperti langkah 3.3, ditambah `LOG_CHANNEL=stderr`, `SESSION_DRIVER=cookie`, dan `RUN_MIGRATIONS=true` (migration otomatis dijalankan oleh `docker/entrypoint.sh` setiap deploy).

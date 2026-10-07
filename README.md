@@ -4,7 +4,7 @@ Aplikasi web inventaris gudang sekolah (Laravel 12) untuk Uji Kompetensi skema P
 
 Penjelasan lengkap untuk asesor: [DOKUMENTASI.md](DOKUMENTASI.md) (versi Word: `DOKUMENTASI.docx`).
 
-Cara mengunggah ke GitHub dan meng-online-kan (Render + Supabase): [TUTORIAL_DEPLOY.md](TUTORIAL_DEPLOY.md).
+Cara mengunggah ke GitHub dan meng-online-kan (Vercel + Supabase, tanpa kartu kredit): [TUTORIAL_DEPLOY.md](TUTORIAL_DEPLOY.md).
 
 ## Menjalankan
 
