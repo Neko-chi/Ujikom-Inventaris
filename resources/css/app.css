@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* Token desain: font & warna utama aplikasi */
+@theme {
+    --font-sans: 'Plus Jakarta Sans Variable', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+
+    --color-brand-50: #eef4ff;
+    --color-brand-100: #dae6ff;
+    --color-brand-200: #bdd3ff;
+    --color-brand-300: #90b6ff;
+    --color-brand-400: #5c8dfd;
+    --color-brand-500: #3766f8;
+    --color-brand-600: #2147ed;
+    --color-brand-700: #1a36d6;
+    --color-brand-800: #1c2fad;
+    --color-brand-900: #1d2e88;
+    --color-brand-950: #161d52;
+
+    --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
+}
+
+/* Komponen tampilan yang dipakai berulang di seluruh halaman */
+@utility card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-soft;
+}
+
+@utility card-header {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4;
+}
+
+@utility card-title {
+    @apply text-[15px] font-semibold text-slate-900;
+}
+
+@utility btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition duration-150 focus-visible:ring-4 focus-visible:outline-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+
+    & svg {
+        @apply size-4 shrink-0;
+    }
+}
+
+@utility btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm shadow-brand-600/25 hover:bg-brand-700 focus-visible:ring-brand-500/30;
+}
+
+@utility btn-secondary {
+    @apply btn border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-400/20;
+}
+
+@utility btn-danger {
+    @apply btn bg-rose-600 text-white shadow-sm shadow-rose-600/25 hover:bg-rose-700 focus-visible:ring-rose-500/30;
+}
+
+@utility btn-success {
+    @apply btn bg-emerald-600 text-white shadow-sm shadow-emerald-600/25 hover:bg-emerald-700 focus-visible:ring-emerald-500/30;
+}
+
+/* Tombol ikon kecil untuk aksi di tabel */
+@utility btn-icon {
+    @apply inline-flex size-8 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-4 focus-visible:ring-slate-400/20 focus-visible:outline-none;
+
+    & svg {
+        @apply size-[18px];
+    }
+}
+
+/* Ukuran kecil, dipakai bersama btn-* lain (important agar menimpa padding bawaan) */
+@utility btn-sm {
+    @apply gap-1.5! rounded-lg! px-3! py-1.5! text-xs!;
+}
+
+@utility label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+}
+
+@utility input {
+    @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-xs transition placeholder:text-slate-400 hover:border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500;
+}
+
+@utility hint {
+    @apply mt-1.5 text-xs text-slate-500;
+}
+
+@utility table-data {
+    @apply w-full text-left text-sm;
+
+    & thead th {
+        @apply border-b border-slate-200 bg-slate-50/80 px-5 py-3 text-[11px] font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase;
+    }
+
+    & tbody td {
+        @apply border-b border-slate-100 px-5 py-3.5 align-middle text-slate-700;
+    }
+
+    & tbody tr:last-child td {
+        @apply border-b-0;
+    }
+
+    & tbody tr {
+        @apply transition-colors;
+    }
+
+    & tbody tr:hover {
+        @apply bg-slate-50/70;
+    }
+}
+
+@utility kode {
+    @apply inline-block rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-medium whitespace-nowrap text-slate-600;
+}
+
+/* Saat dicetak: tampilkan konten saja, tanpa bayangan dan latar */
+@media print {
+    body {
+        background: white !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border-color: #cbd5e1 !important;
+    }
+}
