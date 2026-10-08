@@ -9,21 +9,16 @@
 
 @section('content')
     {{-- Penjelasan singkat peran --}}
-    <div class="mb-6 grid gap-4 sm:grid-cols-2">
-        <div class="flex gap-4 rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white"><x-icon name="shield" /></div>
-            <div>
-                <p class="font-semibold text-slate-900">Admin</p>
-                <p class="text-sm text-slate-600">Pengawas: memverifikasi barang keluar, mengoreksi data, mengelola kategori dan pengguna.</p>
+    <div class="mb-6 grid gap-4 md:grid-cols-3">
+        @foreach (\App\Models\User::INFO_ROLE as $role => $info)
+            <div class="flex gap-4 rounded-2xl border p-4 {{ $info['kotak'] }}">
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl text-white {{ $info['ikon_bg'] }}"><x-icon :name="$info['ikon']" /></div>
+                <div>
+                    <p class="font-semibold text-slate-900">{{ $role }}</p>
+                    <p class="text-sm text-slate-600">{{ $info['keterangan'] }}</p>
+                </div>
             </div>
-        </div>
-        <div class="flex gap-4 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white"><x-icon name="clipboard" /></div>
-            <div>
-                <p class="font-semibold text-slate-900">Operator</p>
-                <p class="text-sm text-slate-600">Petugas gudang: mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar.</p>
-            </div>
-        </div>
+        @endforeach
     </div>
 
     <div class="card overflow-hidden">
@@ -42,11 +37,7 @@
                         <tr>
                             <td>
                                 <div class="flex items-center gap-3">
-                                    <div @class([
-                                        'flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                                        'bg-brand-100 text-brand-700' => $u->isAdmin(),
-                                        'bg-emerald-100 text-emerald-700' => $u->isOperator(),
-                                    ])>{{ $u->inisial() }}</div>
+                                    <x-avatar :user="$u" class="size-10 text-sm" />
                                     <div>
                                         <p class="font-semibold text-slate-900">
                                             {{ $u->nama_user }}
@@ -59,20 +50,19 @@
                                 </div>
                             </td>
                             <td>
-                                <span @class([
-                                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset',
-                                    'bg-brand-50 text-brand-700 ring-brand-600/20' => $u->isAdmin(),
-                                    'bg-emerald-50 text-emerald-700 ring-emerald-600/20' => $u->isOperator(),
-                                ])>
-                                    <x-icon :name="$u->isAdmin() ? 'shield' : 'clipboard'" class="size-3.5" />{{ $u->role }}
+                                @php($info = \App\Models\User::INFO_ROLE[$u->role])
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset {{ $info['badge'] }}">
+                                    <x-icon :name="$info['ikon']" class="size-3.5" />{{ $u->role }}
                                 </span>
                             </td>
                             <td class="text-sm text-slate-500">
-                                @if ($u->isAdmin())
+                                @if ($u->isManager())
                                     <span class="font-semibold text-slate-700">{{ $u->verifikasi_barang_keluar_count }}</span> verifikasi
-                                @else
+                                @elseif ($u->isOperator())
                                     <span class="font-semibold text-slate-700">{{ $u->barang_masuk_count }}</span> barang masuk ·
                                     <span class="font-semibold text-slate-700">{{ $u->barang_keluar_count }}</span> pengajuan
+                                @else
+                                    Pengelola sistem
                                 @endif
                             </td>
                             <td>

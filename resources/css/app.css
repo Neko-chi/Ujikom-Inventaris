@@ -4,6 +4,7 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../../app/**/*.php';
 
 /* Token desain: font & warna utama aplikasi */
 @theme {

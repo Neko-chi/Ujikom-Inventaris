@@ -21,9 +21,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Password di-hash otomatis oleh cast 'hashed' pada model User.
-        // id_user 1 = Operator (petugas gudang), id_user 2 = Admin (pengawas/verifikator).
-        User::create(['nama_user' => 'Ibrahim Risyad', 'username' => 'operator_ohim', 'password' => 'operator123', 'role' => User::ROLE_OPERATOR]);
-        User::create(['nama_user' => 'Marco Ivanos', 'username' => 'admin_marco', 'password' => '@admin123', 'role' => User::ROLE_ADMIN]);
+        // Akun mengikuti dokumen rancangan (Admin & Manager) ditambah satu Operator.
+        User::create(['nama_user' => 'Ibrahim Risyad', 'username' => 'admin_ohim', 'password' => 'admin123', 'role' => User::ROLE_ADMIN]);
+        $manager = User::create(['nama_user' => 'Marco Ivanos', 'username' => 'manager_marco', 'password' => '@admin123', 'role' => User::ROLE_MANAGER]);
+        $operator = User::create(['nama_user' => 'Siti Aminah', 'username' => 'operator_siti', 'password' => 'operator123', 'role' => User::ROLE_OPERATOR]);
 
         foreach (['Alat Tulis', 'Furnitur', 'Kebersihan', 'Alat Olahraga', 'Elektronik'] as $nama) {
             Kategori::create(['nama_kategori' => $nama]);
@@ -60,26 +61,27 @@ class DatabaseSeeder extends Seeder
 
         $idBarang = Barang::pluck('id_barang', 'kode_barang');
 
-        // Transaksi dicatat oleh Operator (id_user 1) dan diverifikasi Admin (id_user 2).
+        // Transaksi dicatat oleh Operator dan diverifikasi Manager.
+        // Data sampel lama belum memiliki foto bukti; foto wajib hanya untuk pengajuan baru lewat aplikasi.
         BarangMasuk::insert([
-            ['id_barang' => $idBarang['EK-002'], 'id_user' => 1, 'tanggal' => '2026-09-15', 'jumlah' => 9, 'sumber_barang' => 'Dana BOS 2026', 'status_barang' => 'Baik'],
-            ['id_barang' => $idBarang['AO-003'], 'id_user' => 1, 'tanggal' => '2026-09-30', 'jumlah' => 10, 'sumber_barang' => 'Pembelian', 'status_barang' => 'Baik'],
-            ['id_barang' => $idBarang['KN-005'], 'id_user' => 1, 'tanggal' => '2026-10-01', 'jumlah' => 23, 'sumber_barang' => 'Bantuan Dinas', 'status_barang' => 'Baik'],
+            ['id_barang' => $idBarang['EK-002'], 'id_user' => $operator->id_user, 'tanggal' => '2026-09-15', 'jumlah' => 9, 'sumber_barang' => 'Dana BOS 2026', 'status_barang' => 'Baik'],
+            ['id_barang' => $idBarang['AO-003'], 'id_user' => $operator->id_user, 'tanggal' => '2026-09-30', 'jumlah' => 10, 'sumber_barang' => 'Pembelian', 'status_barang' => 'Baik'],
+            ['id_barang' => $idBarang['KN-005'], 'id_user' => $operator->id_user, 'tanggal' => '2026-10-01', 'jumlah' => 23, 'sumber_barang' => 'Bantuan Dinas', 'status_barang' => 'Baik'],
         ]);
 
         BarangKeluar::insert([
             [
-                'id_barang' => $idBarang['EK-010'], 'id_user' => 1, 'tanggal' => '2026-10-05', 'jumlah' => 4,
+                'id_barang' => $idBarang['EK-010'], 'id_user' => $operator->id_user, 'tanggal' => '2026-10-05', 'jumlah' => 4,
                 'pemohon' => 'Budi Santoso (Kaprog TKJ)', 'tujuan' => 'Lab TKJ3', 'status_barang' => 'Baik',
-                'verifikasi' => BarangKeluar::DISETUJUI, 'id_verifikator' => 2, 'tanggal_verifikasi' => '2026-10-05', 'catatan_verifikasi' => null,
+                'verifikasi' => BarangKeluar::DISETUJUI, 'id_verifikator' => $manager->id_user, 'tanggal_verifikasi' => '2026-10-05', 'catatan_verifikasi' => null,
             ],
             [
-                'id_barang' => $idBarang['AO-007'], 'id_user' => 1, 'tanggal' => '2026-10-06', 'jumlah' => 10,
+                'id_barang' => $idBarang['AO-007'], 'id_user' => $operator->id_user, 'tanggal' => '2026-10-06', 'jumlah' => 10,
                 'pemohon' => 'Sari Wulandari (Guru PJOK)', 'tujuan' => 'Lab JB 3', 'status_barang' => 'Baik',
-                'verifikasi' => BarangKeluar::DITOLAK, 'id_verifikator' => 2, 'tanggal_verifikasi' => '2026-10-06', 'catatan_verifikasi' => 'Matras sedang dipakai untuk persiapan lomba senam.',
+                'verifikasi' => BarangKeluar::DITOLAK, 'id_verifikator' => $manager->id_user, 'tanggal_verifikasi' => '2026-10-06', 'catatan_verifikasi' => 'Matras sedang dipakai untuk persiapan lomba senam.',
             ],
             [
-                'id_barang' => $idBarang['FR-008'], 'id_user' => 1, 'tanggal' => '2026-10-08', 'jumlah' => 100,
+                'id_barang' => $idBarang['FR-008'], 'id_user' => $operator->id_user, 'tanggal' => '2026-10-08', 'jumlah' => 100,
                 'pemohon' => 'Andi Pratama (Wali Kelas 10 NKPI 2)', 'tujuan' => 'Kelas 10 NKPI 2', 'status_barang' => 'Baik',
                 'verifikasi' => BarangKeluar::PENDING, 'id_verifikator' => null, 'tanggal_verifikasi' => null, 'catatan_verifikasi' => null,
             ],

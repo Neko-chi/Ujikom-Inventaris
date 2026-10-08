@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\GambarService;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $satuan
  * @property string $lokasi
  * @property string $status_barang Baik | Rusak Ringan | Rusak Berat
+ * @property string|null $gambar path gambar barang
+ * @property-read string|null $gambar_url
  */
 class Barang extends Model
 {
@@ -49,6 +53,7 @@ class Barang extends Model
         'satuan',
         'lokasi',
         'status_barang',
+        'gambar',
     ];
 
     protected function casts(): array
@@ -57,6 +62,12 @@ class Barang extends Model
             'id_kategori' => 'integer',
             'stok' => 'integer',
         ];
+    }
+
+    /** Alamat gambar barang, dipakai sebagai $barang->gambar_url. */
+    protected function gambarUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(GambarService::class)->url($this->gambar));
     }
 
     public function kategori(): BelongsTo

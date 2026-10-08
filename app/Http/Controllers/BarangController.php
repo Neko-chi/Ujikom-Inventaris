@@ -5,18 +5,21 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BarangRequest;
 use App\Models\Barang;
 use App\Models\Kategori;
+use App\Services\GambarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
  * Data master barang.
- * Lihat daftar & detail: Admin & Operator. Tambah: Admin & Operator
+ * Lihat daftar & detail: semua role. Tambah: Admin & Operator
  * (Operator perlu mendaftarkan barang baru sebelum mencatat barang masuk).
- * Ubah/hapus: Admin.
+ * Ubah/hapus: Admin. Gambar barang bersifat opsional.
  */
 class BarangController extends Controller
 {
+    public function __construct(private GambarService $gambar) {}
+
     public function index(Request $request): View
     {
         $cari = $request->query('cari');
@@ -50,8 +53,12 @@ class BarangController extends Controller
 
     public function store(BarangRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['gambar', 'hapus_gambar']);
         $data['kode_barang'] = Barang::generateKode(Kategori::findOrFail($data['id_kategori']));
+
+        if ($request->hasFile('gambar')) {
+            $data['gambar'] = $this->gambar->simpan($request->file('gambar'), 'barang');
+        }
 
         $barang = Barang::create($data);
 
@@ -80,7 +87,15 @@ class BarangController extends Controller
 
     public function update(BarangRequest $request, Barang $barang): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['gambar', 'hapus_gambar']);
+
+        // Gambar: diganti bila ada file baru, dihapus bila dicentang "hapus gambar".
+        if ($request->hasFile('gambar')) {
+            $data['gambar'] = $this->gambar->ganti($request->file('gambar'), $barang->gambar, 'barang');
+        } elseif ($request->boolean('hapus_gambar')) {
+            $this->gambar->hapus($barang->gambar);
+            $data['gambar'] = null;
+        }
 
         // Jika kategori diganti, kode barang dibuat ulang agar prefix tetap sesuai.
         if ((int) $data['id_kategori'] !== $barang->id_kategori) {
@@ -100,6 +115,7 @@ class BarangController extends Controller
         }
 
         $barang->delete();
+        $this->gambar->hapus($barang->gambar);
 
         return redirect()->route('barang.index')->with('sukses', 'Barang berhasil dihapus.');
     }

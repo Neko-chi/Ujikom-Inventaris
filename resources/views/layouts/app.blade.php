@@ -24,6 +24,7 @@
             ],
             'Pengaturan' => [
                 ['user.index', 'user.*', 'Pengguna', 'users', true, null],
+                ['profil.edit', 'profil.*', 'Profil Saya', 'user-circle', false, null],
             ],
         ];
     @endphp
@@ -79,13 +80,13 @@
         {{-- Kartu pengguna --}}
         <div class="m-4 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10">
             <div class="flex items-center gap-3">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-500/20 text-sm font-bold text-brand-200 ring-1 ring-brand-400/30">
-                    {{ $user->inisial() }}
-                </div>
-                <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-semibold text-white">{{ $user->nama_user }}</p>
-                    <p class="text-xs text-slate-400">{{ $user->role }}</p>
-                </div>
+                <a href="{{ route('profil.edit') }}" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl hover:opacity-90" title="Profil saya">
+                    <x-avatar :user="$user" class="size-10 ring-2 ring-white/15" />
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-semibold text-white">{{ $user->nama_user }}</p>
+                        <p class="text-xs text-slate-400">{{ $user->role }}</p>
+                    </div>
+                </a>
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="rounded-lg p-2 text-slate-400 transition hover:bg-rose-500/15 hover:text-rose-300" title="Keluar" aria-label="Keluar">
@@ -111,8 +112,11 @@
                     'hidden rounded-full px-2.5 py-1 text-xs font-semibold sm:inline-flex',
                     'bg-brand-50 text-brand-700 ring-1 ring-brand-200' => $user->isAdmin(),
                     'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' => $user->isOperator(),
+                    'bg-violet-50 text-violet-700 ring-1 ring-violet-200' => $user->isManager(),
                 ])>{{ $user->role }}</span>
-                <div class="flex size-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">{{ $user->inisial() }}</div>
+                <a href="{{ route('profil.edit') }}" title="Profil saya" class="rounded-full ring-2 ring-transparent transition hover:ring-brand-200">
+                    <x-avatar :user="$user" class="size-9" />
+                </a>
             </div>
         </header>
 

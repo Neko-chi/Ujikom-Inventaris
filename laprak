@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Presentasi Metopen - WPS X</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .slide-container { width: 900px; height: 520px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 40px; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .slide { display: none; height: 100%; flex-direction: column; justify-content: flex-start; }
+        .active { display: flex; }
+        h1 { font-size: 22px; color: #1e3a8a; margin-bottom: 8px; line-height: 1.3; }
+        h2 { font-size: 18px; color: #2563eb; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        ul { margin-left: 20px; font-size: 14px; color: #334155; line-height: 1.6; }
+        li { margin-bottom: 8px; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .btn { background: #1e3a8a; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+        .btn:disabled { background: #cbd5e1; }
+        .card { background: #f8fafc; border-left: 4px solid #2563eb; padding: 12px; margin-bottom: 10px; font-size: 13.5px; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <!-- Slide 1 -->
+        <div class="slide active">
+            <div style="text-align: center; margin-top: 40px;">
+                <span style="background: #dbeafe; color: #1e3a8a; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">Laporan Progres Metopen</span>
+                <h1 style="margin-top: 20px;">PERANCANGAN ULANG DAN OTOMASI SISTEM POMPA INTAKE SERTA BAK PENAMPUNG PADA WATER PUMP STATION</h1>
+                <p style="color: #64748b; font-size: 14px;">Studi Kasus Pengambilan Air Baku Sungai X menuju WTP X</p>
+                <div style="margin-top: 30px; font-size: 13px; color: #334155;">
+                    <strong>Penyusun (Kelas 3B - TRIK):</strong><br>
+                    Titin Qurrotul’ain (2408065) | Zivana Zaneta S.P (2408009) | M. Fatwa Fathurahman (2408021)<br><br>
+                    <strong>Dosen Pengampu:</strong> Eko Yuli Mariyanto, S.T., M.T. | Politeknik Negeri Indramayu
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="slide">
+            <h2>Ringkasan Progres Pengerjaan Laporan</h2>
+            <div class="card">
+                <strong>Bab I (Pendahuluan) — Selesai Disempurnakan</strong>
+                <p>Kata Pengantar resmi, perampingan Latar Belakang, serta penataan 4 pilar Rumusan Masalah, Tujuan, Batasan, dan Manfaat Penelitian.</p>
+            </div>
+            <div class="card" style="border-left-color: #059669;">
+                <strong>Bab II (Tinjauan Pustaka) — Selesai Disusun (Sampai 2.5)</strong>
+                <ul>
+                    <li><strong>2.1 & 2.2:</strong> Sistem River WPS & Hidrolika Pipa Isap (Head Loss, NPSH, Kavitasi, Air Ingress).</li>
+                    <li><strong>2.3:</strong> Otomasi Motor AC 30 HP (DOL vs VFD, PLC, & Sensor).</li>
+                    <li><strong>2.4 & 2.5:</strong> Dinamika Sedimentasi Bak Penampung & Prinsip Replantation Layout.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="slide">
+            <h2>Bab I: Ringkasan Problem Latar Belakang</h2>
+            <ul>
+                <li><strong>Musim Kemarau (Debit Surut):</strong> Ponton miring/berkarat, pipa suction 4" bersegmen banyak $\rightarrow$ High minor loss, kavitasi, & kebocoran udara (air ingress) memicu <strong>Pompa Masuk Angin</strong>.</li>
+                <li><strong>Musim Penghujan (Air Keruh):</strong> Elevasi air naik ($\pm 20\text{ m}$), air membawa lumpur pekat $\rightarrow$ Filter tersumbat, overcurrent $\rightarrow$ <strong>Panel Motor 30 HP Trip Berulang</strong>.</li>
+                <li><strong>Problem Kontrol & Bak:</strong> Motor 30 HP manual (DOL) memicu inrush current & resiko dry running. Bak penampung tanpa sensor memicu <strong>air terbuang (overflow)</strong> & pendangkalan lumpur memangkas <strong>50% kapasitas efektif</strong>.</li>
+            </ul>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide">
+            <h2>Bab I: Rumusan Masalah & Tujuan Penelitian</h2>
+            <ul>
+                <li><strong>Analisis Hidrolika Intake:</strong> Menganalisis untung-rugi teknis pipa suction bersegmen banyak (kemarau) vs sambungan langsung (penghujan).</li>
+                <li><strong>Otomasi Motor 30 HP:</strong> Merancang sistem VFD & PLC dilengkapi proteksi tekanan & level sensor untuk mencegah dry running dan kavitasi.</li>
+                <li><strong>Manajemen Bak Penampung:</strong> Menyusun flowchart algoritma kontrol otomatis sensor level pencegah overflow & evaluasi pra-sedimentasi hulu.</li>
+                <li><strong>Replantation Layout:</strong> Merancang usulan tata letak dan alur proses baru WPS X agar efisien & minim downtime.</li>
+            </ul>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide">
+            <h2>Bab II: Ringkasan Tinjauan Pustaka (2.1 - 2.5)</h2>
+            <ul>
+                <li><strong>2.1 & 2.2 Hidrolika Intake:</strong> Formulasi Major & Minor Head Loss ($h_f$ dan $h_m$). Syarat $\text{NPSH}_a > \text{NPSH}_r$ untuk mencegah kavitasi.</li>
+                <li><strong>2.3 Otomasi Motor 30 HP:</strong> Efisiensi VFD mengeliminasi inrush current, serta pemanfaatan PLC & Pressure Transmitter sebagai proteksi otomatis.</li>
+                <li><strong>2.4 Sedimentasi Bak:</strong> Formulasi waktu tinggal ($t_d$). Akumulasi lumpur memicu overflow & berpotensi merusak booster pump hilir.</li>
+                <li><strong>2.5 Replantation Layout:</strong> Prinsip tata letak fisik meminimalkan head loss & mempermudah akses perawatan.</li>
+            </ul>
+        </div>
+
+        <!-- Slide 6 -->
+        <div class="slide">
+            <h2>Rencana Pengerjaan Selanjutnya (Bab III - Metodologi)</h2>
+            <ul>
+                <li><strong>Penyusunan Kerangka Berpikir & Diagram Alir Penelitian.</strong></li>
+                <li><strong>Pembuatan Flowchart Algoritma Kontrol Otomasi:</strong>
+                    <ul>
+                        <li>Logika pemutusan daya motor 30 HP berbasis Pressure Transmitter.</li>
+                        <li>Logika kontrol pengisian 3 bak penampung berbasis Water Level Sensor.</li>
+                    </ul>
+                </li>
+                <li><strong>Desain Replantation Layout:</strong> Merancang draf skema tata letak baru area WPS X yang efisien dan maintenance-friendly.</li>
+            </ul>
+        </div>
+
+        <!-- Navigation -->
+        <div class="controls">
+            <button class="btn" id="prevBtn" onclick="changeSlide(-1)" disabled>Sebelumnya</button>
+            <span id="slideNum" style="font-size: 13px; color: #64748b;">Slide 1 dari 6</span>
+            <button class="btn" id="nextBtn" onclick="changeSlide(1)">Selanjutnya</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slideNum = document.getElementById('slideNum');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function updateSlide() {
+            slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+            slideNum.textContent = `Slide ${currentSlide + 1} dari ${slides.length}`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+        }
+
+        function changeSlide(dir) {
+            currentSlide += dir;
+            updateSlide();
+        }
+    </script>
+</body>
+</html>

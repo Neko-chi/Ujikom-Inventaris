@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\GambarService;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,7 +15,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
  * @property string $nama_user
  * @property string $username
  * @property string $password
- * @property string $role Admin | Operator
+ * @property string $role Admin | Operator | Manager
+ * @property string|null $foto path foto profil
+ * @property-read string|null $foto_url
  */
 class User extends Authenticatable
 {
@@ -23,7 +27,37 @@ class User extends Authenticatable
 
     public const ROLE_OPERATOR = 'Operator';
 
-    public const ROLES = [self::ROLE_ADMIN, self::ROLE_OPERATOR];
+    public const ROLE_MANAGER = 'Manager';
+
+    public const ROLES = [self::ROLE_ADMIN, self::ROLE_OPERATOR, self::ROLE_MANAGER];
+
+    /**
+     * Informasi tampilan setiap role (array asosiatif bersarang):
+     * ikon, kelas warna Tailwind, dan keterangan tugas.
+     */
+    public const INFO_ROLE = [
+        self::ROLE_ADMIN => [
+            'ikon' => 'shield',
+            'badge' => 'bg-brand-50 text-brand-700 ring-brand-600/20',
+            'kotak' => 'border-brand-100 bg-brand-50/60',
+            'ikon_bg' => 'bg-brand-600',
+            'keterangan' => 'Pengelola sistem: mengelola pengguna, kategori, data barang, dan mengoreksi barang masuk.',
+        ],
+        self::ROLE_OPERATOR => [
+            'ikon' => 'clipboard',
+            'badge' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+            'kotak' => 'border-emerald-100 bg-emerald-50/60',
+            'ikon_bg' => 'bg-emerald-600',
+            'keterangan' => 'Petugas gudang: mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar.',
+        ],
+        self::ROLE_MANAGER => [
+            'ikon' => 'check-circle',
+            'badge' => 'bg-violet-50 text-violet-700 ring-violet-600/20',
+            'kotak' => 'border-violet-100 bg-violet-50/60',
+            'ikon_bg' => 'bg-violet-600',
+            'keterangan' => 'Pengawas: menyetujui / menolak barang keluar dan melihat seluruh data, tanpa menambah atau mengeluarkan barang.',
+        ],
+    ];
 
     protected $table = 'user';
 
@@ -40,6 +74,7 @@ class User extends Authenticatable
         'username',
         'password',
         'role',
+        'foto',
     ];
 
     protected $hidden = [
@@ -72,6 +107,17 @@ class User extends Authenticatable
         return $this->role === self::ROLE_OPERATOR;
     }
 
+    public function isManager(): bool
+    {
+        return $this->role === self::ROLE_MANAGER;
+    }
+
+    /** Alamat foto profil, dipakai sebagai $user->foto_url. */
+    protected function fotoUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(GambarService::class)->url($this->foto));
+    }
+
     /** Relasi 1:N "mengelola" barang masuk. */
     public function barangMasuk(): HasMany
     {
@@ -84,7 +130,7 @@ class User extends Authenticatable
         return $this->hasMany(BarangKeluar::class, 'id_user', 'id_user');
     }
 
-    /** Relasi 1:N "memverifikasi" barang keluar (sebagai Admin). */
+    /** Relasi 1:N "memverifikasi" barang keluar (sebagai Manager). */
     public function verifikasiBarangKeluar(): HasMany
     {
         return $this->hasMany(BarangKeluar::class, 'id_verifikator', 'id_user');

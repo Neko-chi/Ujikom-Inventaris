@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\GambarService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,9 +20,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $tujuan
  * @property string $status_barang
  * @property string $verifikasi Pending | Disetujui | Ditolak
- * @property int|null $id_verifikator Admin yang memverifikasi
+ * @property int|null $id_verifikator Manager yang memverifikasi
  * @property Carbon|null $tanggal_verifikasi
  * @property string|null $catatan_verifikasi
+ * @property string|null $foto path foto bukti
+ * @property-read string|null $foto_url
  */
 class BarangKeluar extends Model
 {
@@ -47,6 +51,7 @@ class BarangKeluar extends Model
         'pemohon',
         'tujuan',
         'status_barang',
+        'foto',
         'verifikasi',
         'id_verifikator',
         'tanggal_verifikasi',
@@ -69,6 +74,12 @@ class BarangKeluar extends Model
         ];
     }
 
+    /** Alamat foto bukti, dipakai sebagai $transaksi->foto_url. */
+    protected function fotoUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(GambarService::class)->url($this->foto));
+    }
+
     public function barang(): BelongsTo
     {
         return $this->belongsTo(Barang::class, 'id_barang', 'id_barang');
@@ -80,7 +91,7 @@ class BarangKeluar extends Model
         return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
 
-    /** Admin yang memverifikasi (relasi "memverifikasi" pada ERD). */
+    /** Manager yang memverifikasi (relasi "memverifikasi" pada ERD). */
     public function verifikator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_verifikator', 'id_user');

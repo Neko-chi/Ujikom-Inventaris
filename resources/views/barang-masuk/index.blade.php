@@ -36,6 +36,7 @@
                         <th>Barang</th>
                         <th class="text-right">Jumlah</th>
                         <th>Sumber Barang</th>
+                        <th>Bukti</th>
                         <th>Kondisi</th>
                         <th>Dicatat oleh</th>
                         @if (auth()->user()->isAdmin())
@@ -58,6 +59,15 @@
                                 <span class="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-sm font-semibold text-emerald-700">+{{ $m->jumlah }} <span class="text-xs font-normal">{{ $m->barang->satuan }}</span></span>
                             </td>
                             <td>{{ $m->sumber_barang }}</td>
+                            <td>
+                                @if ($m->foto_url)
+                                    <a href="{{ $m->foto_url }}" target="_blank" rel="noopener" title="Lihat foto bukti">
+                                        <img src="{{ $m->foto_url }}" alt="Foto bukti" class="size-10 rounded-lg object-cover ring-1 ring-slate-200" loading="lazy">
+                                    </a>
+                                @else
+                                    <span class="text-xs text-slate-400">&mdash;</span>
+                                @endif
+                            </td>
                             <td><x-badge :nilai="$m->status_barang" /></td>
                             <td>
                                 <span class="inline-flex items-center gap-2 whitespace-nowrap">
@@ -80,7 +90,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <x-empty icon="masuk" judul="Belum ada data barang masuk" pesan="Data akan muncul setelah Operator mencatat penerimaan barang." />
                             </td>
                         </tr>

@@ -106,4 +106,30 @@ class KategoriBarangTest extends TestCase
             ->assertSee('Pulpen')
             ->assertDontSee('Penghapus');
     }
+
+    public function test_gambar_barang_dapat_diunggah_diganti_dan_dihapus(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Elektronik']);
+        $data = [
+            'id_kategori' => $kategori->id_kategori, 'nama_barang' => 'Proyektor Epson', 'stok' => 6,
+            'satuan' => 'unit', 'lokasi' => 'gudang utama', 'status_barang' => 'Baik',
+        ];
+
+        // Unggah saat tambah barang
+        $this->post('/barang', $data + ['gambar' => $this->gambarPalsu('proyektor.jpg')]);
+        $barang = Barang::firstOrFail();
+        $gambarPertama = $barang->gambar;
+        $this->disk()->assertExists($gambarPertama);
+        $this->get(route('barang.show', $barang))->assertSee($barang->gambar_url);
+
+        // Ganti gambar: file lama dihapus
+        $this->put(route('barang.update', $barang), $data + ['gambar' => $this->gambarPalsu('baru.jpg')]);
+        $this->disk()->assertMissing($gambarPertama);
+        $this->disk()->assertExists($barang->fresh()->gambar);
+
+        // Hapus gambar lewat centang "hapus gambar"
+        $this->put(route('barang.update', $barang), $data + ['hapus_gambar' => '1']);
+        $this->assertNull($barang->fresh()->gambar);
+        $this->assertSame([], $this->disk()->allFiles('barang'));
+    }
 }

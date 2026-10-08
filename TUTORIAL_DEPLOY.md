@@ -24,6 +24,7 @@ File pendukung deploy yang sudah ada di proyek:
 | `vercel.json` | Pengaturan Vercel: runtime PHP 8.3 (`vercel-php`), region Singapura, dan aturan alamat (file CSS/JS langsung dari `public/`, sisanya ke Laravel) |
 | `api/index.php` | Pintu masuk Laravel di Vercel. Mengarahkan cache ke `/tmp` (satu-satunya folder yang bisa ditulisi di Vercel), menyimpan sesi di cookie, dan mengirim log ke menu Logs |
 | `public/build/` | Hasil `npm run build` (CSS/JS). Ikut di-commit karena Vercel tidak membuild ulang tampilan |
+| `app/Services/GambarService.php`, `config/filesystems.php` | Penyimpanan gambar: folder lokal saat di laptop, Supabase Storage saat online (Bagian 2.7) |
 | `database/migrations/..._enable_row_level_security.php` | Mengamankan tabel di Supabase (penjelasan di Bagian 2.6) |
 | `Dockerfile`, `docker/` | Hanya untuk alternatif hosting berbasis Docker (Lampiran), tidak dipakai Vercel |
 
@@ -187,6 +188,38 @@ Supabase otomatis membuka tabel-tabel di database lewat REST API publiknya. Supa
 - Di Table Editor, tiap tabel akan berlabel **RLS enabled**. Kalau muncul peringatan "no policies", itu memang disengaja: tanpa policy berarti API publik tidak bisa mengakses apa pun.
 - Laravel tetap bisa membaca dan menulis data karena terhubung sebagai pemilik tabel.
 
+### 2.7 Penyimpanan gambar (Supabase Storage)
+
+Di Vercel, file yang diunggah **tidak bisa disimpan permanen**: satu-satunya folder yang bisa ditulisi (`/tmp`) dikosongkan sewaktu-waktu. Karena itu, foto profil, gambar barang, dan foto bukti disimpan di **Supabase Storage**. Laravel mengaksesnya lewat protokol S3, yang sudah didukung paket `league/flysystem-aws-s3-v3` di proyek.
+
+**a. Buat bucket**
+
+1. Di dashboard Supabase buka menu **Storage**, lalu klik **New bucket**.
+2. Nama bucket: `gambar`.
+3. Aktifkan **Public bucket** supaya gambar bisa ditampilkan di website.
+4. (Opsional) Di **Additional configuration**, batasi *Allowed MIME types* ke `image/jpeg, image/png, image/webp` dan *File size limit* ke 2 MB.
+5. Klik **Create**.
+
+**b. Buat kunci akses S3**
+
+1. Buka **Storage → Settings** (atau **Project Settings → Storage**), bagian **S3 Connection**.
+2. Catat **Endpoint** dan **Region** yang tertera, contohnya:
+   - Endpoint: `https://abcdefghijklmnop.storage.supabase.co/storage/v1/s3`
+   - Region: `ap-southeast-1`
+3. Di bagian **S3 Access Keys** klik **New access key**, beri nama `vercel`, lalu salin **Access key ID** dan **Secret access key**. Secret hanya ditampilkan sekali, jadi simpan baik-baik.
+
+**c. Alamat publik gambar**
+
+Gambar di bucket publik dapat dibuka lewat alamat berpola:
+
+```
+https://abcdefghijklmnop.supabase.co/storage/v1/object/public/gambar
+```
+
+`abcdefghijklmnop` adalah kode project, yang juga ada di username database (`postgres.abcdefghijklmnop`). Alamat ini dipakai untuk `AWS_URL` di langkah 3.3.
+
+> Di laptop (XAMPP) gambar tetap disimpan di folder `storage/app/public`. Jalankan `php artisan storage:link` sekali agar gambar bisa dibuka dari browser.
+
 ---
 
 ## Bagian 3 — Hosting Aplikasi di Vercel
@@ -235,12 +268,21 @@ DB_DATABASE=postgres
 DB_USERNAME=postgres.abcdefghijklmnop
 DB_PASSWORD=password-database-kamu
 DB_SSLMODE=require
+UPLOAD_DISK=s3
+AWS_ACCESS_KEY_ID=access-key-id-dari-langkah-2.7
+AWS_SECRET_ACCESS_KEY=secret-access-key-dari-langkah-2.7
+AWS_DEFAULT_REGION=ap-southeast-1
+AWS_BUCKET=gambar
+AWS_ENDPOINT=https://abcdefghijklmnop.storage.supabase.co/storage/v1/s3
+AWS_URL=https://abcdefghijklmnop.supabase.co/storage/v1/object/public/gambar
+AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
 
 Penjelasan singkat:
 
 - `APP_DEBUG=false`: detail error tidak ditampilkan ke pengunjung (wajib untuk server online).
 - `APP_URL`: alamat website. Kalau nama project berbeda, sesuaikan setelah deploy pertama (lihat langkah 3.5).
+- `UPLOAD_DISK=s3` dan semua `AWS_*`: gambar disimpan di Supabase Storage (langkah 2.7). Walaupun namanya "AWS", yang dipakai adalah Supabase, karena keduanya memakai protokol S3 yang sama.
 - Sesi login (cookie), cache, dan log **tidak perlu** diisi karena sudah diatur otomatis oleh `api/index.php`.
 
 ### 3.4 Deploy
@@ -248,7 +290,15 @@ Penjelasan singkat:
 1. Klik **Deploy**.
 2. Tunggu proses build (sekitar 1–3 menit). Di log akan terlihat `🐘 Installing Composer dependencies`.
 3. Setelah muncul halaman **Congratulations**, klik **Continue to Dashboard**, lalu **Visit**.
-4. Login dengan `admin_marco` / `@admin123` atau `operator_ohim` / `operator123`.
+4. Login dengan salah satu akun berikut:
+
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin_ohim` | `admin123` |
+| Manager | `manager_marco` | `@admin123` |
+| Operator | `operator_siti` | `operator123` |
+
+5. Uji unggah gambar: buka **Profil Saya** dan unggah foto. Kalau foto tampil, Supabase Storage sudah tersambung dengan benar.
 
 ### 3.5 Bila alamat website berbeda
 
@@ -290,6 +340,23 @@ Untuk mengembalikan data online ke kondisi data sampel (misalnya sebelum demo):
 php artisan migrate:fresh --seed --env=supabase
 ```
 
+### 4.1 Memperbarui website yang sudah online ke versi dengan role Manager & unggah gambar
+
+Kalau website sudah pernah di-deploy sebelum fitur ini ada, lakukan langkah berikut **sekali saja**:
+
+1. Siapkan Supabase Storage (langkah 2.7), lalu tambahkan variabel `UPLOAD_DISK` dan semua `AWS_*` di Vercel (langkah 3.3).
+2. Perbarui struktur database Supabase dari laptop. Pilih **salah satu**:
+   - Mengembalikan data ke data sampel dengan tiga akun baru (**disarankan** sebelum ujikom):
+     ```bash
+     php artisan migrate:fresh --seed --env=supabase
+     ```
+   - Mempertahankan data yang sudah ada (hanya menambah kolom foto dan role Manager):
+     ```bash
+     php artisan migrate --env=supabase
+     ```
+     Akun lama tetap memakai role lamanya, jadi ubah salah satunya menjadi **Manager** lewat menu **Pengguna**. Hanya Manager yang dapat memverifikasi barang keluar.
+3. Push kode terbaru (`npm run build`, `git add .`, `git commit`, `git push`), lalu tunggu Vercel selesai men-deploy.
+
 ---
 
 ## Bagian 5 — Mengatasi Masalah
@@ -304,6 +371,10 @@ php artisan migrate:fresh --seed --env=supabase
 | Vercel: `Vite manifest not found` | Folder `public/build` belum ikut di-push | Jalankan `npm run build`, lalu `git add .`, `git commit`, `git push` |
 | Halaman error 500 | Bermacam-macam | Buka deployment, lalu tab **Logs**. Bila perlu, sementara ubah `APP_DEBUG=true`, redeploy, lihat pesannya, lalu kembalikan ke `false` |
 | Tampilan tanpa CSS / berantakan | `public/build` belum terbaru atau `APP_URL` salah | Jalankan `npm run build` dan push ulang; cek `APP_URL` (langkah 3.5) |
+| Online: error 500 saat menyimpan data dengan gambar | Kunci S3 / endpoint salah, atau `UPLOAD_DISK` belum `s3` | Periksa ulang variabel `AWS_*` dan `UPLOAD_DISK=s3` (langkah 3.3), lalu **Redeploy**; lihat tab **Logs** untuk pesan errornya |
+| Online: gambar tersimpan tapi tidak tampil (ikon gambar rusak) | Bucket belum publik atau `AWS_URL` salah | Aktifkan **Public bucket** pada bucket `gambar`; pastikan `AWS_URL` berakhiran `/storage/v1/object/public/gambar` |
+| Lokal: gambar tidak tampil (404) | Folder `public/storage` belum terhubung | Jalankan `php artisan storage:link` |
+| `column "foto" does not exist` / role Manager ditolak | Database Supabase belum diperbarui | Jalankan `php artisan migrate --env=supabase` (langkah 4.1) |
 | `419 Page Expired` saat login | `APP_KEY` berubah atau cookie lama | Muat ulang halaman login; hapus cookie situs bila masih terjadi |
 | Website sangat lambat | Region tidak sama | Pastikan region Supabase **Singapore** (Vercel sudah diatur ke Singapura di `vercel.json`) |
 
@@ -312,11 +383,12 @@ php artisan migrate:fresh --seed --env=supabase
 ## Catatan Keamanan
 
 - **Jangan pernah** meng-commit `.env`, `.env.supabase`, password database, atau `APP_KEY`.
-- Akun sampel (`admin_marco`, `operator_ohim`) memakai password yang tertulis di dokumentasi. Kalau website akan dipakai sungguhan setelah ujikom, ganti password-nya lewat menu **Pengguna**.
+- Jangan pernah membagikan **Secret access key** Supabase Storage. Bila tersebar, hapus kuncinya di **Storage → Settings → S3 Access Keys**, buat kunci baru, lalu perbarui di Vercel.
+- Akun sampel (`admin_ohim`, `manager_marco`, `operator_siti`) memakai password yang tertulis di dokumentasi. Kalau website akan dipakai sungguhan setelah ujikom, ganti password-nya lewat menu **Pengguna**.
 - Bila password database Supabase pernah tersebar, segera reset di **Project Settings → Database**, lalu perbarui `DB_PASSWORD` di Vercel (lalu Redeploy) dan di `.env.supabase`.
 
 ---
 
 ## Lampiran — Alternatif Hosting Berbasis Docker
 
-Proyek juga menyertakan `Dockerfile` (PHP 8.2 + Apache + PostgreSQL) untuk hosting yang mendukung Docker, misalnya Render atau Koyeb. Layanan-layanan tersebut umumnya meminta verifikasi kartu, jadi tutorial ini memakai Vercel. Bila suatu saat memakai hosting Docker, isi environment variables yang sama seperti langkah 3.3, ditambah `LOG_CHANNEL=stderr`, `SESSION_DRIVER=cookie`, dan `RUN_MIGRATIONS=true` (migration otomatis dijalankan oleh `docker/entrypoint.sh` setiap deploy).
+Proyek juga menyertakan `Dockerfile` (PHP 8.2 + Apache + PostgreSQL) untuk hosting yang mendukung Docker, misalnya Render atau Koyeb. Layanan-layanan tersebut umumnya meminta verifikasi kartu, jadi tutorial ini memakai Vercel. Bila suatu saat memakai hosting Docker, isi environment variables yang sama seperti langkah 3.3, ditambah `LOG_CHANNEL=stderr`, `SESSION_DRIVER=cookie`, dan `RUN_MIGRATIONS=true`. Variabel `UPLOAD_DISK=s3` dan `AWS_*` tetap diperlukan karena penyimpanan container juga tidak permanen (migration otomatis dijalankan oleh `docker/entrypoint.sh` setiap deploy).

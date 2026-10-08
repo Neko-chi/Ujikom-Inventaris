@@ -5,7 +5,9 @@
 
 @section('aksi')
     <button type="button" onclick="window.print()" class="btn-secondary"><x-icon name="printer" />Cetak</button>
-    <a href="{{ route('barang.create') }}" class="btn-primary"><x-icon name="plus" />Tambah Barang</a>
+    @unless (auth()->user()->isManager())
+        <a href="{{ route('barang.create') }}" class="btn-primary"><x-icon name="plus" />Tambah Barang</a>
+    @endunless
 @endsection
 
 @section('content')
@@ -45,9 +47,13 @@
                         <tr>
                             <td>
                                 <div class="flex items-center gap-3">
-                                    <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 print:hidden">
-                                        <x-icon name="cube" class="size-5" />
-                                    </div>
+                                    @if ($b->gambar_url)
+                                        <img src="{{ $b->gambar_url }}" alt="{{ $b->nama_barang }}" class="size-11 shrink-0 rounded-xl object-cover ring-1 ring-slate-200 print:hidden" loading="lazy">
+                                    @else
+                                        <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400 print:hidden">
+                                            <x-icon name="cube" class="size-5" />
+                                        </div>
+                                    @endif
                                     <div>
                                         <a href="{{ route('barang.show', $b) }}" class="font-semibold whitespace-nowrap text-slate-900 hover:text-brand-700">{{ $b->nama_barang }}</a>
                                         <p class="mt-0.5"><span class="kode">{{ $b->kode_barang }}</span></p>

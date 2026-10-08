@@ -6,17 +6,24 @@
 @section('content')
     @php
         $user = auth()->user();
-        $aksiCepat = $user->isAdmin()
-            ? [
-                [route('barang-keluar.index', ['verifikasi' => 'Pending']), 'clipboard', 'Verifikasi permintaan'],
+        // Aksi cepat & keterangan peran berbeda untuk setiap role.
+        [$aksiCepat, $peran] = match ($user->role) {
+            \App\Models\User::ROLE_ADMIN => [[
                 [route('barang.create'), 'plus', 'Tambah barang'],
+                [route('kategori.index'), 'tag', 'Kelola kategori'],
                 [route('user.create'), 'users', 'Tambah pengguna'],
-            ]
-            : [
+            ], 'mengelola pengguna, kategori, data barang, dan mengoreksi barang masuk'],
+            \App\Models\User::ROLE_MANAGER => [[
+                [route('barang-keluar.index', ['verifikasi' => 'Pending']), 'clipboard', 'Verifikasi permintaan'],
+                [route('barang.index'), 'cube', 'Lihat data barang'],
+                [route('barang-masuk.index'), 'masuk', 'Lihat barang masuk'],
+            ], 'memverifikasi (menyetujui / menolak) barang keluar dan memantau seluruh data'],
+            default => [[
                 [route('barang-masuk.create'), 'masuk', 'Catat barang masuk'],
                 [route('barang-keluar.create'), 'keluar', 'Ajukan barang keluar'],
                 [route('barang.create'), 'plus', 'Tambah barang'],
-            ];
+            ], 'mencatat barang masuk dan mengajukan barang keluar'],
+        };
     @endphp
 
     {{-- Sapaan dan aksi cepat --}}
@@ -30,18 +37,14 @@
             <p class="text-sm font-medium text-brand-100">{{ $salam }},</p>
             <h2 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{{ $user->nama_user }}</h2>
             <p class="mt-2 max-w-xl text-sm text-brand-100/90">
-                @if ($user->isAdmin())
-                    Anda masuk sebagai <strong class="text-white">Admin</strong>: memverifikasi barang keluar serta mengelola data master dan pengguna.
-                @else
-                    Anda masuk sebagai <strong class="text-white">Operator</strong>: mencatat barang masuk dan mengajukan barang keluar.
-                @endif
+                Anda masuk sebagai <strong class="text-white">{{ $user->role }}</strong>: {{ $peran }}.
             </p>
 
             <div class="mt-6 flex flex-wrap gap-2">
                 @foreach ($aksiCepat as [$url, $ikon, $label])
                     <a href="{{ $url }}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20">
                         <x-icon :name="$ikon" class="size-4" />{{ $label }}
-                        @if ($loop->first && $user->isAdmin() && $ringkasan['menunggu_verifikasi'] > 0)
+                        @if ($loop->first && $user->isManager() && $ringkasan['menunggu_verifikasi'] > 0)
                             <span class="rounded-full bg-amber-400 px-1.5 text-xs font-bold text-amber-950">{{ $ringkasan['menunggu_verifikasi'] }}</span>
                         @endif
                     </a>

@@ -72,12 +72,25 @@
                     </div>
                 </div>
             </dl>
+
+            {{-- Foto bukti yang diunggah Operator saat pengajuan --}}
+            <div class="border-t border-slate-100 p-5">
+                <p class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900"><x-icon name="photo" class="size-5 text-slate-400" />Foto Bukti Permintaan</p>
+                @if ($k->foto_url)
+                    <a href="{{ $k->foto_url }}" target="_blank" rel="noopener" title="Buka ukuran penuh" class="group block w-fit">
+                        <img src="{{ $k->foto_url }}" alt="Foto bukti permintaan" class="max-h-80 rounded-xl object-contain ring-1 ring-slate-200 transition group-hover:ring-brand-300">
+                    </a>
+                    <p class="hint">Klik gambar untuk melihat ukuran penuh.</p>
+                @else
+                    <p class="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">Tidak ada foto. Permintaan ini berasal dari data sampel sebelum fitur foto bukti diwajibkan.</p>
+                @endif
+            </div>
         </div>
 
         {{-- Panel verifikasi --}}
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Verifikasi Admin</h3>
+                <h3 class="card-title">Verifikasi Manager</h3>
             </div>
 
             <div class="p-5">
@@ -109,7 +122,7 @@
                             <dd class="mt-1 rounded-xl bg-slate-50 p-3 text-slate-700">{{ $k->catatan_verifikasi ?: 'Tidak ada catatan.' }}</dd>
                         </div>
                     </dl>
-                @elseif (auth()->user()->isAdmin())
+                @elseif (auth()->user()->isManager())
                     @unless ($stokCukup)
                         <div class="mb-4 flex gap-2 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">
                             <x-icon name="warning" class="size-5" />
@@ -138,7 +151,7 @@
                             <x-icon name="clock" class="size-6" />
                         </div>
                         <p class="font-semibold text-slate-800">Menunggu verifikasi</p>
-                        <p class="mt-1 text-sm text-slate-500">Stok belum dikurangi sampai Admin menyetujui permintaan ini.</p>
+                        <p class="mt-1 text-sm text-slate-500">Stok belum dikurangi sampai Manager menyetujui permintaan ini.</p>
                     </div>
                 @endif
             </div>

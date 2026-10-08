@@ -45,7 +45,7 @@ class UserTest extends TestCase
 
         $this->post('/user', [
             'nama_user' => 'X', 'username' => 'operator_ohim',
-            'password' => 'rahasia123', 'password_confirmation' => 'rahasia123', 'role' => 'Manager',
+            'password' => 'rahasia123', 'password_confirmation' => 'rahasia123', 'role' => 'Kepala Sekolah',
         ])->assertSessionHasErrors(['username', 'role']);
     }
 

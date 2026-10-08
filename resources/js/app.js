@@ -20,6 +20,33 @@ document.addEventListener('DOMContentLoaded', () => {
         tombol.addEventListener('click', () => tombol.closest('[data-alert]')?.remove());
     });
 
+    // Pratinjau gambar sebelum diunggah (komponen <x-unggah-gambar>)
+    document.querySelectorAll('[data-pratinjau]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const nama = input.dataset.pratinjau;
+            const file = input.files[0];
+            const gambar = document.getElementById(`pratinjau-${nama}`);
+            const kosong = document.getElementById(`kosong-${nama}`);
+            const namaFile = document.getElementById(`nama-file-${nama}`);
+
+            if (!file) {
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Ukuran gambar melebihi 2 MB. Silakan pilih gambar yang lebih kecil.');
+                input.value = '';
+                return;
+            }
+
+            gambar.src = URL.createObjectURL(file);
+            gambar.classList.remove('hidden');
+            kosong?.classList.add('hidden');
+            if (namaFile) {
+                namaFile.textContent = file.name;
+            }
+        });
+    });
+
     // Tampilkan / sembunyikan password
     document.querySelectorAll('[data-toggle-password]').forEach((tombol) => {
         tombol.addEventListener('click', () => {

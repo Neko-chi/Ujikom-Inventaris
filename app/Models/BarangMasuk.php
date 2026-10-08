@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\GambarService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $jumlah
  * @property string $sumber_barang
  * @property string $status_barang
+ * @property string|null $foto path foto bukti
+ * @property-read string|null $foto_url
  */
 class BarangMasuk extends Model
 {
@@ -32,6 +36,7 @@ class BarangMasuk extends Model
         'jumlah',
         'sumber_barang',
         'status_barang',
+        'foto',
     ];
 
     protected function casts(): array
@@ -42,6 +47,12 @@ class BarangMasuk extends Model
             'tanggal' => 'date',
             'jumlah' => 'integer',
         ];
+    }
+
+    /** Alamat foto bukti, dipakai sebagai $transaksi->foto_url. */
+    protected function fotoUrl(): Attribute
+    {
+        return Attribute::get(fn () => app(GambarService::class)->url($this->foto));
     }
 
     public function barang(): BelongsTo

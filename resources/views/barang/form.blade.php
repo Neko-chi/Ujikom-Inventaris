@@ -9,7 +9,7 @@
 @endsection
 
 @section('content')
-    <form action="{{ $barang->exists ? route('barang.update', $barang) : route('barang.store') }}" method="POST" class="card max-w-3xl">
+    <form action="{{ $barang->exists ? route('barang.update', $barang) : route('barang.store') }}" method="POST" enctype="multipart/form-data" class="card max-w-3xl">
         @csrf
         @if ($barang->exists)
             @method('PUT')
@@ -72,6 +72,10 @@
                 <label for="lokasi" class="label">Lokasi Penyimpanan</label>
                 <input id="lokasi" name="lokasi" type="text" maxlength="100" class="input" value="{{ old('lokasi', $barang->lokasi) }}" placeholder="Contoh: gudang utama" required>
                 <x-error field="lokasi" />
+            </div>
+
+            <div class="sm:col-span-2">
+                <x-unggah-gambar name="gambar" label="Gambar Barang" :url="$barang->gambar_url" hapus="hapus_gambar" />
             </div>
         </div>
 

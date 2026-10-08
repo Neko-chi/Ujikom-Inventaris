@@ -34,4 +34,9 @@ class UserFactory extends Factory
     {
         return $this->state(fn () => ['role' => User::ROLE_OPERATOR]);
     }
+
+    public function manager(): static
+    {
+        return $this->state(fn () => ['role' => User::ROLE_MANAGER]);
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Models\User;
+use App\Services\GambarService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -70,6 +71,7 @@ class UserController extends Controller
         }
 
         $user->delete();
+        app(GambarService::class)->hapus($user->foto);
 
         return redirect()->route('user.index')->with('sukses', 'Pengguna berhasil dihapus.');
     }

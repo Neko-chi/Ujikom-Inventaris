@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Ajukan Barang Keluar')
-@section('subtitle', 'Permintaan akan diverifikasi oleh Admin sebelum stok dikurangi.')
+@section('subtitle', 'Permintaan akan diverifikasi oleh Manager sebelum stok dikurangi.')
 
 @section('aksi')
     <a href="{{ route('barang-keluar.index') }}" class="btn-secondary"><x-icon name="arrow-left" />Kembali</a>
@@ -10,10 +10,10 @@
 @section('content')
     <div class="mb-6 flex max-w-3xl gap-3 rounded-xl border border-brand-100 bg-brand-50 p-4 text-sm text-brand-900">
         <x-icon name="info" class="size-5 text-brand-500" />
-        <p>Permintaan akan berstatus <strong>Pending</strong> dan stok belum berkurang sampai Admin memberikan verifikasi <strong>Disetujui</strong>. Pengajuan tidak dapat diubah setelah dikirim, jadi periksa kembali datanya.</p>
+        <p>Permintaan akan berstatus <strong>Pending</strong> dan stok belum berkurang sampai Manager memberikan verifikasi <strong>Disetujui</strong>. Pengajuan tidak dapat diubah setelah dikirim, jadi periksa kembali datanya.</p>
     </div>
 
-    <form action="{{ route('barang-keluar.store') }}" method="POST" class="card max-w-3xl">
+    <form action="{{ route('barang-keluar.store') }}" method="POST" enctype="multipart/form-data" class="card max-w-3xl">
         @csrf
 
         <div class="card-header">
@@ -74,6 +74,11 @@
                     @endforeach
                 </select>
                 <x-error field="status_barang" />
+            </div>
+
+            <div class="sm:col-span-2">
+                <x-unggah-gambar name="foto" label="Foto Bukti Permintaan" wajib
+                                 keterangan="Wajib. Misalnya foto barang yang akan dikeluarkan atau surat permintaan. JPG/PNG/WEBP, maks. 2 MB." />
             </div>
         </div>
 

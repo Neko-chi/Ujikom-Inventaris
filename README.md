@@ -15,7 +15,9 @@ php artisan migrate:fresh --seed
 php artisan serve
 ```
 
-Login: `admin_marco` / `@admin123` (Admin), `operator_ohim` / `operator123` (Operator).
+Login: `admin_ohim` / `admin123` (Admin), `manager_marco` / `@admin123` (Manager), `operator_siti` / `operator123` (Operator).
+
+Sebelum menjalankan pertama kali, hubungkan folder gambar: `php artisan storage:link`.
 
 ## Pengujian
 

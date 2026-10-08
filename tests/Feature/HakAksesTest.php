@@ -15,15 +15,28 @@ class HakAksesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_dan_operator_dapat_membuka_halaman_daftar(): void
+    private function buatPermintaanPending(User $operator): BarangKeluar
     {
-        foreach ([User::factory()->admin()->create(), User::factory()->operator()->create()] as $user) {
+        return BarangKeluar::create([
+            'id_barang' => $this->buatBarang()->id_barang,
+            'id_user' => $operator->id_user,
+            'tanggal' => '2026-10-08',
+            'jumlah' => 1,
+            'pemohon' => 'Budi',
+            'tujuan' => 'Lab TKJ 3',
+            'status_barang' => 'Baik',
+        ]);
+    }
+
+    public function test_semua_role_dapat_membuka_halaman_daftar_dan_profil(): void
+    {
+        foreach ([User::factory()->admin()->create(), User::factory()->operator()->create(), User::factory()->manager()->create()] as $user) {
             $this->actingAs($user);
             $this->get('/dashboard')->assertOk();
             $this->get('/barang')->assertOk();
-            $this->get('/barang/create')->assertOk();
             $this->get('/barang-masuk')->assertOk();
             $this->get('/barang-keluar')->assertOk();
+            $this->get('/profil')->assertOk();
         }
     }
 
@@ -51,32 +64,45 @@ class HakAksesTest extends TestCase
         $this->delete(route('barang-masuk.destroy', $masuk))->assertForbidden();
     }
 
-    public function test_admin_tidak_dapat_mencatat_transaksi(): void
+    public function test_admin_dan_manager_tidak_dapat_mencatat_transaksi(): void
     {
-        $this->actingAs(User::factory()->admin()->create());
-
-        // Pemisahan tugas: pencatat transaksi (Operator) berbeda dengan verifikator (Admin).
-        $this->get('/barang-masuk/create')->assertForbidden();
-        $this->get('/barang-keluar/create')->assertForbidden();
+        // Pemisahan tugas: hanya Operator yang mencatat transaksi.
+        foreach ([User::factory()->admin()->create(), User::factory()->manager()->create()] as $user) {
+            $this->actingAs($user);
+            $this->get('/barang-masuk/create')->assertForbidden();
+            $this->get('/barang-keluar/create')->assertForbidden();
+        }
     }
 
-    public function test_operator_tidak_dapat_memverifikasi_barang_keluar(): void
+    public function test_manager_hanya_dapat_melihat_dan_tidak_dapat_menambah_atau_mengubah_data(): void
+    {
+        $this->actingAs(User::factory()->manager()->create());
+        $barang = $this->buatBarang();
+
+        $this->get(route('barang.show', $barang))->assertOk();
+        $this->get('/barang/create')->assertForbidden();
+        $this->post('/barang', [])->assertForbidden();
+        $this->get(route('barang.edit', $barang))->assertForbidden();
+        $this->get('/kategori')->assertForbidden();
+        $this->get('/user')->assertForbidden();
+    }
+
+    public function test_hanya_manager_yang_dapat_memverifikasi_barang_keluar(): void
     {
         $operator = User::factory()->operator()->create();
-        $keluar = BarangKeluar::create([
-            'id_barang' => $this->buatBarang()->id_barang,
-            'id_user' => $operator->id_user,
-            'tanggal' => '2026-10-08',
-            'jumlah' => 1,
-            'pemohon' => 'Budi',
-            'tujuan' => 'Lab TKJ 3',
-            'status_barang' => 'Baik',
-        ]);
+        $keluar = $this->buatPermintaanPending($operator);
 
-        $this->actingAs($operator)
-            ->patch(route('barang-keluar.setujui', $keluar))
-            ->assertForbidden();
+        foreach ([$operator, User::factory()->admin()->create()] as $user) {
+            $this->actingAs($user)->patch(route('barang-keluar.setujui', $keluar))->assertForbidden();
+            $this->actingAs($user)->patch(route('barang-keluar.tolak', $keluar), ['catatan_verifikasi' => 'x'])->assertForbidden();
+        }
 
         $this->assertSame(BarangKeluar::PENDING, $keluar->fresh()->verifikasi);
+
+        $this->actingAs(User::factory()->manager()->create())
+            ->patch(route('barang-keluar.setujui', $keluar))
+            ->assertSessionHas('sukses');
+
+        $this->assertSame(BarangKeluar::DISETUJUI, $keluar->fresh()->verifikasi);
     }
 }

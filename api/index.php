@@ -5,7 +5,8 @@
  *
  * Penyimpanan file di Vercel bersifat read-only kecuali folder /tmp, sehingga
  * file cache Laravel (konfigurasi, route, view hasil kompilasi) diarahkan ke /tmp.
- * Sesi disimpan di cookie terenkripsi dan log dikirim ke stderr (tampil di menu Logs Vercel).
+ * Sesi disimpan di cookie terenkripsi, log dikirim ke stderr (tampil di menu Logs Vercel),
+ * dan gambar unggahan disimpan di Supabase Storage (UPLOAD_DISK=s3).
  */
 $pengaturanVercel = [
     'APP_CONFIG_CACHE' => '/tmp/config.php',
@@ -21,6 +22,8 @@ $bawaan = [
     'SESSION_DRIVER' => 'cookie',
     'CACHE_STORE' => 'array',
     'LOG_CHANNEL' => 'stderr',
+    // Gambar unggahan disimpan di Supabase Storage (S3), karena folder di Vercel tidak permanen.
+    'UPLOAD_DISK' => 's3',
 ];
 
 foreach ($pengaturanVercel + $bawaan as $nama => $nilai) {

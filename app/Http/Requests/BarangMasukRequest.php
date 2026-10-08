@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Barang;
+use App\Services\GambarService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -24,6 +25,7 @@ class BarangMasukRequest extends FormRequest
             'jumlah' => ['required', 'integer', 'min:1'],
             'sumber_barang' => ['required', 'string', 'max:255'],
             'status_barang' => ['required', Rule::in(Barang::STATUS_BARANG)],
+            'foto' => ['nullable', ...GambarService::ATURAN],
         ];
     }
 
@@ -33,6 +35,7 @@ class BarangMasukRequest extends FormRequest
             'id_barang' => 'barang',
             'sumber_barang' => 'sumber barang',
             'status_barang' => 'kondisi barang',
+            'foto' => 'foto bukti',
         ];
     }
 }

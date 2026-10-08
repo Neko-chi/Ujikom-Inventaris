@@ -37,6 +37,7 @@
                         <th>Tanggal</th>
                         <th>Barang</th>
                         <th class="text-right">Jumlah</th>
+                        <th>Bukti</th>
                         <th>Pemohon</th>
                         <th>Verifikasi</th>
                         <th class="text-right print:hidden">Aksi</th>
@@ -55,6 +56,15 @@
                             </td>
                             <td class="text-right font-semibold whitespace-nowrap text-slate-900">{{ $k->jumlah }} <span class="text-xs font-normal text-slate-400">{{ $k->barang->satuan }}</span></td>
                             <td>
+                                @if ($k->foto_url)
+                                    <a href="{{ $k->foto_url }}" target="_blank" rel="noopener" title="Lihat foto bukti">
+                                        <img src="{{ $k->foto_url }}" alt="Foto bukti" class="size-10 rounded-lg object-cover ring-1 ring-slate-200" loading="lazy">
+                                    </a>
+                                @else
+                                    <span class="text-xs text-slate-400">&mdash;</span>
+                                @endif
+                            </td>
+                            <td>
                                 <p class="font-medium text-slate-800">{{ $k->pemohon }}</p>
                                 <p class="flex items-center gap-1 text-xs text-slate-500"><x-icon name="map-pin" class="size-3.5" />{{ $k->tujuan }}</p>
                             </td>
@@ -66,7 +76,7 @@
                             </td>
                             <td class="print:hidden">
                                 <div class="flex justify-end">
-                                    @if ($k->isPending() && auth()->user()->isAdmin())
+                                    @if ($k->isPending() && auth()->user()->isManager())
                                         <a href="{{ route('barang-keluar.show', $k) }}" class="btn-primary btn-sm"><x-icon name="clipboard" />Verifikasi</a>
                                     @else
                                         <a href="{{ route('barang-keluar.show', $k) }}" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
@@ -76,7 +86,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6">
+                            <td colspan="7">
                                 <x-empty icon="keluar" judul="Tidak ada permintaan" pesan="Belum ada permintaan barang keluar dengan status ini." />
                             </td>
                         </tr>

@@ -9,7 +9,7 @@
 @endsection
 
 @section('content')
-    <form action="{{ $barangMasuk->exists ? route('barang-masuk.update', $barangMasuk) : route('barang-masuk.store') }}" method="POST" class="card max-w-3xl">
+    <form action="{{ $barangMasuk->exists ? route('barang-masuk.update', $barangMasuk) : route('barang-masuk.store') }}" method="POST" enctype="multipart/form-data" class="card max-w-3xl">
         @csrf
         @if ($barangMasuk->exists)
             @method('PUT')
@@ -70,6 +70,11 @@
                     @endforeach
                 </select>
                 <x-error field="status_barang" />
+            </div>
+
+            <div class="sm:col-span-2">
+                <x-unggah-gambar name="foto" label="Foto Bukti Penerimaan" :url="$barangMasuk->foto_url"
+                                 keterangan="Misalnya foto nota, surat serah terima, atau barang yang diterima. JPG/PNG/WEBP, maks. 2 MB." />
             </div>
         </div>
 

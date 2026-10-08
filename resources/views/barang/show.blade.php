@@ -14,9 +14,16 @@
     {{-- Ringkasan barang --}}
     <div class="card mb-6 overflow-hidden">
         <div class="flex flex-wrap items-center gap-5 p-6">
-            <div class="flex size-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100">
-                <x-icon name="cube" class="size-8" />
-            </div>
+            @if ($barang->gambar_url)
+                <a href="{{ $barang->gambar_url }}" target="_blank" rel="noopener" title="Lihat gambar ukuran penuh">
+                    <img src="{{ $barang->gambar_url }}" alt="{{ $barang->nama_barang }}" class="size-28 rounded-2xl object-cover ring-1 ring-slate-200">
+                </a>
+            @else
+                <div class="flex size-28 flex-col items-center justify-center gap-1 rounded-2xl bg-slate-50 text-slate-400 ring-1 ring-slate-200">
+                    <x-icon name="photo" class="size-8" />
+                    <span class="text-[11px]">Belum ada gambar</span>
+                </div>
+            @endif
             <div class="flex-1">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="kode">{{ $barang->kode_barang }}</span>

@@ -47,11 +47,8 @@
                     </div>
                 @else
                     {{-- Pilihan role dalam bentuk kartu --}}
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        @foreach ([
-                            \App\Models\User::ROLE_ADMIN => ['shield', 'Pengawas & verifikator barang keluar'],
-                            \App\Models\User::ROLE_OPERATOR => ['clipboard', 'Petugas pencatat transaksi gudang'],
-                        ] as $role => [$ikon, $keterangan])
+                    <div class="grid gap-3 sm:grid-cols-3">
+                        @foreach (\App\Models\User::INFO_ROLE as $role => ['ikon' => $ikon, 'keterangan' => $keterangan])
                             <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-slate-300 has-checked:border-brand-500 has-checked:bg-brand-50/50 has-checked:ring-4 has-checked:ring-brand-500/10">
                                 <input type="radio" name="role" value="{{ $role }}" class="mt-1 size-4 accent-brand-600" @checked(old('role', $user->role) === $role) required>
                                 <div>
