@@ -341,7 +341,7 @@ Laravel memakai pola **Model - View - Controller**. Alur satu permintaan: Browse
 | 5 | J.620100.017.02 | Mengimplementasikan Pemrograman Terstruktur | Percabangan (`if/elseif/else`, `match` pada komponen badge dan dashboard), perulangan (`foreach`, `@foreach`, `@forelse`), fungsi/method kecil dengan satu tugas (`tambah`, `kurangi`, `cukup`, `prefixKategori`, `generateKode`, `simpanVerifikasi`, `punyaTransaksi`, `inisial`, `salam`, `simpan`, `ganti`, `hapus`). Contoh percabangan bertingkat: `DashboardController::salam()` menentukan Selamat pagi/siang/sore/malam dari jam. |
 | 6 | J.620100.023.02 | Membuat Dokumen Kode Program | Komentar PHPDoc di setiap class dan method penting (`@property`, `@throws`), komentar Blade, serta dokumen ini. |
 | 7 | J.620100.025.02 | Melakukan Debugging | Bagian 9: daftar bug yang ditemukan beserta perbaikannya dan teknik debugging yang dipakai. |
-| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | Bagian 10: 62 test (unit + fitur) dengan PHPUnit, semua lulus di SQLite dan PostgreSQL. |
+| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | Bagian 10: 65 test (unit + fitur) dengan PHPUnit, semua lulus di SQLite dan PostgreSQL. |
 
 ## 8. Penjelasan Kode Penting
 
@@ -400,6 +400,7 @@ Contoh `BarangKeluarRequest`: aturan dasar (`required`, `integer`, `min:1`, `exi
 | 11 | `config/app.php` | Zona waktu aplikasi masih `UTC` | Verifikasi yang dilakukan pukul 00.00–07.00 WIB tercatat dengan tanggal kemarin; salam dan tanggal di dashboard tidak sesuai | Zona waktu diubah ke `Asia/Jakarta` lewat `APP_TIMEZONE`, bahasa tanggal ke Indonesia (`APP_LOCALE=id`) |
 | 12 | `BarangKeluarController::setujui()` | Status Pending dicek di luar transaksi database (*race condition*) | Bila dua orang menekan Setujui hampir bersamaan, keduanya lolos pengecekan dan stok berkurang dua kali | Baris permintaan dikunci dengan `lockForUpdate()` lalu statusnya dicek ulang di dalam `DB::transaction()` (method `kunciPermintaanPending`) |
 | 13 | Migration `tambah_role_manager_dan_foto` | Mengubah pilihan enum `role` dengan `->change()` menghasilkan SQL tidak valid di PostgreSQL (`syntax error at or near "check"`) | Database online (Supabase) gagal diperbarui, padahal di MySQL berhasil | Di PostgreSQL, CHECK constraint `user_role_check` dihapus lalu dibuat ulang secara manual; di MySQL/SQLite tetap memakai `->change()`. Diuji dari skema lama, rollback, dan upgrade ulang |
+| 14 | Formulir yang dibuka terlalu lama | Token CSRF kedaluwarsa setelah masa sesi (120 menit) habis | Pengguna mendapat halaman "419 Page Expired" yang membingungkan dan isian formulir hilang | Error 419 ditangani di `bootstrap/app.php`: pengguna dikembalikan ke halaman sebelumnya dengan pesan jelas dan isian tetap terisi (kecuali password dan file) |
 
 ### 9.2 Teknik Debugging yang Digunakan
 
@@ -426,9 +427,10 @@ Perintah: `php artisan test`
 | `tests/Feature/UserTest.php` | Tambah Operator (password ter-hash), username unik & role valid, ubah tanpa ganti password, Admin tidak bisa ubah role/hapus akun sendiri, pilihan role terkunci di form akun sendiri, pengguna bertransaksi tidak bisa dihapus, pengguna tanpa transaksi bisa dihapus | 7 |
 | `tests/Feature/ProfilTest.php` | Ubah nama & unggah foto profil, ganti foto menghapus foto lama, hapus foto, ganti password wajib password lama benar, profil tidak bisa mengubah role/username | 5 |
 | `tests/Feature/KategoriBarangTest.php` | Tambah kategori, validasi unik & maks 20 karakter, kategori terpakai tidak bisa dihapus, kode otomatis, ubah barang tidak mengubah stok, validasi status, pencarian, unggah/ganti/hapus gambar barang | 8 |
+| `tests/Feature/SesiKedaluwarsaTest.php` | Token kedaluwarsa dikembalikan ke halaman sebelumnya dengan pesan, password tidak ikut disimpan, permintaan JSON tetap 419 | 3 |
 | `tests/Feature/TransaksiBarangTest.php` | Barang masuk menambah stok, koreksi/hapus barang masuk, hapus ditolak bila stok terpakai, jumlah minimal 1, pengajuan Pending, pemohon wajib, melebihi stok ditolak, setujui mencatat verifikator, tolak wajib alasan, persetujuan gagal saat stok kurang, tidak bisa verifikasi ulang, detail menampilkan pengaju & verifikator, foto keluar wajib, foto tersimpan & tampil, file bukan gambar / lebih dari 2 MB ditolak, foto barang masuk opsional & ikut terhapus, foto baru dihapus bila koreksi gagal | 18 |
 
-Hasil terakhir: **Tests: 62 passed (203 assertions)**, lulus di SQLite (lokal) dan PostgreSQL (seperti database online).
+Hasil terakhir: **Tests: 65 passed (214 assertions)**, lulus di SQLite (lokal) dan PostgreSQL (seperti database online).
 
 Contoh test case:
 
@@ -454,6 +456,6 @@ Contoh test case:
 8. Logout, login sebagai **admin_ohim**. Menu **Pengguna**: tunjukkan tiga role; buka Ubah pada akun sendiri dan tunjukkan pilihan role terkunci.
 9. Menu **Barang Masuk**: tunjukkan Admin dapat mengoreksi data, tetapi tidak dapat mencatat barang masuk baru.
 10. Tunjukkan tombol **Cetak** pada daftar barang.
-11. Di terminal jalankan `php artisan test` dan tunjukkan 62 test lulus.
+11. Di terminal jalankan `php artisan test` dan tunjukkan 65 test lulus.
 
 Untuk mengembalikan data ke kondisi awal sebelum demo: `php artisan migrate:fresh --seed`.

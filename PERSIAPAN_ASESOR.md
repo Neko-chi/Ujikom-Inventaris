@@ -32,7 +32,7 @@ Contoh yang bisa diucapkan:
 >
 > Aturan utamanya: stok **bertambah** saat barang masuk dicatat, dan baru **berkurang** setelah Manager menyetujui barang keluar. Setiap verifikasi mencatat siapa Manager-nya, tanggalnya, dan alasannya.
 >
-> Database berisi 5 tabel: `user`, `kategori`, `barang`, `barang_masuk`, `barang_keluar`. Program diuji dengan **62 test PHPUnit** yang semuanya lulus."
+> Database berisi 5 tabel: `user`, `kategori`, `barang`, `barang_masuk`, `barang_keluar`. Program diuji dengan **65 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo singkat
 
@@ -44,7 +44,7 @@ Contoh yang bisa diucapkan:
 6. Logout, login sebagai **manager_marco** (`@admin123`). Ada tanda jumlah Pending di menu; tidak ada tombol tambah barang.
 7. Buka permintaan → lihat foto bukti → coba **Tolak** tanpa alasan (ditolak), lalu **Setujui** (stok berkurang, verifikator tercatat).
 8. Login sebagai **admin_ohim** (`admin123`) → menu **Pengguna** menampilkan tiga role.
-9. Terminal: `php artisan test` → 62 test lulus.
+9. Terminal: `php artisan test` → 65 test lulus.
 
 ---
 
@@ -389,7 +389,7 @@ Membuka log di hosting untuk melihat pesan error aslinya. Pengalaman nyata saat 
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan setiap bagian program bekerja sesuai harapan.
 
-**Bukti di program:** 62 test (203 assertion) dengan **PHPUnit**, semuanya lulus di SQLite (lokal) dan PostgreSQL (database online).
+**Bukti di program:** 65 test (214 assertion) dengan **PHPUnit**, semuanya lulus di SQLite (lokal) dan PostgreSQL (database online).
 
 | File | Jenis | Jumlah | Yang diuji |
 |---|---|---|---|
@@ -400,6 +400,7 @@ Membuka log di hosting untuk melihat pesan error aslinya. Pengalaman nyata saat 
 | `tests/Feature/ProfilTest.php` | Fitur | 5 | Ubah profil, unggah/ganti/hapus foto, ganti password |
 | `tests/Feature/UserTest.php` | Fitur | 7 | Kelola pengguna dan pengamanannya |
 | `tests/Feature/KategoriBarangTest.php` | Fitur | 8 | CRUD kategori & barang, validasi, pencarian, gambar barang |
+| `tests/Feature/SesiKedaluwarsaTest.php` | Fitur | 3 | Penanganan error 419 (token kedaluwarsa) |
 | `tests/Feature/TransaksiBarangTest.php` | Fitur | 18 | Barang masuk, barang keluar, verifikasi, foto bukti |
 
 **Pertanyaan yang mungkin muncul:**
@@ -485,7 +486,7 @@ Supaya riwayat transaksi tetap utuh. Di database, foreign key memakai `ON DELETE
 Kode disimpan di GitHub, aplikasi dijalankan di Vercel (runtime PHP), dan database memakai PostgreSQL di Supabase. Setiap `git push`, Vercel otomatis men-deploy versi terbaru. Detailnya ada di `TUTORIAL_DEPLOY.md`.
 
 **13. Kenapa lokal pakai MySQL tapi online pakai PostgreSQL? Tidak masalah?**
-Laravel mendukung keduanya; cukup mengganti pengaturan koneksi. Untuk memastikannya, semua 62 test sudah dijalankan di PostgreSQL dan lulus. Dua perbedaan yang ditemukan dan diperbaiki: `LIKE` di PostgreSQL membedakan huruf besar/kecil (diganti `whereLike()`), dan cara mengubah pilihan enum berbeda (ditangani khusus di migration).
+Laravel mendukung keduanya; cukup mengganti pengaturan koneksi. Untuk memastikannya, semua test sudah dijalankan di PostgreSQL dan lulus. Dua perbedaan yang ditemukan dan diperbaiki: `LIKE` di PostgreSQL membedakan huruf besar/kecil (diganti `whereLike()`), dan cara mengubah pilihan enum berbeda (ditangani khusus di migration).
 
 **14. Apa yang ingin kamu kembangkan selanjutnya?**
 Fitur peminjaman dan pengembalian barang, pencatatan kondisi per unit barang, laporan per periode dalam bentuk PDF/Excel, notifikasi ke Manager saat ada permintaan baru, kompresi otomatis gambar yang diunggah, dan riwayat perubahan data (*audit log*).
@@ -517,6 +518,9 @@ Jawab jujur dengan batasan sistem: kondisi barang per jenis (bukan per unit), be
 
 **8. "Bagaimana kalau ada yang mengunggah file berbahaya, misalnya script PHP yang diganti nama menjadi .jpg?"**
 Ditolak. Aturan `image` dan `mimes` memeriksa **isi file** (MIME type) dengan ekstensi `fileinfo`, bukan hanya nama berkasnya. File yang lolos disimpan dengan **nama acak** dan ekstensi yang ditentukan dari jenis isinya, di folder penyimpanan, sehingga tidak dijalankan sebagai program. Ukuran juga dibatasi 2 MB. Test `test_file_bukan_gambar_atau_lebih_dari_2mb_ditolak` membuktikan PDF dan gambar 3 MB ditolak.
+
+**10. "Apa itu error 419 Page Expired? Pernah terjadi?"**
+Pernah. Error 419 muncul ketika token CSRF di formulir sudah tidak cocok dengan sesi, biasanya karena halaman dibiarkan terbuka lebih lama dari masa berlaku sesi (120 menit). Awalnya pengguna melihat halaman "Page Expired" dan isian formulir hilang. Sekarang error tersebut ditangani di `bootstrap/app.php`: pengguna dikembalikan ke halaman sebelumnya dengan pesan "Halaman sudah terlalu lama dibuka...", isian tetap terisi (kecuali password dan file), lalu cukup menekan kirim sekali lagi. Ini dibuktikan oleh `SesiKedaluwarsaTest`.
 
 **9. "Kalau foto diganti, apakah file lamanya menumpuk?"**
 Tidak. `GambarService::ganti()` menyimpan file baru lalu menghapus file lama. Saat data dihapus, fotonya ikut dihapus. Pada koreksi barang masuk, kalau transaksi database gagal, file yang baru diunggah dihapus kembali dan file lama tetap utuh.
