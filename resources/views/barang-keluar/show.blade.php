@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
+{{-- Dapat dibuka sebagai popup (Turbo Frame) tanpa pindah halaman --}}
+@section('popup', true)
+
 @section('title', 'Detail Permintaan #'.$barangKeluar->id_keluar)
 @section('subtitle', 'Informasi pengajuan barang keluar dan hasil verifikasinya.')
 
 @section('aksi')
-    <a href="{{ route('barang-keluar.index') }}" class="btn-secondary"><x-icon name="arrow-left" />Kembali</a>
+    <a href="{{ route('barang-keluar.index') }}" class="btn-secondary" data-tutup-popup><x-icon name="arrow-left" />Kembali</a>
 @endsection
 
 @section('content')
@@ -108,7 +111,7 @@
                             <dt class="text-xs text-slate-500">Diverifikasi oleh</dt>
                             <dd class="mt-1 flex items-center gap-2 font-medium text-slate-900">
                                 @if ($k->verifikator)
-                                    <span class="flex size-7 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white">{{ $k->verifikator->inisial() }}</span>
+                                    <span class="flex size-7 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-on-brand">{{ $k->verifikator->inisial() }}</span>
                                 @endif
                                 {{ $k->verifikator?->nama_user ?? '-' }}
                             </dd>

@@ -6,28 +6,52 @@
 @source '../**/*.js';
 @source '../../app/**/*.php';
 
+/* Mode gelap aktif bila elemen <html> memiliki class "dark" (diatur oleh resources/js/tema.js) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Token desain: font & warna utama aplikasi */
 @theme {
     --font-sans: 'Plus Jakarta Sans Variable', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
 
-    --color-brand-50: #eef4ff;
-    --color-brand-100: #dae6ff;
-    --color-brand-200: #bdd3ff;
-    --color-brand-300: #90b6ff;
-    --color-brand-400: #5c8dfd;
-    --color-brand-500: #3766f8;
-    --color-brand-600: #2147ed;
-    --color-brand-700: #1a36d6;
-    --color-brand-800: #1c2fad;
-    --color-brand-900: #1d2e88;
-    --color-brand-950: #161d52;
+    /*
+     * Tema monokrom ala "Bad Apple!!": hitam-putih murni.
+     * "brand" = warna tinta utama (hitam), "slate" = abu-abu netral tanpa rona biru.
+     * Warna status (hijau, kuning, merah) tetap berwarna agar artinya jelas.
+     */
+    --color-brand-50: #f3f3f1;
+    --color-brand-100: #e6e6e3;
+    --color-brand-200: #cfcfcb;
+    --color-brand-300: #ababa6;
+    --color-brand-400: #6f6f6a;
+    --color-brand-500: #3a3a37;
+    --color-brand-600: #0b0b0c;
+    --color-brand-700: #2c2c2a;
+    --color-brand-800: #1c1c1b;
+    --color-brand-900: #111110;
+    --color-brand-950: #050505;
 
-    --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px -4px rgb(15 23 42 / 0.08);
+    --color-slate-50: #fafaf9;
+    --color-slate-100: #f3f3f1;
+    --color-slate-200: #e4e4e1;
+    --color-slate-300: #cfcfcb;
+    --color-slate-400: #9f9f9a;
+    --color-slate-500: #6f6f6a;
+    --color-slate-600: #51514d;
+    --color-slate-700: #3a3a37;
+    --color-slate-800: #262624;
+    --color-slate-900: #161615;
+    --color-slate-950: #0b0b0c;
+
+    /* Permukaan kartu/form dan warna teks di atas tombol utama */
+    --color-surface: #ffffff;
+    --color-on-brand: #ffffff;
+
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px -4px rgb(0 0 0 / 0.08);
 }
 
 /* Komponen tampilan yang dipakai berulang di seluruh halaman */
 @utility card {
-    @apply rounded-2xl border border-slate-200/80 bg-white shadow-soft;
+    @apply rounded-2xl border border-slate-200/80 bg-surface shadow-soft;
 }
 
 @utility card-header {
@@ -47,11 +71,11 @@
 }
 
 @utility btn-primary {
-    @apply btn bg-brand-600 text-white shadow-sm shadow-brand-600/25 hover:bg-brand-700 focus-visible:ring-brand-500/30;
+    @apply btn bg-brand-600 text-on-brand shadow-sm shadow-brand-600/25 hover:bg-brand-700 focus-visible:ring-brand-500/30;
 }
 
 @utility btn-secondary {
-    @apply btn border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-400/20;
+    @apply btn border border-slate-200 bg-surface text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-400/20;
 }
 
 @utility btn-danger {
@@ -81,7 +105,7 @@
 }
 
 @utility input {
-    @apply block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-xs transition placeholder:text-slate-400 hover:border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500;
+    @apply block w-full rounded-xl border border-slate-200 bg-surface px-3.5 py-2.5 text-sm text-slate-800 shadow-xs transition placeholder:text-slate-400 hover:border-slate-300 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500;
 }
 
 @utility hint {
@@ -114,6 +138,584 @@
 
 @utility kode {
     @apply inline-block rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] font-medium whitespace-nowrap text-slate-600;
+}
+
+/*
+ * HALAMAN LOGIN: gaya siluet monokrom.
+ * Dua warna utama disimpan sebagai variabel: --latar (latar) dan --tinta (siluet & teks).
+ * Mode terang: tinta hitam di latar putih. Mode gelap: kebalikannya.
+ * Siluet adalah gambar PNG transparan yang dipakai sebagai "mask", lalu diwarnai --tinta,
+ * sehingga satu gambar cukup untuk kedua mode dan warnanya bisa berganti dengan halus.
+ */
+@layer components {
+    .login {
+        --latar: #f7f7f5;
+        --tinta: #0b0b0c;
+        --redup: #6f6f73;
+        --garis: rgb(11 11 12 / 0.12);
+        --kartu: rgb(255 255 255 / 0.72);
+        --isian: rgb(255 255 255 / 0.85);
+        --aksen: #e5484d;
+
+        min-height: 100vh;
+        overflow-x: hidden;
+        background: var(--latar);
+        color: var(--tinta);
+        transition: background-color 0.6s ease, color 0.6s ease;
+    }
+
+    html.dark .login {
+        --latar: #060607;
+        --tinta: #f4f4f2;
+        --redup: #9d9da3;
+        --garis: rgb(244 244 242 / 0.14);
+        --kartu: rgb(14 14 16 / 0.7);
+        --isian: rgb(255 255 255 / 0.04);
+    }
+
+    /* Warna cahaya apel berbeda setiap waktu */
+    .login[data-waktu='pagi'] { --aksen: #f59e0b; }
+    .login[data-waktu='siang'] { --aksen: #e5484d; }
+    .login[data-waktu='sore'] { --aksen: #f97316; }
+    .login[data-waktu='malam'] { --aksen: #e11d48; }
+
+    .panggung {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    /* Cahaya lembut di belakang siluet */
+    .sorot {
+        position: absolute;
+        left: -10vw;
+        bottom: -20vh;
+        width: 90vh;
+        height: 90vh;
+        border-radius: 9999px;
+        background: radial-gradient(circle, var(--garis), transparent 65%);
+        transition: background 0.6s;
+    }
+
+    /* Partikel debu cahaya yang melayang naik perlahan */
+    .partikel span {
+        position: absolute;
+        bottom: -10px;
+        width: 4px;
+        height: 4px;
+        border-radius: 9999px;
+        background: var(--tinta);
+        opacity: 0;
+        animation: melayang linear infinite;
+    }
+
+    /*
+     * Posisi karakter mengikuti tema: mode terang (siang) di kiri dan dibalik menghadap kanan,
+     * mode gelap (malam) di kanan. Kartu login selalu berada di sisi seberangnya.
+     */
+    .siluet {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: min(100vh, 72vw);
+        aspect-ratio: 2097 / 2079;
+        scale: -1 1;
+        animation: muncul-siluet 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    html.dark .siluet {
+        left: auto;
+        right: 0;
+        scale: 1 1;
+    }
+
+    html.dark .sorot {
+        left: auto;
+        right: -10vw;
+    }
+
+    html.dark .teks-raksasa {
+        left: 54%;
+    }
+
+    .area-kartu {
+        justify-content: flex-end;
+    }
+
+    html.dark .area-kartu {
+        justify-content: flex-start;
+    }
+
+    /* Tulisan raksasa bergaris tipis untuk mengisi ruang kosong */
+    .teks-raksasa {
+        position: absolute;
+        top: 50%;
+        left: 46%;
+        translate: -50% -50%;
+        font-size: clamp(4rem, 10vw, 11rem);
+        font-weight: 800;
+        line-height: 0.85;
+        letter-spacing: -0.04em;
+        text-align: center;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: transparent;
+        -webkit-text-stroke: 1.5px var(--garis);
+        animation: muncul-teks 1.6s ease both;
+    }
+
+    /* Apel kecil yang jatuh perlahan (nuansa Bad Apple!!) */
+    .apel-jatuh {
+        position: absolute;
+        top: -40px;
+        fill: var(--tinta);
+        color: var(--tinta);
+        opacity: 0;
+        animation: apel-jatuh ease-in infinite;
+    }
+
+    .siluet-gambar {
+        position: absolute;
+        inset: 0;
+        background: var(--tinta);
+        -webkit-mask: url('/images/siluet.png') center / contain no-repeat;
+        mask: url('/images/siluet.png') center / contain no-repeat;
+        transition: background-color 0.6s ease;
+    }
+
+    /* Cahaya di sekitar apel (posisi apel ± 26% dari kiri, 64% dari atas gambar) */
+    .cahaya-apel {
+        position: absolute;
+        left: 26%;
+        top: 63%;
+        width: 34%;
+        aspect-ratio: 1;
+        translate: -50% -50%;
+        border-radius: 9999px;
+        background: radial-gradient(circle, var(--aksen) 0%, transparent 62%);
+        opacity: 0.55;
+        filter: blur(18px);
+        transition: background 0.8s;
+        animation: denyut-apel 4s ease-in-out infinite;
+    }
+
+    .kartu-login {
+        background: var(--kartu);
+        border: 1px solid var(--garis);
+        box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.35);
+        backdrop-filter: blur(18px);
+        animation: muncul-kartu 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+        transition: background-color 0.6s, border-color 0.6s;
+    }
+
+    .teks-redup {
+        color: var(--redup);
+        transition: color 0.6s;
+    }
+
+    .logo-login {
+        background: var(--tinta);
+        color: var(--latar);
+        transition: background-color 0.6s, color 0.6s;
+    }
+
+    .titik-waktu {
+        background: var(--aksen);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--aksen) 25%, transparent);
+    }
+
+    .label-login {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+    }
+
+    .isian-login {
+        display: block;
+        width: 100%;
+        border-radius: 0.75rem;
+        border: 1px solid var(--garis);
+        background: var(--isian);
+        padding: 0.7rem 0.9rem;
+        font-size: 0.875rem;
+        color: var(--tinta);
+        transition: border-color 0.2s, box-shadow 0.2s, background-color 0.6s;
+
+        &::placeholder {
+            color: var(--redup);
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--tinta);
+            box-shadow: 0 0 0 4px var(--garis);
+        }
+    }
+
+    /* Tombol utama: warnanya kebalikan latar (hitam di mode terang, putih di mode gelap) */
+    .tombol-masuk {
+        background: var(--tinta);
+        color: var(--latar);
+        transition: background-color 0.6s, color 0.6s, transform 0.15s, box-shadow 0.2s;
+
+        &:hover {
+            box-shadow: 0 10px 30px -10px var(--tinta);
+        }
+
+        &:active {
+            transform: scale(0.98);
+        }
+    }
+
+    .bg-kaca {
+        background: var(--kartu);
+        backdrop-filter: blur(12px);
+    }
+
+    .tombol-garis {
+        border: 1px solid var(--garis);
+        color: var(--tinta);
+        transition: background-color 0.2s, border-color 0.6s, color 0.6s;
+
+        &:hover {
+            background: var(--garis);
+        }
+
+        &[aria-pressed='true'] {
+            background: var(--tinta);
+            color: var(--latar);
+        }
+    }
+
+    /* Layar kecil: siluet menjadi hiasan latar yang samar di belakang kartu */
+    @media (width < 1024px) {
+        .siluet,
+        html.dark .siluet {
+            height: min(70vh, 110vw);
+            left: auto;
+            right: -18vw;
+            opacity: 0.16;
+        }
+
+        .area-kartu,
+        html.dark .area-kartu {
+            justify-content: center;
+        }
+
+        .teks-raksasa,
+        html.dark .teks-raksasa {
+            top: 14%;
+            left: 50%;
+            font-size: 18vw;
+        }
+
+        .kartu-login {
+            margin-inline: auto;
+        }
+    }
+}
+
+@keyframes melayang {
+    0% { opacity: 0; translate: 0 0; }
+    15% { opacity: 0.25; }
+    85% { opacity: 0.12; }
+    100% { opacity: 0; translate: 30px -100vh; }
+}
+
+@keyframes muncul-siluet {
+    from { opacity: 0; translate: 6% 4%; }
+}
+
+@keyframes muncul-kartu {
+    from { opacity: 0; translate: 0 24px; }
+}
+
+@keyframes muncul-teks {
+    from { opacity: 0; letter-spacing: 0.08em; }
+}
+
+@keyframes apel-jatuh {
+    0% { opacity: 0; translate: 0 0; rotate: 0deg; }
+    10% { opacity: 0.35; }
+    80% { opacity: 0.25; }
+    100% { opacity: 0; translate: 0 calc(100vh + 80px); rotate: 200deg; }
+}
+
+@keyframes denyut-apel {
+    50% { opacity: 0.85; scale: 1.12; }
+}
+
+/*
+ * ==================== TATA LETAK APLIKASI ====================
+ */
+
+/* Sidebar ditutup lewat tombol burger (layar besar) */
+@media (width >= 1024px) {
+    html.sidebar-tutup #sidebar {
+        translate: -100% 0 !important;
+    }
+
+    html.sidebar-tutup .isi-utama {
+        padding-left: 0 !important;
+    }
+}
+
+/*
+ * Karakter bersayap (setengah badan, sayap utuh) sebagai latar halaman: besar di tengah area isi, warnanya kebalikan
+ * latar (mode terang = hitam, mode gelap = putih) seperti adegan Bad Apple!!.
+ * --geser = setengah lebar sidebar, agar karakter tepat di tengah area isi.
+ */
+.latar-karakter {
+    --geser: 0px;
+    position: fixed;
+    left: calc(50% + var(--geser));
+    bottom: 0;
+    translate: -50% 0;
+    /*
+     * Hanya bagian atas gambar (kepala, sayap utuh, tangan menjulur, sampai rok) yang ditampilkan,
+     * muncul dari bawah layar dan menjulang hingga dekat topbar. 1210 x 860 = potongan atas gambar 1210 x 1200.
+     * Lebar dibatasi area isi (di luar sidebar) agar ujung sayap tidak tertutup / terpotong.
+     */
+    width: min(calc(100vw - 2 * var(--geser) - 1rem), calc((100vh - 4.5rem) * 1210 / 860), 1500px);
+    aspect-ratio: 1210 / 860;
+    background: var(--color-slate-900);
+    opacity: 0.9;
+    -webkit-mask: url('/images/latar-karakter.png') top center / 100% auto no-repeat;
+    mask: url('/images/latar-karakter.png') top center / 100% auto no-repeat;
+    pointer-events: none;
+    transition: background-color 0.6s, left 0.3s;
+}
+
+@media (width >= 1024px) {
+    html:not(.sidebar-tutup) .latar-karakter {
+        --geser: 9rem;
+    }
+}
+
+/*
+ * Percikan cahaya yang naik lalu menghilang (warna ikut tema: putih di mode gelap,
+ * hitam di mode terang). Posisi, ukuran, dan jeda tiap titik diatur di layouts/app.blade.php.
+ */
+.percikan {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.percikan i {
+    position: absolute;
+    bottom: -12px;
+    width: var(--ukuran);
+    height: var(--ukuran);
+    border-radius: 9999px;
+    background: var(--color-slate-900);
+    box-shadow: 0 0 calc(var(--ukuran) * 2) var(--color-slate-900);
+    opacity: 0;
+    animation: percikan-naik var(--durasi) linear var(--tunda) infinite;
+}
+
+/* Sebagian percikan berbentuk bintang empat sudut */
+.percikan i.bintang {
+    border-radius: 0;
+    box-shadow: none;
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+}
+
+@keyframes percikan-naik {
+    0% { opacity: 0; translate: 0 0; scale: 0.6; }
+    15% { opacity: 0.9; }
+    50% { scale: 1.1; }
+    75% { opacity: 0.6; }
+    100% { opacity: 0; translate: var(--goyang) -105vh; scale: 0.4; }
+}
+
+/*
+ * Kotak (kartu) di halaman mengikuti tema. Di mode gelap diberi garis dan cahaya putih
+ * tipis di tepinya agar tetap terpisah dari karakter latar.
+ */
+html.dark main .card {
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 0 28px -8px rgb(255 255 255 / 0.18);
+}
+
+main .card {
+    transition: background-color 0.6s, box-shadow 0.6s, color 0.6s;
+}
+
+/* Banner sapaan dashboard: terang = abu-abu muda, gelap = hitam */
+.banner-sapaan {
+    background: linear-gradient(135deg, var(--color-surface), var(--color-slate-100) 55%, var(--color-slate-200));
+}
+
+/* Popup (tengah) dan panel kanan memakai <dialog> */
+.popup {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    max-height: none;
+    border: 1px solid var(--color-slate-200);
+    background: var(--color-surface);
+    color: var(--color-slate-800);
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.45);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    &::backdrop {
+        background: rgb(0 0 0 / 0.45);
+        backdrop-filter: blur(3px);
+    }
+}
+
+.popup-tengah {
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: min(64rem, calc(100vw - 1.5rem));
+    max-height: calc(100vh - 3rem);
+    border-radius: 1.25rem;
+
+    &[open] {
+        animation: popup-muncul 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+}
+
+.popup-laci {
+    top: 0;
+    right: 0;
+    left: auto;
+    height: 100vh;
+    width: min(30rem, 100vw);
+    border-width: 0 0 0 1px;
+
+    &[open] {
+        animation: laci-muncul 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+}
+
+/* Tombol "Kembali" tidak perlu di popup karena sudah ada tombol tutup (X) */
+.aksi-popup [data-tutup-popup] {
+    display: none;
+}
+
+/* Di dalam popup, kartu tidak perlu bayangan ganda */
+.popup .card {
+    box-shadow: none;
+}
+
+@keyframes popup-muncul {
+    from { opacity: 0; scale: 0.96; }
+}
+
+@keyframes laci-muncul {
+    from { translate: 100% 0; }
+}
+
+/* Penyihir di banner dashboard: diam, samar, warnanya mengikuti tinta teks banner */
+.penyihir-banner {
+    aspect-ratio: 1482 / 758;
+    background: var(--color-slate-900);
+    opacity: 0.16;
+    -webkit-mask: url('/images/penyihir.png') center / contain no-repeat;
+    mask: url('/images/penyihir.png') center / contain no-repeat;
+    transition: background-color 0.6s;
+}
+
+/* Karakter samar sebagai latar sidebar (di belakang menu), warnanya ikut tema */
+.karakter-sidebar {
+    position: absolute;
+    inset: auto 0 0;
+    height: 72%;
+    background: var(--color-slate-900);
+    opacity: 0.08;
+    -webkit-mask: url('/images/karakter-sidebar.png') center bottom / contain no-repeat;
+    mask: url('/images/karakter-sidebar.png') center bottom / contain no-repeat;
+    pointer-events: none;
+    transition: background-color 0.6s;
+}
+
+/*
+ * Ganti tema dengan efek lingkaran yang membesar dari tombol yang diklik
+ * (View Transitions API, lihat resources/js/tema.js). Browser lama memakai transisi warna biasa.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* Hormati pengaturan "kurangi animasi" di perangkat pengguna */
+@media (prefers-reduced-motion: reduce) {
+    .percikan i,
+    .login *,
+    .login {
+        animation: none !important;
+    }
+}
+
+/*
+ * MODE GELAP (kebalikan mode terang, seperti adegan Bad Apple yang berganti hitam-putih)
+ * Seluruh halaman memakai warna dari variabel CSS (--color-slate-500, dst).
+ * Saat <html class="dark">, nilai variabel ditukar: skala abu-abu dibalik, tinta menjadi putih,
+ * warna lembut (50-200) dibuat transparan, dan teks berwarna dibuat lebih terang.
+ * Dengan cara ini setiap halaman otomatis ikut gelap tanpa mengubah satu per satu.
+ */
+html.dark {
+    color-scheme: dark;
+    --color-surface: #0e0e0f;
+    --color-on-brand: #0b0b0c;
+
+    --color-slate-50: #050505;
+    --color-slate-100: #161617;
+    --color-slate-200: #252527;
+    --color-slate-300: #3a3a3c;
+    --color-slate-400: #86868a;
+    --color-slate-500: #a3a3a7;
+    --color-slate-600: #c4c4c7;
+    --color-slate-700: #d9d9db;
+    --color-slate-800: #e8e8e9;
+    --color-slate-900: #f4f4f2;
+    --color-slate-950: #fafaf9;
+
+    --color-brand-50: rgb(255 255 255 / 0.06);
+    --color-brand-100: rgb(255 255 255 / 0.1);
+    --color-brand-200: rgb(255 255 255 / 0.2);
+    --color-brand-300: #8a8a8a;
+    --color-brand-400: #b0b0b0;
+    --color-brand-500: #d4d4d4;
+    --color-brand-600: #f4f4f2;
+    --color-brand-700: #d6d6d3;
+    --color-brand-800: #e8e8e6;
+    --color-brand-900: #f4f4f2;
+
+    --color-rose-50: rgb(244 63 94 / 0.12);
+    --color-rose-100: rgb(244 63 94 / 0.2);
+    --color-rose-200: rgb(244 63 94 / 0.32);
+    --color-rose-700: #fda4af;
+    --color-rose-800: #fecdd3;
+
+    --color-emerald-50: rgb(16 185 129 / 0.12);
+    --color-emerald-100: rgb(16 185 129 / 0.2);
+    --color-emerald-200: rgb(16 185 129 / 0.32);
+    --color-emerald-700: #6ee7b7;
+    --color-emerald-800: #a7f3d0;
+
+    --color-amber-50: rgb(245 158 11 / 0.12);
+    --color-amber-100: rgb(245 158 11 / 0.2);
+    --color-amber-200: rgb(245 158 11 / 0.32);
+    --color-amber-700: #fcd34d;
+    --color-amber-800: #fde68a;
+
+    --color-violet-50: rgb(139 92 246 / 0.14);
+    --color-violet-200: rgb(139 92 246 / 0.35);
+    --color-violet-700: #c4b5fd;
+}
+
+/* Perpindahan warna yang halus saat mode diganti */
+html.ganti-tema,
+html.ganti-tema * {
+    transition: background-color 0.3s, border-color 0.3s, color 0.2s !important;
 }
 
 /* Saat dicetak: tampilkan konten saja, tanpa bayangan dan latar */

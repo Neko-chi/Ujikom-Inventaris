@@ -3,58 +3,104 @@ import './bootstrap';
 // Font dibundel bersama aplikasi agar tampilan tetap sama walau tanpa internet.
 import '@fontsource-variable/plus-jakarta-sans';
 
-// Interaksi kecil di sisi browser (tanpa library tambahan).
-document.addEventListener('DOMContentLoaded', () => {
-    // Buka / tutup sidebar pada layar kecil
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const toggleSidebar = (buka) => {
-        sidebar?.classList.toggle('-translate-x-full', !buka);
-        overlay?.classList.toggle('hidden', !buka);
-    };
-    document.querySelectorAll('[data-sidebar-open]').forEach((el) => el.addEventListener('click', () => toggleSidebar(true)));
-    document.querySelectorAll('[data-sidebar-close]').forEach((el) => el.addEventListener('click', () => toggleSidebar(false)));
+// Turbo: pindah menu dan kirim form tanpa memuat ulang seluruh halaman.
+// Isi <body> diganti, sedangkan <html> (tema), musik, dan script tetap berjalan.
+import * as Turbo from '@hotwired/turbo';
+
+import { pasangTombolTema } from './tema';
+import { pasangSuasanaLogin } from './suasana';
+import { pasangMusik } from './musik';
+import { pasangPopup } from './popup';
+
+window.Turbo = Turbo;
+
+// ---- Dipasang sekali saja (memakai event delegation di document) ----
+pasangTombolTema();
+pasangMusik();
+pasangPopup();
+
+const html = document.documentElement;
+
+function simpanSidebar(tutup) {
+    try {
+        localStorage.setItem('sidebar-tutup', tutup ? '1' : '0');
+    } catch (e) {
+        // localStorage bisa diblokir; posisi sidebar tetap berlaku sampai halaman dimuat ulang.
+    }
+}
+
+function bukaSidebarHp(buka) {
+    document.getElementById('sidebar')?.classList.toggle('-translate-x-full', !buka);
+    document.getElementById('sidebar-overlay')?.classList.toggle('hidden', !buka);
+}
+
+document.addEventListener('click', (event) => {
+    const t = event.target;
+
+    // Tombol burger: di layar besar menutup/membuka sidebar, di HP membuka menu geser
+    if (t.closest('[data-sidebar-toggle]')) {
+        if (window.matchMedia('(min-width: 1024px)').matches) {
+            simpanSidebar(html.classList.toggle('sidebar-tutup'));
+        } else {
+            bukaSidebarHp(true);
+        }
+        return;
+    }
+    if (t.closest('[data-sidebar-tutup]')) {
+        bukaSidebarHp(false);
+        return;
+    }
 
     // Tutup pesan notifikasi
-    document.querySelectorAll('[data-dismiss]').forEach((tombol) => {
-        tombol.addEventListener('click', () => tombol.closest('[data-alert]')?.remove());
-    });
-
-    // Pratinjau gambar sebelum diunggah (komponen <x-unggah-gambar>)
-    document.querySelectorAll('[data-pratinjau]').forEach((input) => {
-        input.addEventListener('change', () => {
-            const nama = input.dataset.pratinjau;
-            const file = input.files[0];
-            const gambar = document.getElementById(`pratinjau-${nama}`);
-            const kosong = document.getElementById(`kosong-${nama}`);
-            const namaFile = document.getElementById(`nama-file-${nama}`);
-
-            if (!file) {
-                return;
-            }
-            if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran gambar melebihi 2 MB. Silakan pilih gambar yang lebih kecil.');
-                input.value = '';
-                return;
-            }
-
-            gambar.src = URL.createObjectURL(file);
-            gambar.classList.remove('hidden');
-            kosong?.classList.add('hidden');
-            if (namaFile) {
-                namaFile.textContent = file.name;
-            }
-        });
-    });
+    const tutupPesan = t.closest('[data-dismiss]');
+    if (tutupPesan) {
+        tutupPesan.closest('[data-alert]')?.remove();
+        return;
+    }
 
     // Tampilkan / sembunyikan password
-    document.querySelectorAll('[data-toggle-password]').forEach((tombol) => {
-        tombol.addEventListener('click', () => {
-            const input = document.getElementById(tombol.dataset.togglePassword);
-            const tampil = input.type === 'password';
-            input.type = tampil ? 'text' : 'password';
-            tombol.querySelector('[data-icon-show]')?.classList.toggle('hidden', tampil);
-            tombol.querySelector('[data-icon-hide]')?.classList.toggle('hidden', !tampil);
-        });
-    });
+    const tombolPassword = t.closest('[data-toggle-password]');
+    if (tombolPassword) {
+        const input = document.getElementById(tombolPassword.dataset.togglePassword);
+        const tampil = input.type === 'password';
+        input.type = tampil ? 'text' : 'password';
+        tombolPassword.querySelector('[data-icon-show]')?.classList.toggle('hidden', tampil);
+        tombolPassword.querySelector('[data-icon-hide]')?.classList.toggle('hidden', !tampil);
+    }
+});
+
+// Pratinjau gambar sebelum diunggah (komponen <x-unggah-gambar>)
+document.addEventListener('change', (event) => {
+    const input = event.target.closest('[data-pratinjau]');
+    if (!input) {
+        return;
+    }
+    const nama = input.dataset.pratinjau;
+    const file = input.files[0];
+    const wadah = input.closest('form') ?? document;
+    const gambar = wadah.querySelector(`#pratinjau-${nama}`);
+    const kosong = wadah.querySelector(`#kosong-${nama}`);
+    const namaFile = wadah.querySelector(`#nama-file-${nama}`);
+
+    if (!file) {
+        return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran gambar melebihi 2 MB. Silakan pilih gambar yang lebih kecil.');
+        input.value = '';
+        return;
+    }
+
+    gambar.src = URL.createObjectURL(file);
+    gambar.classList.remove('hidden');
+    kosong?.classList.add('hidden');
+    if (namaFile) {
+        namaFile.textContent = file.name;
+    }
+});
+
+// ---- Dijalankan setiap kali halaman baru tampil (termasuk lewat Turbo) ----
+document.addEventListener('turbo:load', () => {
+    bukaSidebarHp(false);
+    pasangSuasanaLogin();
 });

@@ -6,7 +6,7 @@
 @section('aksi')
     <button type="button" onclick="window.print()" class="btn-secondary"><x-icon name="printer" />Cetak</button>
     @if (auth()->user()->isOperator())
-        <a href="{{ route('barang-keluar.create') }}" class="btn-primary"><x-icon name="plus" />Ajukan Barang Keluar</a>
+        <a href="{{ route('barang-keluar.create') }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="plus" />Ajukan Barang Keluar</a>
     @endif
 @endsection
 
@@ -77,9 +77,9 @@
                             <td class="print:hidden">
                                 <div class="flex justify-end">
                                     @if ($k->isPending() && auth()->user()->isManager())
-                                        <a href="{{ route('barang-keluar.show', $k) }}" class="btn-primary btn-sm"><x-icon name="clipboard" />Verifikasi</a>
+                                        <a href="{{ route('barang-keluar.show', $k) }}" data-turbo-frame="modal" class="btn-primary btn-sm"><x-icon name="clipboard" />Verifikasi</a>
                                     @else
-                                        <a href="{{ route('barang-keluar.show', $k) }}" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
+                                        <a href="{{ route('barang-keluar.show', $k) }}" data-turbo-frame="modal" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
                                     @endif
                                 </div>
                             </td>

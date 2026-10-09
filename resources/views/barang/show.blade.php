@@ -1,12 +1,15 @@
 @extends('layouts.app')
 
+{{-- Dapat dibuka sebagai popup (Turbo Frame) tanpa pindah halaman --}}
+@section('popup', true)
+
 @section('title', $barang->nama_barang)
 @section('subtitle', 'Detail barang dan riwayat transaksinya.')
 
 @section('aksi')
-    <a href="{{ route('barang.index') }}" class="btn-secondary"><x-icon name="arrow-left" />Kembali</a>
+    <a href="{{ route('barang.index') }}" class="btn-secondary" data-tutup-popup><x-icon name="arrow-left" />Kembali</a>
     @if (auth()->user()->isAdmin())
-        <a href="{{ route('barang.edit', $barang) }}" class="btn-primary"><x-icon name="pencil" />Ubah</a>
+        <a href="{{ route('barang.edit', $barang) }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="pencil" />Ubah</a>
     @endif
 @endsection
 
@@ -89,7 +92,7 @@
                     <tbody>
                         @forelse ($barang->barangKeluar as $k)
                             <tr>
-                                <td class="whitespace-nowrap"><a href="{{ route('barang-keluar.show', $k) }}" class="hover:text-brand-700">{{ $k->tanggal->translatedFormat('d M Y') }}</a></td>
+                                <td class="whitespace-nowrap"><a href="{{ route('barang-keluar.show', $k) }}" data-turbo-frame="modal" class="hover:text-brand-700">{{ $k->tanggal->translatedFormat('d M Y') }}</a></td>
                                 <td class="text-right font-semibold">−{{ $k->jumlah }}</td>
                                 <td>{{ $k->tujuan }}</td>
                                 <td><x-badge :nilai="$k->verifikasi" /></td>

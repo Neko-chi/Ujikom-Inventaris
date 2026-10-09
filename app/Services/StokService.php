@@ -11,7 +11,7 @@ use InvalidArgumentException;
  *
  * Aturan bisnis:
  *  - Barang masuk  -> stok bertambah.
- *  - Barang keluar -> stok berkurang HANYA setelah disetujui Admin.
+ *  - Barang keluar -> stok berkurang HANYA setelah disetujui Manager.
  *  - Stok tidak boleh bernilai negatif.
  *
  * Method di sini sebaiknya dipanggil di dalam DB::transaction()

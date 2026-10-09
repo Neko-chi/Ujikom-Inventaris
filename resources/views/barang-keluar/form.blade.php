@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
+{{-- Dapat dibuka sebagai popup (Turbo Frame) tanpa pindah halaman --}}
+@section('popup', true)
+
 @section('title', 'Ajukan Barang Keluar')
 @section('subtitle', 'Permintaan akan diverifikasi oleh Manager sebelum stok dikurangi.')
 
 @section('aksi')
-    <a href="{{ route('barang-keluar.index') }}" class="btn-secondary"><x-icon name="arrow-left" />Kembali</a>
+    <a href="{{ route('barang-keluar.index') }}" class="btn-secondary" data-tutup-popup><x-icon name="arrow-left" />Kembali</a>
 @endsection
 
 @section('content')
@@ -83,7 +86,7 @@
         </div>
 
         <div class="flex justify-end gap-2 rounded-b-2xl border-t border-slate-100 bg-slate-50/60 px-5 py-4">
-            <a href="{{ route('barang-keluar.index') }}" class="btn-secondary">Batal</a>
+            <a href="{{ route('barang-keluar.index') }}" class="btn-secondary" data-tutup-popup>Batal</a>
             <button type="submit" class="btn-primary"><x-icon name="keluar" />Ajukan Permintaan</button>
         </div>
     </form>

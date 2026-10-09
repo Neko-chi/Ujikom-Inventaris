@@ -23,7 +23,7 @@ Catatan:
 
 | Menu / Aksi | Admin | Operator | Manager |
 |---|---|---|---|
-| Dashboard, Profil Saya | Ya | Ya | Ya |
+| Dashboard, Profil (klik foto profil) | Ya | Ya | Ya |
 | Pengguna, Kategori | Ya | Tidak | Tidak |
 | Data Barang — lihat | Ya | Ya | Ya |
 | Data Barang — tambah | Ya | Ya | Tidak |
@@ -35,7 +35,7 @@ Catatan:
 
 ## 3. Mengganti Password
 
-- **Password sendiri**: menu **Profil Saya** → bagian *Ganti Password* → isi password lama, password baru, dan ulangi password baru.
+- **Password sendiri**: klik **foto profil** di kanan atas → panel Profil Saya → bagian *Ganti Password* → isi password lama, password baru, dan ulangi password baru.
 - **Password pengguna lain**: login sebagai Admin → menu **Pengguna** → **Ubah** → isi password baru (kosongkan bila tidak ingin mengganti).
 - Password minimal 6 karakter.
 

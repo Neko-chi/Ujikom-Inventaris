@@ -29,12 +29,11 @@ File pendukung deploy di proyek:
 
 | File | Fungsi |
 |---|---|
-| `vercel.json` | Runtime PHP 8.3 (`vercel-php@0.7.4`), region Singapura, file CSS/JS langsung dari `public/`, selebihnya ke Laravel |
+| `vercel.json` | Runtime PHP 8.3 (`vercel-php@0.7.4`), region Singapura, file CSS/JS (`/build`) dan suara (`/audio`) langsung dari `public/`, selebihnya ke Laravel |
 | `api/index.php` | Pintu masuk Laravel di Vercel: cache ke `/tmp`, sesi di cookie, log ke menu Logs, gambar ke Supabase Storage |
 | `public/build/` | Hasil `npm run build`; ikut di-commit karena Vercel tidak membuild ulang tampilan |
 | `app/Services/GambarService.php`, `config/filesystems.php` | Penyimpanan gambar: lokal di laptop, Supabase Storage saat online |
 | `database/migrations/..._enable_row_level_security.php` | Mengamankan tabel di Supabase |
-| `Dockerfile`, `docker/` | Hanya untuk alternatif hosting Docker (Lampiran) |
 
 <!-- daftar-isi -->
 
@@ -80,7 +79,7 @@ Saat push pertama muncul jendela login GitHub; login lewat browser dan push berl
 
 ## 2. Database dan Penyimpanan di Supabase
 
-Supabase memakai **PostgreSQL**. Program sudah diuji di PostgreSQL (seluruh 66 test lulus), jadi tidak ada kode yang perlu diubah; yang berganti hanya pengaturan koneksi.
+Supabase memakai **PostgreSQL**. Program sudah diuji di PostgreSQL (seluruh test lulus), jadi tidak ada kode yang perlu diubah; yang berganti hanya pengaturan koneksi.
 
 ### 2.1 Buat project
 
@@ -241,7 +240,7 @@ Sesi, cache, dan log tidak perlu diisi karena sudah diatur `api/index.php`.
 1. Klik **Deploy** dan tunggu 1–3 menit.
 2. Klik **Continue to Dashboard → Visit**.
 3. Login memakai akun di dokumen 04 Daftar Akun.
-4. Buka **Profil Saya** dan unggah foto. Bila foto tampil, Supabase Storage sudah tersambung.
+4. Klik **foto profil** di kanan atas (panel Profil Saya) dan unggah foto. Bila foto tampil, Supabase Storage sudah tersambung.
 
 Bila alamat website berbeda dengan `APP_URL`: ubah `APP_URL` di **Settings → Environment Variables**, lalu **Deployments → ⋯ → Redeploy** (variabel baru berlaku setelah redeploy).
 
@@ -298,8 +297,4 @@ php artisan migrate:fresh --seed --env=supabase
 
 - Jangan pernah meng-commit `.env`, `.env.supabase`, password database, `APP_KEY`, atau secret Storage.
 - Bila password database atau secret Storage tersebar, buat ulang di dashboard Supabase lalu perbarui di Vercel (Redeploy) dan `.env.supabase`.
-- Bila website dipakai sungguhan setelah ujikom, ganti password akun sampel lewat menu **Pengguna** atau **Profil Saya**.
-
-## Lampiran — Hosting Berbasis Docker
-
-`Dockerfile` (PHP 8.2 + Apache + PostgreSQL) disediakan untuk hosting berbasis Docker seperti Render atau Koyeb, yang umumnya meminta verifikasi kartu. Isi environment variables yang sama seperti langkah 3.3, ditambah `LOG_CHANNEL=stderr`, `SESSION_DRIVER=cookie`, dan `RUN_MIGRATIONS=true` (migration dijalankan otomatis oleh `docker/entrypoint.sh` setiap deploy).
+- Bila website dipakai sungguhan setelah ujikom, ganti password akun sampel lewat menu **Pengguna** atau panel **Profil Saya** (klik foto profil).

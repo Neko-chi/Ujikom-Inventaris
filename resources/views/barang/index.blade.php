@@ -6,7 +6,7 @@
 @section('aksi')
     <button type="button" onclick="window.print()" class="btn-secondary"><x-icon name="printer" />Cetak</button>
     @unless (auth()->user()->isManager())
-        <a href="{{ route('barang.create') }}" class="btn-primary"><x-icon name="plus" />Tambah Barang</a>
+        <a href="{{ route('barang.create') }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="plus" />Tambah Barang</a>
     @endunless
 @endsection
 
@@ -55,7 +55,7 @@
                                         </div>
                                     @endif
                                     <div>
-                                        <a href="{{ route('barang.show', $b) }}" class="font-semibold whitespace-nowrap text-slate-900 hover:text-brand-700">{{ $b->nama_barang }}</a>
+                                        <a href="{{ route('barang.show', $b) }}" data-turbo-frame="modal" class="font-semibold whitespace-nowrap text-slate-900 hover:text-brand-700">{{ $b->nama_barang }}</a>
                                         <p class="mt-0.5"><span class="kode">{{ $b->kode_barang }}</span></p>
                                     </div>
                                 </div>
@@ -74,9 +74,9 @@
                             <td><x-badge :nilai="$b->status_barang" /></td>
                             <td class="print:hidden">
                                 <div class="flex justify-end gap-1">
-                                    <a href="{{ route('barang.show', $b) }}" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
+                                    <a href="{{ route('barang.show', $b) }}" data-turbo-frame="modal" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
                                     @if (auth()->user()->isAdmin())
-                                        <a href="{{ route('barang.edit', $b) }}" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
+                                        <a href="{{ route('barang.edit', $b) }}" data-turbo-frame="modal" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
                                         <form action="{{ route('barang.destroy', $b) }}" method="POST" onsubmit="return confirm(@js('Hapus barang '.$b->nama_barang.'?'))">
                                             @csrf
                                             @method('DELETE')

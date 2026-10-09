@@ -27,22 +27,22 @@
     @endphp
 
     {{-- Sapaan dan aksi cepat --}}
-    <section class="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-6 text-white shadow-lg shadow-brand-900/20 sm:p-8">
-        <div class="pointer-events-none absolute -top-16 -right-16 size-64 rounded-full bg-white/10 blur-2xl"></div>
-        <div class="pointer-events-none absolute right-8 bottom-0 hidden text-white/10 lg:block">
-            <x-icon name="archive" class="size-40" />
-        </div>
+    {{-- Warna banner mengikuti tema: terang = abu-abu muda bertinta hitam, gelap = hitam bertinta putih --}}
+    <section class="banner-sapaan relative mb-6 overflow-hidden rounded-2xl p-6 text-slate-900 ring-1 ring-slate-200 sm:p-8">
+        <div class="pointer-events-none absolute -top-16 -right-16 size-64 rounded-full bg-slate-900/5 blur-2xl"></div>
+        {{-- Penyihir sebagai hiasan banner (diam dan samar) --}}
+        <div class="penyihir-banner pointer-events-none absolute top-1/2 right-6 hidden h-[78%] -translate-y-1/2 md:block" aria-hidden="true"></div>
 
         <div class="relative">
-            <p class="text-sm font-medium text-brand-100">{{ $salam }},</p>
+            <p class="text-sm font-medium text-slate-500">{{ $salam }},</p>
             <h2 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{{ $user->nama_user }}</h2>
-            <p class="mt-2 max-w-xl text-sm text-brand-100/90">
-                Anda masuk sebagai <strong class="text-white">{{ $user->role }}</strong>: {{ $peran }}.
+            <p class="mt-2 max-w-xl text-sm text-slate-500">
+                Anda masuk sebagai <strong class="font-semibold text-slate-700">{{ $user->role }}</strong>: {{ $peran }}.
             </p>
 
             <div class="mt-6 flex flex-wrap gap-2">
                 @foreach ($aksiCepat as [$url, $ikon, $label])
-                    <a href="{{ $url }}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20">
+                    <a href="{{ $url }}" @if (str_ends_with((string) parse_url($url, PHP_URL_PATH), '/create')) data-turbo-frame="modal" @endif class="inline-flex items-center gap-2 rounded-xl bg-surface/70 px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-300 backdrop-blur transition hover:bg-surface hover:text-slate-900">
                         <x-icon :name="$ikon" class="size-4" />{{ $label }}
                         @if ($loop->first && $user->isManager() && $ringkasan['menunggu_verifikasi'] > 0)
                             <span class="rounded-full bg-amber-400 px-1.5 text-xs font-bold text-amber-950">{{ $ringkasan['menunggu_verifikasi'] }}</span>
@@ -119,7 +119,7 @@
                 <div class="mt-5 flex h-3 overflow-hidden rounded-full bg-slate-100">
                     @foreach ($statusKeluar as $status => $jumlah)
                         @if ($jumlah > 0)
-                            <div class="{{ $warnaStatus[$status] }} border-r-2 border-white last:border-r-0" style="width: {{ $jumlah / $totalPermintaan * 100 }}%" title="{{ $status }}: {{ $jumlah }}"></div>
+                            <div class="{{ $warnaStatus[$status] }} border-r-2 border-surface last:border-r-0" style="width: {{ $jumlah / $totalPermintaan * 100 }}%" title="{{ $status }}: {{ $jumlah }}"></div>
                         @endif
                     @endforeach
                 </div>
@@ -155,7 +155,7 @@
             <ul class="divide-y divide-slate-100">
                 @forelse ($stokMenipis as $b)
                     <li>
-                        <a href="{{ route('barang.show', $b) }}" class="flex items-center gap-4 px-5 py-3.5 transition hover:bg-slate-50">
+                        <a href="{{ route('barang.show', $b) }}" data-turbo-frame="modal" class="flex items-center gap-4 px-5 py-3.5 transition hover:bg-slate-50">
                             <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-500">
                                 <x-icon name="warning" class="size-5" />
                             </div>

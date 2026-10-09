@@ -6,6 +6,7 @@ use App\Models\Barang;
 use App\Models\BarangKeluar;
 use App\Models\BarangMasuk;
 use App\Models\Kategori;
+use App\Support\Suasana;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -47,7 +48,7 @@ class DashboardController extends Controller
             'statusKeluar' => $statusKeluar,
             'stokMenipis' => $stokMenipis,
             'aktivitas' => $this->aktivitasTerbaru(),
-            'salam' => $this->salam((int) now()->format('G')),
+            'salam' => Suasana::salam((int) now()->format('G')),
         ]);
     }
 
@@ -87,21 +88,5 @@ class DashboardController extends Controller
             ->sortByDesc(fn (array $a) => $a['tanggal']->format('Ymd').sprintf('%06d', $a['urutan']))
             ->take($batas)
             ->values();
-    }
-
-    /**
-     * Salam sesuai jam (0-23).
-     */
-    private function salam(int $jam): string
-    {
-        if ($jam < 11) {
-            return 'Selamat pagi';
-        } elseif ($jam < 15) {
-            return 'Selamat siang';
-        } elseif ($jam < 18) {
-            return 'Selamat sore';
-        }
-
-        return 'Selamat malam';
     }
 }

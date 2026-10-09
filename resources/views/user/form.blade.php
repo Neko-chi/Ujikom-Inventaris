@@ -1,11 +1,14 @@
 {{-- Satu form dipakai untuk tambah (create) dan ubah (edit) --}}
 @extends('layouts.app')
 
+{{-- Dapat dibuka sebagai popup (Turbo Frame) tanpa pindah halaman --}}
+@section('popup', true)
+
 @section('title', $user->exists ? 'Ubah Pengguna' : 'Tambah Pengguna')
 @section('subtitle', $user->exists ? 'Perbarui data akun '.$user->nama_user.'.' : 'Buat akun baru untuk Admin atau Operator.')
 
 @section('aksi')
-    <a href="{{ route('user.index') }}" class="btn-secondary"><x-icon name="arrow-left" />Kembali</a>
+    <a href="{{ route('user.index') }}" class="btn-secondary" data-tutup-popup><x-icon name="arrow-left" />Kembali</a>
 @endsection
 
 @section('content')
@@ -83,7 +86,7 @@
         </div>
 
         <div class="flex justify-end gap-2 rounded-b-2xl border-t border-slate-100 bg-slate-50/60 px-5 py-4">
-            <a href="{{ route('user.index') }}" class="btn-secondary">Batal</a>
+            <a href="{{ route('user.index') }}" class="btn-secondary" data-tutup-popup>Batal</a>
             <button type="submit" class="btn-primary"><x-icon name="check" />Simpan</button>
         </div>
     </form>

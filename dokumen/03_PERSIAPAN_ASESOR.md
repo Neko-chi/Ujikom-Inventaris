@@ -30,21 +30,22 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 >
 > Stok bertambah saat barang masuk dicatat, dan baru berkurang setelah Manager menyetujui. Setiap persetujuan mencatat siapa, kapan, dan alasannya.
 >
-> Aplikasi juga mendukung multimedia: foto profil, gambar barang, dan foto bukti transaksi dengan pratinjau sebelum diunggah.
+> Aplikasi juga mendukung multimedia: gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet yang beranimasi dan menyesuaikan waktu pagi, siang, sore, malam, serta audio suasana dan lagu Bad Apple!! yang bisa diputar. Tampilannya monokrom hitam-putih ala Bad Apple!! dengan mode terang dan gelap.
 >
-> Database berisi 5 tabel, dan program diuji dengan **66 test PHPUnit** yang semuanya lulus."
+> Database berisi 5 tabel, dan program diuji dengan **75 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo (± 5 menit)
 
-1. Login **operator_siti** → menu Kategori dan Pengguna tidak ada.
-2. **Profil Saya** → unggah foto profil → foto langsung tampil di menu samping.
-3. **Data Barang** → Tambah barang + gambar → kode otomatis AT-002, ada pratinjau gambar.
-4. **Barang Masuk** → catat 5 unit → stok bertambah.
-5. **Barang Keluar** → ajukan tanpa foto (ditolak) → ajukan dengan foto (Pending, stok tetap).
-6. Login **manager_marco** → tanda jumlah Pending di menu, tidak ada tombol tambah barang.
-7. Buka permintaan → lihat foto → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berkurang, nama Manager tercatat).
-8. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci.
-9. Terminal → `php artisan test` → 66 test lulus.
+1. Halaman login → tunjukkan salam dan warna cahaya apel sesuai jam → klik **Putar suara** → klik tombol not musik (lagu Bad Apple!!) → klik tombol bulan: tema berganti dengan efek lingkaran, siluet pindah sisi dan berubah dari hitam ke putih.
+2. Login **operator_siti** → menu Kategori dan Pengguna tidak ada.
+3. Klik **foto profil** di kanan atas → panel profil muncul dari kanan → unggah foto → foto langsung tampil di menu samping.
+4. **Data Barang** → Tambah barang (popup, halaman tidak berpindah) + gambar → kode otomatis AT-002, ada pratinjau gambar. Klik tombol burger untuk menutup/membuka sidebar.
+5. **Barang Masuk** → catat 5 unit → stok bertambah.
+6. **Barang Keluar** → ajukan tanpa foto (ditolak) → ajukan dengan foto (Pending, stok tetap).
+7. Login **manager_marco** → tanda jumlah Pending di menu, tidak ada tombol tambah barang.
+8. Buka permintaan → lihat foto → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berkurang, nama Manager tercatat).
+9. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci.
+10. Terminal → `php artisan test` → 75 test lulus.
 
 ## B. Pertanyaan per Unit Kompetensi
 
@@ -122,7 +123,7 @@ Kondisi barang dicatat per jenis (bukan per unit) dan fitur peminjaman / pengemb
 |---|---|
 | Perintah teks | `php artisan migrate:fresh --seed`, `php artisan storage:link`, `php artisan serve`, `php artisan test`, `php artisan route:list`, `php artisan tinker`, `npm run build`, `composer install`, `vendor/bin/pint`, `git push` |
 | Grafis | Halaman web Blade + Tailwind, grafik batang stok per kategori dan komposisi status di dashboard |
-| Multimedia | Unggah gambar (foto profil, gambar barang, foto bukti), pratinjau sebelum unggah, ikon SVG, fitur cetak |
+| Multimedia | Gambar: unggah foto profil, gambar barang, foto bukti, dengan pratinjau. Animasi: siluet dan kartu login muncul perlahan, cahaya apel berdenyut, partikel melayang, efek lingkaran saat ganti tema. Audio: suara suasana di halaman login (`<audio>`). Musik: lagu Bad Apple!! (MP3) dengan tombol putar / jeda. Ikon SVG, mode gelap, fitur cetak |
 
 **1. Bagaimana menjalankan aplikasi dari awal?**
 Nyalakan MySQL di XAMPP → `php artisan migrate:fresh --seed` → `php artisan storage:link` → `npm run build` → `php artisan serve` → buka `http://localhost:8000`.
@@ -150,6 +151,45 @@ Folder aplikasi di Vercel hanya bisa dibaca dan `/tmp` dikosongkan sewaktu-waktu
 
 **9. Kenapa ikon tidak diambil dari internet (CDN)?**
 Agar aplikasi tetap tampil sempurna tanpa koneksi internet, misalnya saat ujian.
+
+**10. Mana bagian audio di aplikasi ini?**
+Halaman login. Tombol **Putar suara** memutar file `public/audio/pagi.wav` (kicau burung), `siang.wav` (angin dan tonggeret), `sore.wav` (lonceng angin), atau `malam.wav` (jangkrik) sesuai suasana. Diputar dengan tag `<audio loop>` dan dikendalikan JavaScript `suasana.js` fungsi `putar()`.
+
+**11. Kenapa suara tidak langsung berbunyi saat halaman dibuka?**
+Browser modern memblokir suara yang diputar otomatis sebelum pengguna berinteraksi. Karena itu suara diputar lewat tombol, sekaligus agar tidak mengganggu.
+
+**12. Dari mana file suaranya? Apakah ada hak cipta?**
+Dibuat sendiri secara sintetis dengan program Python (gelombang sinus untuk kicau dan jangkrik, *noise* untuk angin), format WAV 16 kHz, sehingga bebas hak cipta.
+
+**13. Bagaimana animasi login tahu sekarang pagi atau malam?**
+`App\Support\Suasana::dariJam()` menentukan waktu dari jam server untuk tampilan awal, lalu `suasana.js` memakai jam perangkat dan memeriksanya setiap detik. Hasilnya dipasang di atribut `data-waktu`; salam, kalimat, dan file audio ikut diganti, dan CSS mengubah warna cahaya di sekitar apel berdasarkan atribut itu.
+
+**14. Bagaimana mode gelap bekerja?**
+Tombol memanggil `gantiTema()` di `tema.js` yang menambah/menghapus class `dark` pada `<html>` dan menyimpan pilihan di `sessionStorage`. Bila belum memilih, tema awal mengikuti jam: malam gelap, siang terang. Semua warna Tailwind berupa variabel CSS; saat ada class `dark`, nilai variabelnya ditukar di `app.css`, sehingga semua halaman ikut berubah tanpa mengubah tiap halaman. Pergantiannya memakai View Transitions API: tema baru muncul sebagai lingkaran yang membesar dari tombol.
+
+**15. Bagaimana siluet bisa hitam di mode terang dan putih di mode gelap dengan satu gambar?**
+Gambar `public/images/siluet.png` transparan dan dipakai sebagai *mask* CSS. Bentuk siluet diambil dari gambar, sedangkan warnanya dari variabel `--tinta`: hitam di mode terang, putih di mode gelap. Karena warnanya CSS, perubahannya bisa dianimasikan dengan halus.
+
+**16. Bagaimana musik Bad Apple!! diputar dan kenapa bisa lanjut saat pindah halaman?**
+File `public/audio/bad-apple.mp3` diputar elemen `<audio loop preload="none">`; tombol not musik memanggil `play()` / `pause()` di `resources/js/musik.js`. Saat meninggalkan halaman, posisi lagu (`currentTime`) disimpan di `sessionStorage`, lalu di halaman berikutnya lagu dilanjutkan dari detik itu. `preload="none"` membuat file 5 MB baru diunduh ketika diputar, sehingga halaman tetap cepat.
+
+**17. Kenapa karakter pindah sisi saat ganti tema?**
+Mengikuti konsep siang dan malam: mode terang (siang) karakter di kiri dan dibalik dengan `scale: -1 1` agar menghadap kartu; mode gelap (malam) karakter di kanan. Diatur di CSS `.siluet` dan `html.dark .siluet`.
+
+**18. Kenapa saat pindah menu halaman tidak dimuat ulang?**
+Memakai library **Hotwire Turbo** (`resources/js/app.js`). Turbo mengambil halaman tujuan dengan `fetch`, lalu hanya mengganti isi `<body>`. URL tetap berubah dan tombol Back browser tetap berfungsi. Keuntungannya lebih cepat dan musik tidak terputus.
+
+**19. Bagaimana form tambah / ubah / detail bisa muncul sebagai popup?**
+Tautannya diberi `data-turbo-frame="modal"`, sehingga Turbo mengirim header `Turbo-Frame: modal`. Layout memeriksa header itu: bila halamannya ditandai `@section('popup', true)`, yang dikirim hanya isi halaman di dalam `<turbo-frame id="modal">`, lalu ditampilkan dalam `<dialog>`. Route dan controller tidak berubah, dan bila dibuka langsung halaman tetap tampil utuh.
+
+**20. Setelah simpan di popup, bagaimana popup tertutup?**
+Controller mengarahkan ke halaman daftar yang tidak punya isi popup. Turbo memicu event `turbo:frame-missing`; `popup.js` menutup popup lalu menampilkan halaman daftar beserta pesan suksesnya. Bila validasi gagal, Laravel kembali ke form sehingga error tampil di dalam popup.
+
+**21. Kenapa kotak tetap terlihat jelas di atas karakter latar?**
+Kotak (kartu) mengikuti tema dan latarnya tidak tembus pandang, sehingga karakter di belakang hanya tampak di sela-sela kotak. Di mode gelap kotak diberi garis dan cahaya putih tipis (`html.dark main .card` di `app.css`) agar tepinya tetap terlihat.
+
+**22. Bagaimana efek percikan cahaya dibuat?**
+Layout membuat 34 elemen kecil dengan posisi, ukuran, durasi, dan jeda acak (`mt_rand` dengan seed tetap). CSS `@keyframes percikan-naik` menggerakkan tiap titik naik setinggi layar sambil muncul lalu memudar. Warnanya `--color-slate-900`, sehingga hitam di mode terang dan putih di mode gelap.
 
 ### B4. J.620100.016.01 — Menulis Kode sesuai Guidelines dan Best Practices
 
@@ -198,7 +238,8 @@ Agar password database dan `APP_KEY` tidak tertulis di kode dan tidak ikut ter-u
 |---|---|---|
 | Urut | Validasi → simpan → kurangi stok → redirect | `BarangKeluarController::setujui()` |
 | `if` | Stok cukup atau tidak | `StokService::kurangi()` |
-| `if / elseif / else` | Salam pagi / siang / sore / malam | `DashboardController::salam()` |
+| `if / elseif` | Koreksi barang masuk: selisih positif tambah stok, negatif kurangi | `BarangMasukController::update()` |
+| `foreach` + `if` | Menentukan pagi / siang / sore / malam dari jam | `Suasana::dariJam()` |
 | `match` | Warna badge sesuai status; aksi cepat per role | `components/badge.blade.php`, `dashboard.blade.php` |
 | `foreach` | Mengisi data barang | `DatabaseSeeder::run()` |
 | `@foreach` / `@forelse` | Menampilkan baris tabel | `resources/views/*/index.blade.php` |
@@ -306,7 +347,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **66 test (221 assertion)** PHPUnit, lulus di SQLite dan PostgreSQL. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **75 test (257 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.
@@ -415,7 +456,11 @@ Kondisi barang per jenis, belum ada peminjaman, laporan baru sebatas cetak brows
 | Penanganan error 419 | `bootstrap/app.php` | `withExceptions` |
 | Struktur tabel | `database/migrations/` | — |
 | Data sampel | `database/seeders/DatabaseSeeder.php` | `run()` |
-| Dashboard | `app/Http/Controllers/DashboardController.php` | `aktivitasTerbaru()`, `salam()` |
+| Dashboard | `app/Http/Controllers/DashboardController.php` | `index()`, `aktivitasTerbaru()` |
+| Suasana login & salam | `app/Support/Suasana.php` | `dariJam()`, `salam()` |
+| Audio & animasi login | `resources/js/suasana.js` | `pasangSuasanaLogin()`, `putar()` |
+| Mode gelap | `resources/js/tema.js` | `gantiTema()` |
+| Musik Bad Apple!! | `resources/js/musik.js` | `pasangMusik()` |
 | Test | `tests/Unit`, `tests/Feature` | — |
 
 ## F. Daftar Istilah

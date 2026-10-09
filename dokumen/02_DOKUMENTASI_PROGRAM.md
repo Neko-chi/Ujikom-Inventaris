@@ -9,7 +9,7 @@
 | Database | MySQL / MariaDB (XAMPP) untuk lokal; PostgreSQL (Supabase) untuk versi online |
 | Penyimpanan gambar | Folder `storage/app/public` (lokal); Supabase Storage (online) |
 | Tampilan | Blade + Tailwind CSS 4 (dibuild dengan Vite), responsif untuk komputer dan HP |
-| Pengujian | PHPUnit 11 — 66 test, 221 assertion, semua lulus |
+| Pengujian | PHPUnit 11 — 75 test, 257 assertion, semua lulus |
 | Dokumen terkait | 01 Dokumen Rancangan, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy |
 
 <!-- daftar-isi -->
@@ -40,15 +40,19 @@ Aturan utama: **stok bertambah saat barang masuk dicatat**, dan **stok baru berk
 
 | No | Fitur | Keterangan |
 |---|---|---|
-| 1 | Login & logout | Login memakai username dan password (password tersimpan ter-hash) |
+| 1 | Login & logout | Login memakai username dan password (password tersimpan ter-hash); halaman login bergaya siluet monokrom dengan animasi, jam berjalan, salam dan suara suasana (audio) sesuai waktu pagi/siang/sore/malam |
 | 2 | Dashboard | Sapaan sesuai jam, kartu statistik, grafik stok per kategori, status permintaan, stok menipis, aktivitas terbaru, aksi cepat per role |
-| 3 | Profil saya | Ubah nama, foto profil, dan password (wajib password lama) |
+| 3 | Profil saya | Klik foto profil → panel kanan untuk ubah nama, foto profil, dan password (wajib password lama) |
 | 4 | Kelola pengguna | Tambah, ubah, hapus akun beserta role-nya (Admin) |
 | 5 | Kategori | Tambah, ubah, hapus kategori; prefix kode barang otomatis |
 | 6 | Data barang | Daftar, cari, filter kategori, detail riwayat, tambah dengan kode otomatis, gambar barang |
 | 7 | Barang masuk | Catat penerimaan (stok bertambah), foto bukti opsional, filter tanggal, koreksi oleh Admin |
 | 8 | Barang keluar | Ajukan permintaan dengan foto bukti wajib (Pending), verifikasi Setujui/Tolak oleh Manager, tab filter status |
 | 9 | Cetak | Daftar barang, barang masuk, dan barang keluar dapat dicetak |
+| 10 | Tema monokrom & mode terang / gelap | Tampilan hitam-putih ala video Bad Apple!!; tombol bulan/matahari di topbar dan login; tema baru muncul dengan efek lingkaran membesar; tema awal mengikuti jam (malam = gelap) |
+| 11 | Musik Bad Apple!! | Tombol not musik di topbar dan login untuk memutar / menjeda lagu Bad Apple!! (MP3), posisi lagu berlanjut saat pindah halaman |
+| 12 | Tanpa pindah halaman | Menu dibuka tanpa memuat ulang halaman (Turbo); form tambah, ubah, dan detail tampil sebagai popup |
+| 13 | Sidebar bisa ditutup | Tombol burger menutup / membuka sidebar; posisinya diingat |
 
 ## 2. Cara Menjalankan Program
 
@@ -163,18 +167,21 @@ Browser → `routes/web.php` → Middleware (`auth`, `role`) → Form Request (v
 | `app/Models/` | Model Eloquent: User, Kategori, Barang, BarangMasuk, BarangKeluar |
 | `app/Services/StokService.php` | Satu-satunya tempat yang mengubah stok |
 | `app/Services/GambarService.php` | Satu-satunya tempat yang menyimpan, mengganti, menghapus, dan membuat alamat gambar |
+| `app/Support/Suasana.php` | Penentu suasana pagi / siang / sore / malam: salam dashboard, animasi dan audio login |
 | `app/Exceptions/StokTidakCukupException.php` | Error khusus saat stok tidak mencukupi |
 | `app/Providers/AppServiceProvider.php` | Pagination berbahasa Indonesia, jumlah Pending untuk menu, paksa https di produksi |
 | `bootstrap/app.php` | Alias middleware `role`, proxy tepercaya, penanganan error 419 |
 | `config/filesystems.php` | Lokasi penyimpanan gambar (`UPLOAD_DISK`: `public` atau `s3`) |
 | `database/migrations/`, `database/seeders/`, `database/factories/` | Struktur tabel, data sampel, data palsu untuk pengujian |
 | `resources/views/` | Halaman Blade: layout, login, dashboard, profil, user, kategori, barang, barang-masuk, barang-keluar |
-| `resources/views/components/` | Komponen: `icon`, `badge`, `empty`, `error`, `avatar`, `unggah-gambar` |
-| `resources/views/partials/` | `flash` (pesan notifikasi) dan `pagination` |
-| `resources/css/app.css`, `resources/js/app.js` | Gaya tampilan dan interaksi kecil (menu HP, notifikasi, lihat password, pratinjau gambar) |
-| `tests/Unit`, `tests/Feature` | 66 test PHPUnit |
+| `resources/views/components/` | Komponen: `icon`, `badge`, `empty`, `error`, `avatar`, `unggah-gambar`, `tombol-tema` |
+| `resources/views/partials/` | `flash` (pesan notifikasi), `pagination`, dan `tema-awal` (skrip mode gelap) |
+| `resources/css/app.css` | Gaya tampilan, animasi halaman login, dan warna mode gelap |
+| `resources/js/` | `app.js` (menu HP, notifikasi, lihat password, pratinjau gambar), `tema.js` (mode gelap), `suasana.js` (salam, jam, dan audio login), `musik.js` (musik Bad Apple!!) |
+| `public/images/siluet.png` | Gambar siluet halaman login (PNG transparan) |
+| `public/audio/` | Suara suasana (`pagi.wav`, `siang.wav`, `sore.wav`, `malam.wav`) dan lagu `bad-apple.mp3` |
+| `tests/Unit`, `tests/Feature` | 75 test PHPUnit |
 | `vercel.json`, `api/index.php` | Konfigurasi hosting Vercel |
-| `Dockerfile`, `docker/entrypoint.sh` | Alternatif hosting berbasis Docker |
 
 ## 6. Desain Antarmuka
 
@@ -183,7 +190,14 @@ Browser → `routes/web.php` → Middleware (`auth`, `role`) → Form Request (v
 - **Responsif**: di HP, menu samping menjadi menu geser; tabel dapat digeser ke samping.
 - **Sesuai role**: menu, tombol, dan aksi cepat hanya tampil bila role berhak; jumlah permintaan Pending tampil di menu.
 - **Multimedia**: foto profil di menu samping, topbar, dan daftar pengguna; gambar barang di daftar dan detail; foto bukti di daftar dan detail transaksi; pratinjau sebelum unggah.
-- **Siap cetak**: tombol Cetak menyembunyikan menu, filter, dan tombol aksi.
+- **Siap cetak**: tombol Cetak menyembunyikan menu, filter, dan tombol aksi; saat dicetak selalu memakai mode terang.
+- **Mode terang / gelap**: seluruh warna memakai variabel CSS yang ditukar nilainya saat `<html class="dark">` (`resources/css/app.css` bagian MODE GELAP).
+- **Tema monokrom**: warna utama hitam-putih ala video Bad Apple!!; sidebar dan banner mengikuti tema; warna status tetap berwarna.
+- **Tanpa pindah halaman**: Turbo mengganti isi halaman tanpa muat ulang; tambah, ubah, dan detail tampil sebagai popup; profil di panel kanan.
+- **Latar karakter**: karakter tersenyum bersayap tampil besar di tengah belakang halaman, hitam di mode terang dan putih di mode gelap, ditemani percikan cahaya yang naik lalu menghilang.
+- **Kotak ikut tema**: kotak (kartu) mengikuti tema; di mode gelap diberi cahaya putih tipis di tepinya.
+- **Hiasan karakter**: penyihir samar di banner dashboard dan karakter samar di latar sidebar; warnanya ikut tema.
+- **Login siluet**: mode terang = siluet hitam di kiri dengan kartu di kanan; mode gelap = siluet putih di kanan dengan kartu di kiri. Ruang kosong diisi tulisan raksasa "GUDANG SEKOLAH" bergaris tipis dan apel kecil yang jatuh; cahaya apel berdenyut mengikuti waktu.
 
 ## 7. Penjelasan Kode Penting
 
@@ -223,7 +237,38 @@ Contoh `BarangKeluarRequest`: `required`, `integer`, `min:1`, `exists:barang,id_
 5. `ganti()` menghapus file lama setelah file baru tersimpan. Pada barang masuk, bila transaksi database gagal, file baru dihapus kembali.
 6. Lokasi penyimpanan diatur `UPLOAD_DISK`: `public` (lokal) atau `s3` (Supabase Storage), tanpa mengubah kode.
 
-### 7.8 Penanganan Error 419 — `bootstrap/app.php`
+### 7.8 Suasana Login dan Audio — `App\Support\Suasana`
+
+1. `Suasana::DAFTAR` menyimpan data tiap waktu: jam mulai, salam, kalimat, dan file audio (`public/audio/*.wav`).
+2. `Suasana::dariJam()` menentukan waktu: pagi 04.00-10.59, siang 11.00-14.59, sore 15.00-17.59, malam 18.00-03.59. Fungsi yang sama dipakai untuk salam di dashboard.
+3. `AuthController::index()` mengirim data ke halaman login; Blade menuliskannya sebagai JSON (`@json`) agar dibaca `resources/js/suasana.js`.
+4. JavaScript memperbarui jam setiap detik dan mengganti atribut `data-waktu`; CSS mengubah warna cahaya apel berdasarkan atribut tersebut.
+5. Tombol "Putar suara" memutar elemen `<audio loop>` dengan volume naik perlahan. Suara dibuat sendiri secara sintetis sehingga bebas hak cipta.
+
+### 7.9 Mode Terang / Gelap — `resources/js/tema.js`
+
+1. `partials/tema-awal.blade.php` dijalankan paling awal di `<head>` agar halaman tidak berkedip putih.
+2. `gantiTema()` menukar class `dark` di `<html>` dan menyimpan pilihan di `sessionStorage`. Bila belum memilih, tema mengikuti jam: malam (18.00-03.59) gelap, selain itu terang. Bila browser mendukung View Transitions API, tema baru muncul sebagai lingkaran yang membesar dari tombol.
+3. Di CSS, `html.dark` menukar nilai variabel warna, sehingga sidebar, banner, popup, dan latar karakter ikut berubah warna.
+
+4. Warna utama (`brand`) dibuat hitam dan abu-abu (`slate`) dibuat netral sehingga seluruh aplikasi bergaya monokrom.
+
+### 7.10 Musik Bad Apple!! — `resources/js/musik.js`
+
+1. File lagu `public/audio/bad-apple.mp3` diputar oleh elemen `<audio loop preload="none">` di `partials/pemutar-musik.blade.php`.
+2. Tombol not musik memanggil `play()` / `pause()`; ikon berubah sesuai status.
+3. Posisi lagu disimpan di `sessionStorage` saat meninggalkan halaman, sehingga di halaman berikutnya lagu dilanjutkan dari detik terakhir.
+4. Memutar musik menjeda suara suasana di halaman login, dan sebaliknya.
+
+### 7.11 Tanpa Pindah Halaman dan Popup — Turbo
+
+1. **Turbo Drive** (`resources/js/app.js`) mengambil halaman tujuan di belakang layar lalu mengganti isi `<body>`; halaman tidak dimuat ulang, sehingga lebih cepat dan musik tidak terputus.
+2. Tombol Tambah / Ubah / Detail diberi `data-turbo-frame="modal"`. Turbo mengirim header `Turbo-Frame: modal`; layout (`layouts/app.blade.php`) lalu hanya mengirim isi halaman di dalam `<turbo-frame id="modal">` yang ditampilkan dalam `<dialog>`.
+3. Halaman yang boleh menjadi popup ditandai `@section('popup', true)`. Tanpa Turbo, halaman yang sama tetap tampil utuh, sehingga route, controller, dan test tidak berubah.
+4. Validasi gagal → form tampil lagi di popup dengan pesan error. Simpan berhasil → popup ditutup dan halaman daftar tampil dengan pesan sukses (`turbo:frame-missing` di `resources/js/popup.js`).
+5. Profil dibuka di panel kanan (`data-turbo-frame="laci"`); setelah disimpan kembali ke halaman asal.
+
+### 7.12 Penanganan Error 419 — `bootstrap/app.php`
 
 Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, biasanya karena halaman dibiarkan terbuka lebih dari 120 menit. Pengguna dikembalikan ke halaman sebelumnya dengan pesan "Halaman sudah terlalu lama dibuka..." dan isian tetap terisi (kecuali password dan file).
 
@@ -277,19 +322,21 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 
 Pengujian memakai **PHPUnit** dengan database SQLite di memori (`phpunit.xml`), sehingga data asli tidak terganggu. Setiap test memakai `RefreshDatabase`. File unggahan disimpan di penyimpanan palsu (`Storage::fake()`), dan gambar uji dibuat dengan `UploadedFile::fake()->image()`.
 
-Perintah: `php artisan test` — hasil terakhir **66 passed (221 assertions)**, lulus di SQLite dan PostgreSQL.
+Perintah: `php artisan test` — hasil terakhir **75 passed (257 assertions)**.
 
 | File | Jenis | Jumlah | Yang diuji |
 |---|---|---|---|
 | `tests/Unit/StokServiceTest.php` | Unit | 7 | Tambah / kurangi stok, stok habis, stok tidak cukup, jumlah nol |
 | `tests/Unit/KodeBarangTest.php` | Unit | 5 | Prefix dan nomor kode barang otomatis |
-| `tests/Feature/AuthTest.php` | Fitur | 6 | Login berhasil / gagal, password ter-hash, tamu diarahkan ke login, logout |
+| `tests/Unit/SuasanaTest.php` | Unit | 3 | Suasana dan salam sesuai jam, file audio tersedia |
+| `tests/Feature/AuthTest.php` | Fitur | 7 | Login berhasil / gagal, password ter-hash, tamu diarahkan ke login, logout, suasana login sesuai jam |
 | `tests/Feature/HakAksesTest.php` | Fitur | 6 | Pembatasan halaman untuk Admin, Operator, Manager |
 | `tests/Feature/UserTest.php` | Fitur | 8 | Kelola pengguna, username unik, role valid, Admin dapat mengubah nama / username sendiri tetapi tidak dapat mengubah role / menghapus akun sendiri |
 | `tests/Feature/ProfilTest.php` | Fitur | 5 | Ubah profil, unggah / ganti / hapus foto, ganti password |
 | `tests/Feature/KategoriBarangTest.php` | Fitur | 8 | CRUD kategori & barang, validasi, pencarian, gambar barang |
 | `tests/Feature/TransaksiBarangTest.php` | Fitur | 18 | Barang masuk, barang keluar, verifikasi, foto bukti |
 | `tests/Feature/SesiKedaluwarsaTest.php` | Fitur | 3 | Penanganan error 419 |
+| `tests/Feature/PopupTest.php` | Fitur | 5 | Halaman dikirim sebagai isi popup / panel kanan, halaman daftar tetap utuh, simpan profil kembali ke halaman asal dan menolak alamat situs lain |
 
 Contoh test case:
 
@@ -315,18 +362,18 @@ Contoh test case:
 | 5 | J.620100.017.02 | Mengimplementasikan Pemrograman Terstruktur | Percabangan `if/elseif/else` dan `match`, perulangan `foreach` / `@forelse`, fungsi dengan parameter dan nilai kembali, prosedur `void`, `try...catch` |
 | 6 | J.620100.023.02 | Membuat Dokumen Kode Program | PHPDoc di class dan method, komentar Blade, dokumen 01–05 |
 | 7 | J.620100.025.02 | Melakukan Debugging | 14 bug beserta perbaikannya dan teknik debugging (Bagian 9) |
-| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 66 test PHPUnit unit dan fitur, lulus di SQLite dan PostgreSQL (Bagian 10) |
+| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 75 test PHPUnit unit dan fitur (Bagian 10) |
 
 ## 12. Skenario Demo
 
 1. Login **operator_siti**. Tunjukkan menu Kategori dan Pengguna tidak ada.
-2. **Profil Saya**: unggah foto profil; foto tampil di menu samping.
-3. **Data Barang**: tambah barang beserta gambar; kode otomatis AT-002; pratinjau gambar.
+2. Klik **foto profil** di kanan atas: panel profil muncul dari kanan; unggah foto; foto tampil di menu samping.
+3. **Data Barang**: tambah barang di popup beserta gambar; kode otomatis AT-002; pratinjau gambar.
 4. **Barang Masuk**: catat 5 unit (boleh dengan foto nota); stok bertambah.
 5. **Barang Keluar**: ajukan tanpa foto (ditolak), lalu dengan foto (Pending, stok tetap).
 6. Login **manager_marco**: tidak ada tombol tambah barang; buka permintaan, lihat foto, coba Tolak tanpa alasan (ditolak), lalu Setujui (stok berkurang).
 7. Login **admin_ohim**: menu Pengguna menampilkan tiga role; role akun sendiri terkunci; koreksi barang masuk.
 8. Tombol **Cetak** pada daftar barang.
-9. Terminal: `php artisan test` → 66 test lulus.
+9. Terminal: `php artisan test` → 75 test lulus.
 
 Mengembalikan data ke kondisi awal sebelum demo: `php artisan migrate:fresh --seed`.

@@ -4,7 +4,7 @@
 @section('subtitle', 'Pengelompokan barang beserta prefix kode barangnya.')
 
 @section('aksi')
-    <a href="{{ route('kategori.create') }}" class="btn-primary"><x-icon name="plus" />Tambah Kategori</a>
+    <a href="{{ route('kategori.create') }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="plus" />Tambah Kategori</a>
 @endsection
 
 @section('content')
@@ -21,7 +21,7 @@
                             {{ \App\Models\Barang::prefixKategori($k->nama_kategori) }}
                         </div>
                         <div class="flex gap-1">
-                            <a href="{{ route('kategori.edit', $k) }}" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
+                            <a href="{{ route('kategori.edit', $k) }}" data-turbo-frame="modal" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
                             <form action="{{ route('kategori.destroy', $k) }}" method="POST" onsubmit="return confirm(@js('Hapus kategori '.$k->nama_kategori.'?'))">
                                 @csrf
                                 @method('DELETE')

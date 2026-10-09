@@ -18,6 +18,17 @@ class AuthTest extends TestCase
         $this->get('/login')->assertOk()->assertSee('Gudang Sekolah');
     }
 
+    public function test_halaman_login_menampilkan_suasana_sesuai_jam(): void
+    {
+        $this->travelTo(now()->setTime(19, 30));
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('data-waktu="malam"', false)
+            ->assertSee('Selamat malam')
+            ->assertSee('audio/malam.wav');
+    }
+
     public function test_login_berhasil_dengan_username_dan_password_benar(): void
     {
         User::factory()->create(['username' => 'admin_ohim', 'password' => 'admin123']);

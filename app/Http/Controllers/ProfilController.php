@@ -40,6 +40,15 @@ class ProfilController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('profil.edit')->with('sukses', 'Profil berhasil diperbarui.');
+        // Bila profil diubah dari panel kanan (Turbo Frame), kembali ke halaman yang sedang dibuka
+        // agar nama dan foto di sidebar/topbar ikut diperbarui.
+        // Header X-Halaman-Asal dikirim resources/js/popup.js. Hanya alamat dari aplikasi ini
+        // yang diterima (mencegah pengalihan ke situs lain).
+        $asal = (string) $request->headers->get('X-Halaman-Asal');
+        $tujuan = $request->hasHeader('Turbo-Frame') && str_starts_with($asal, url('/').'/')
+            ? $asal
+            : route('profil.edit');
+
+        return redirect()->to($tujuan)->with('sukses', 'Profil berhasil diperbarui.');
     }
 }

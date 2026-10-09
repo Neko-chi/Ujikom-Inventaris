@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Suasana;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +15,11 @@ class AuthController extends Controller
 {
     public function index(): View
     {
-        return view('auth.login');
+        // Suasana awal mengikuti jam server; JavaScript lalu menyesuaikan dengan jam perangkat.
+        return view('auth.login', [
+            'suasana' => Suasana::dariJam(now()->hour),
+            'daftarSuasana' => Suasana::untukBrowser(),
+        ]);
     }
 
     public function login(Request $request): RedirectResponse

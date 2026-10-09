@@ -1,11 +1,14 @@
 {{-- Satu form dipakai untuk catat baru (Operator) dan koreksi (Admin) --}}
 @extends('layouts.app')
 
+{{-- Dapat dibuka sebagai popup (Turbo Frame) tanpa pindah halaman --}}
+@section('popup', true)
+
 @section('title', $barangMasuk->exists ? 'Koreksi Barang Masuk' : 'Catat Barang Masuk')
 @section('subtitle', $barangMasuk->exists ? 'Perubahan jumlah atau barang akan menyesuaikan stok secara otomatis.' : 'Stok barang akan bertambah setelah data disimpan.')
 
 @section('aksi')
-    <a href="{{ route('barang-masuk.index') }}" class="btn-secondary"><x-icon name="arrow-left" />Kembali</a>
+    <a href="{{ route('barang-masuk.index') }}" class="btn-secondary" data-tutup-popup><x-icon name="arrow-left" />Kembali</a>
 @endsection
 
 @section('content')
@@ -40,7 +43,7 @@
                 </select>
                 <x-error field="id_barang" />
                 @unless ($barangMasuk->exists)
-                    <p class="hint">Barang belum terdaftar? <a href="{{ route('barang.create') }}" class="font-medium text-brand-600 hover:underline">Tambahkan barang baru</a> terlebih dahulu.</p>
+                    <p class="hint">Barang belum terdaftar? <a href="{{ route('barang.create') }}" data-turbo-frame="modal" class="font-medium text-brand-600 hover:underline">Tambahkan barang baru</a> terlebih dahulu.</p>
                 @endunless
             </div>
 
@@ -79,7 +82,7 @@
         </div>
 
         <div class="flex justify-end gap-2 rounded-b-2xl border-t border-slate-100 bg-slate-50/60 px-5 py-4">
-            <a href="{{ route('barang-masuk.index') }}" class="btn-secondary">Batal</a>
+            <a href="{{ route('barang-masuk.index') }}" class="btn-secondary" data-tutup-popup>Batal</a>
             <button type="submit" class="btn-primary"><x-icon name="check" />Simpan</button>
         </div>
     </form>

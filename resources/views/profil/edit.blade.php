@@ -1,23 +1,26 @@
 @extends('layouts.app')
 
+{{-- Dibuka sebagai panel kanan (Turbo Frame "laci") lewat foto profil di topbar / sidebar --}}
+@section('popup', true)
+
 @section('title', 'Profil Saya')
 @section('subtitle', 'Ubah nama, foto profil, dan password akun Anda.')
 
 @section('content')
-    <div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
-        {{-- Kartu ringkasan akun --}}
+    <div class="mx-auto max-w-xl space-y-6">
+        {{-- Ringkasan akun --}}
         <div class="card overflow-hidden">
-            <div class="h-24 bg-gradient-to-br from-brand-600 to-brand-900"></div>
-            <div class="-mt-12 flex flex-col items-center px-6 pb-6 text-center">
-                <x-avatar :user="$user" class="size-24 text-2xl ring-4 ring-white" />
-                <h2 class="mt-3 text-lg font-bold text-slate-900">{{ $user->nama_user }}</h2>
+            <div class="h-20 bg-gradient-to-br from-slate-200 to-slate-300"></div>
+            <div class="-mt-10 flex flex-col items-center px-6 pb-5 text-center">
+                <x-avatar :user="$user" class="size-20 text-xl ring-4 ring-surface" />
+                <h3 class="mt-3 text-lg font-bold text-slate-900">{{ $user->nama_user }}</h3>
                 <p class="text-sm text-slate-500">{{ '@'.$user->username }}</p>
                 <span class="mt-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ $user->role }}</span>
-                <p class="mt-4 text-xs text-slate-400">Username dan role hanya dapat diubah oleh Admin.</p>
+                <p class="mt-3 text-xs text-slate-400">Username dan role hanya dapat diubah oleh Admin.</p>
             </div>
         </div>
 
-        <form action="{{ route('profil.update') }}" method="POST" enctype="multipart/form-data" class="card xl:col-span-2">
+        <form action="{{ route('profil.update') }}" method="POST" enctype="multipart/form-data" class="card">
             @csrf
             @method('PUT')
 
@@ -43,10 +46,10 @@
                     <p class="text-xs text-slate-500">Kosongkan bagian ini bila tidak ingin mengganti password.</p>
                 </div>
             </div>
-            <div class="grid gap-5 p-5 sm:grid-cols-2">
-                <div class="sm:col-span-2">
+            <div class="space-y-5 p-5">
+                <div>
                     <label for="password_lama" class="label">Password Lama</label>
-                    <input id="password_lama" name="password_lama" type="password" class="input sm:max-w-sm" autocomplete="current-password">
+                    <input id="password_lama" name="password_lama" type="password" class="input" autocomplete="current-password">
                     <x-error field="password_lama" />
                 </div>
                 <div>

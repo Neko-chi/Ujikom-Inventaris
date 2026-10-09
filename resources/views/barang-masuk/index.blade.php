@@ -6,7 +6,7 @@
 @section('aksi')
     <button type="button" onclick="window.print()" class="btn-secondary"><x-icon name="printer" />Cetak</button>
     @if (auth()->user()->isOperator())
-        <a href="{{ route('barang-masuk.create') }}" class="btn-primary"><x-icon name="plus" />Catat Barang Masuk</a>
+        <a href="{{ route('barang-masuk.create') }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="plus" />Catat Barang Masuk</a>
     @endif
 @endsection
 
@@ -52,7 +52,7 @@
                                 <p class="text-xs text-slate-400">{{ $m->tanggal->translatedFormat('l') }}</p>
                             </td>
                             <td>
-                                <a href="{{ route('barang.show', $m->barang) }}" class="font-semibold whitespace-nowrap text-slate-900 hover:text-brand-700">{{ $m->barang->nama_barang }}</a>
+                                <a href="{{ route('barang.show', $m->barang) }}" data-turbo-frame="modal" class="font-semibold whitespace-nowrap text-slate-900 hover:text-brand-700">{{ $m->barang->nama_barang }}</a>
                                 <p class="mt-0.5"><span class="kode">{{ $m->barang->kode_barang }}</span></p>
                             </td>
                             <td class="text-right whitespace-nowrap">
@@ -78,7 +78,7 @@
                             @if (auth()->user()->isAdmin())
                                 <td class="print:hidden">
                                     <div class="flex justify-end gap-1">
-                                        <a href="{{ route('barang-masuk.edit', $m) }}" class="btn-icon" title="Koreksi"><x-icon name="pencil" /></a>
+                                        <a href="{{ route('barang-masuk.edit', $m) }}" data-turbo-frame="modal" class="btn-icon" title="Koreksi"><x-icon name="pencil" /></a>
                                         <form action="{{ route('barang-masuk.destroy', $m) }}" method="POST" onsubmit="return confirm('Hapus data ini? Stok barang akan dikurangi kembali.')">
                                             @csrf
                                             @method('DELETE')

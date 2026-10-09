@@ -4,7 +4,7 @@
 @section('subtitle', 'Kelola akun Admin dan Operator yang dapat mengakses sistem.')
 
 @section('aksi')
-    <a href="{{ route('user.create') }}" class="btn-primary"><x-icon name="plus" />Tambah Pengguna</a>
+    <a href="{{ route('user.create') }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="plus" />Tambah Pengguna</a>
 @endsection
 
 @section('content')
@@ -12,7 +12,7 @@
     <div class="mb-6 grid gap-4 md:grid-cols-3">
         @foreach (\App\Models\User::INFO_ROLE as $role => $info)
             <div class="flex gap-4 rounded-2xl border p-4 {{ $info['kotak'] }}">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl text-white {{ $info['ikon_bg'] }}"><x-icon :name="$info['ikon']" /></div>
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $info['ikon_bg'] }}"><x-icon :name="$info['ikon']" /></div>
                 <div>
                     <p class="font-semibold text-slate-900">{{ $role }}</p>
                     <p class="text-sm text-slate-600">{{ $info['keterangan'] }}</p>
@@ -67,7 +67,7 @@
                             </td>
                             <td>
                                 <div class="flex justify-end gap-1">
-                                    <a href="{{ route('user.edit', $u) }}" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
+                                    <a href="{{ route('user.edit', $u) }}" data-turbo-frame="modal" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
                                     @unless ($u->is(auth()->user()))
                                         <form action="{{ route('user.destroy', $u) }}" method="POST" onsubmit="return confirm(@js('Hapus pengguna '.$u->nama_user.'?'))">
                                             @csrf
