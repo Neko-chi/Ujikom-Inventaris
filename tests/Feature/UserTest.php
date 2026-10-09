@@ -62,6 +62,23 @@ class UserTest extends TestCase
         $this->assertTrue(Hash::check('lama12345', $user->password));
     }
 
+    public function test_admin_dapat_mengubah_nama_dan_username_akun_sendiri(): void
+    {
+        // Form akun sendiri mengirim role lewat input tersembunyi (role dikunci).
+        $this->put(route('user.update', $this->admin), [
+            'nama_user' => 'Admin Nama Baru', 'username' => 'admin_baru',
+            'role' => 'Admin', 'password' => '', 'password_confirmation' => '',
+        ])->assertRedirect('/user')->assertSessionHas('sukses');
+
+        $this->admin->refresh();
+        $this->assertSame('Admin Nama Baru', $this->admin->nama_user);
+        $this->assertSame('admin_baru', $this->admin->username);
+
+        // Login berikutnya memakai username baru.
+        $this->post('/logout');
+        $this->post('/login', ['username' => 'admin_baru', 'password' => 'password'])->assertRedirect(route('dashboard'));
+    }
+
     public function test_admin_tidak_dapat_mengubah_role_dan_menghapus_akun_sendiri(): void
     {
         $this->put(route('user.update', $this->admin), [
