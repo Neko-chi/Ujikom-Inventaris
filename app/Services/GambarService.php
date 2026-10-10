@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Exceptions\GambarGagalDisimpanException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * Satu-satunya tempat yang menyimpan, mengganti, dan menghapus file gambar.
@@ -26,10 +28,25 @@ class GambarService
 
     /**
      * Menyimpan file ke folder tertentu dengan nama acak, lalu mengembalikan path-nya.
+     *
+     * @throws GambarGagalDisimpanException bila penyimpanan menolak / tidak dapat dihubungi.
+     *         Penyebab aslinya dicatat ke log (di Vercel tampil di menu Logs).
      */
     public function simpan(UploadedFile $file, string $folder): string
     {
-        return $this->disk()->putFile($folder, $file);
+        try {
+            $path = $this->disk()->putFile($folder, $file);
+        } catch (Throwable $e) {
+            report($e);
+            throw new GambarGagalDisimpanException($e);
+        }
+
+        // Sebagian driver mengembalikan false (bukan error) saat gagal menyimpan
+        if (! is_string($path) || $path === '') {
+            throw new GambarGagalDisimpanException;
+        }
+
+        return $path;
     }
 
     /**
@@ -49,8 +66,15 @@ class GambarService
 
     public function hapus(?string $path): void
     {
-        if ($path) {
+        if (! $path) {
+            return;
+        }
+
+        // Gagal menghapus file lama tidak boleh menggagalkan proses utama; cukup dicatat di log.
+        try {
             $this->disk()->delete($path);
+        } catch (Throwable $e) {
+            report($e);
         }
     }
 

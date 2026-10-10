@@ -287,7 +287,7 @@ php artisan migrate:fresh --seed --env=supabase
 | `column "foto" does not exist` | Migration terbaru belum dijalankan | `php artisan migrate --env=supabase` |
 | `No application encryption key` | `APP_KEY` kosong | Isi `APP_KEY`, lalu Redeploy |
 | `Vite manifest not found` / tampilan tanpa CSS | `public/build` belum ikut / `APP_URL` salah | `npm run build`, commit, push; cek `APP_URL` |
-| Error 500 saat menyimpan gambar | Kunci S3 / endpoint salah | Cek `UPLOAD_DISK` dan `AWS_*`, Redeploy, lihat tab Logs |
+| Pesan "Gambar gagal disimpan ke penyimpanan" | Kunci S3 / endpoint / region / nama bucket salah, atau bucket belum dibuat | Cek `UPLOAD_DISK` dan `AWS_*` (langkah 2.7), Redeploy. Penyebab pastinya tercatat di **Logs** Vercel |
 | Gambar tidak tampil (ikon rusak) | Bucket belum publik / `AWS_URL` salah | Aktifkan Public bucket; `AWS_URL` berakhiran `/object/public/gambar` |
 | Lokal: gambar 404 | Folder `public/storage` belum dibuat | `php artisan storage:link` |
 | Pesan "Halaman sudah terlalu lama dibuka..." | Formulir dibuka lebih dari 120 menit | Kirim ulang formulir; isian sudah terisi kembali |

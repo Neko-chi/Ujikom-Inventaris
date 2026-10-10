@@ -41,4 +41,4 @@ Buka `http://localhost:8000`. Akun login:
 php artisan test
 ```
 
-Hasil: 75 test lulus (257 assertion).
+Hasil: 78 test lulus (271 assertion).

@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\GambarGagalDisimpanException;
 use App\Http\Middleware\CekRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,6 +24,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Gambar gagal disimpan (misalnya Supabase Storage menolak): kembali ke form dengan
+        // pesan yang jelas dan isian tetap terisi, bukan halaman "500 Server Error".
+        $exceptions->render(function (GambarGagalDisimpanException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return null;
+            }
+
+            return redirect()->back()
+                ->withInput($request->except(['_token', 'password', 'password_confirmation', 'password_lama']))
+                ->with('gagal', $e->getMessage());
+        });
+
         // Error 419 "Page Expired": token form (CSRF) sudah tidak cocok, biasanya karena halaman
         // dibiarkan terbuka lebih lama dari masa berlaku sesi. Daripada menampilkan halaman error,
         // pengguna dikembalikan ke halaman sebelumnya dengan pesan jelas dan isian tetap terisi

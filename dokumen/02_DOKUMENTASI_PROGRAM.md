@@ -9,7 +9,7 @@
 | Database | MySQL / MariaDB (XAMPP) untuk lokal; PostgreSQL (Supabase) untuk versi online |
 | Penyimpanan gambar | Folder `storage/app/public` (lokal); Supabase Storage (online) |
 | Tampilan | Blade + Tailwind CSS 4 (dibuild dengan Vite), responsif untuk komputer dan HP |
-| Pengujian | PHPUnit 11 — 75 test, 257 assertion, semua lulus |
+| Pengujian | PHPUnit 11 — 78 test, 271 assertion, semua lulus |
 | Dokumen terkait | 01 Dokumen Rancangan, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy |
 
 <!-- daftar-isi -->
@@ -180,7 +180,7 @@ Browser → `routes/web.php` → Middleware (`auth`, `role`) → Form Request (v
 | `resources/js/` | `app.js` (menu HP, notifikasi, lihat password, pratinjau gambar), `tema.js` (mode gelap), `suasana.js` (salam, jam, dan audio login), `musik.js` (musik Bad Apple!!) |
 | `public/images/siluet.png` | Gambar siluet halaman login (PNG transparan) |
 | `public/audio/` | Suara suasana (`pagi.wav`, `siang.wav`, `sore.wav`, `malam.wav`) dan lagu `bad-apple.mp3` |
-| `tests/Unit`, `tests/Feature` | 75 test PHPUnit |
+| `tests/Unit`, `tests/Feature` | 78 test PHPUnit |
 | `vercel.json`, `api/index.php` | Konfigurasi hosting Vercel |
 
 ## 6. Desain Antarmuka
@@ -236,6 +236,7 @@ Contoh `BarangKeluarRequest`: `required`, `integer`, `min:1`, `exists:barang,id_
 4. Model menyediakan alamat gambar: `$user->foto_url`, `$barang->gambar_url`, `$transaksi->foto_url`.
 5. `ganti()` menghapus file lama setelah file baru tersimpan. Pada barang masuk, bila transaksi database gagal, file baru dihapus kembali.
 6. Lokasi penyimpanan diatur `UPLOAD_DISK`: `public` (lokal) atau `s3` (Supabase Storage), tanpa mengubah kode.
+7. Bila penyimpanan gagal (kunci salah, bucket tidak ada, koneksi putus), `simpan()` melempar `GambarGagalDisimpanException`. `bootstrap/app.php` mengembalikan pengguna ke form dengan pesan jelas, dan penyebab aslinya dicatat ke log (di Vercel: menu Logs).
 
 ### 7.8 Suasana Login dan Audio — `App\Support\Suasana`
 
@@ -307,6 +308,7 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 | 12 | `BarangKeluarController::setujui()` | Status Pending dicek di luar transaksi (*race condition*) | Dua persetujuan bersamaan mengurangi stok dua kali | Baris dikunci dan dicek ulang di dalam transaksi |
 | 13 | Migration role Manager | `->change()` pada enum menghasilkan SQL tidak valid di PostgreSQL | Database online gagal diperbarui | Constraint role dibuat ulang manual khusus PostgreSQL |
 | 14 | Formulir lama terbuka | Token CSRF kedaluwarsa | Halaman "419 Page Expired" dan isian hilang | Error 419 ditangani: kembali dengan pesan, isian tetap |
+| 15 | `GambarService::simpan()` di website online | Bila Supabase Storage menolak, `putFile()` mengembalikan `false` tanpa pesan, lalu `false` ikut disimpan ke kolom foto | Unggah foto profil / gambar barang menampilkan "500 Server Error" | Kegagalan diubah menjadi `GambarGagalDisimpanException`: penyebab asli dicatat di log, pengguna kembali ke form dengan pesan jelas, data tidak tersimpan setengah jadi |
 
 ### 9.2 Teknik Debugging
 
@@ -322,7 +324,7 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 
 Pengujian memakai **PHPUnit** dengan database SQLite di memori (`phpunit.xml`), sehingga data asli tidak terganggu. Setiap test memakai `RefreshDatabase`. File unggahan disimpan di penyimpanan palsu (`Storage::fake()`), dan gambar uji dibuat dengan `UploadedFile::fake()->image()`.
 
-Perintah: `php artisan test` — hasil terakhir **75 passed (257 assertions)**.
+Perintah: `php artisan test` — hasil terakhir **78 passed (271 assertions)**.
 
 | File | Jenis | Jumlah | Yang diuji |
 |---|---|---|---|
@@ -336,6 +338,7 @@ Perintah: `php artisan test` — hasil terakhir **75 passed (257 assertions)**.
 | `tests/Feature/KategoriBarangTest.php` | Fitur | 8 | CRUD kategori & barang, validasi, pencarian, gambar barang |
 | `tests/Feature/TransaksiBarangTest.php` | Fitur | 18 | Barang masuk, barang keluar, verifikasi, foto bukti |
 | `tests/Feature/SesiKedaluwarsaTest.php` | Fitur | 3 | Penanganan error 419 |
+| `tests/Feature/GambarGagalTest.php` | Fitur | 3 | Penyimpanan gambar gagal (profil, barang, barang keluar): kembali ke form dengan pesan, bukan error 500, data tidak tersimpan |
 | `tests/Feature/PopupTest.php` | Fitur | 5 | Halaman dikirim sebagai isi popup / panel kanan, halaman daftar tetap utuh, simpan profil kembali ke halaman asal dan menolak alamat situs lain |
 
 Contoh test case:
@@ -362,7 +365,7 @@ Contoh test case:
 | 5 | J.620100.017.02 | Mengimplementasikan Pemrograman Terstruktur | Percabangan `if/elseif/else` dan `match`, perulangan `foreach` / `@forelse`, fungsi dengan parameter dan nilai kembali, prosedur `void`, `try...catch` |
 | 6 | J.620100.023.02 | Membuat Dokumen Kode Program | PHPDoc di class dan method, komentar Blade, dokumen 01–05 |
 | 7 | J.620100.025.02 | Melakukan Debugging | 14 bug beserta perbaikannya dan teknik debugging (Bagian 9) |
-| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 75 test PHPUnit unit dan fitur (Bagian 10) |
+| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 78 test PHPUnit unit dan fitur (Bagian 10) |
 
 ## 12. Skenario Demo
 
@@ -374,6 +377,6 @@ Contoh test case:
 6. Login **manager_marco**: tidak ada tombol tambah barang; buka permintaan, lihat foto, coba Tolak tanpa alasan (ditolak), lalu Setujui (stok berkurang).
 7. Login **admin_ohim**: menu Pengguna menampilkan tiga role; role akun sendiri terkunci; koreksi barang masuk.
 8. Tombol **Cetak** pada daftar barang.
-9. Terminal: `php artisan test` → 75 test lulus.
+9. Terminal: `php artisan test` → 78 test lulus.
 
 Mengembalikan data ke kondisi awal sebelum demo: `php artisan migrate:fresh --seed`.

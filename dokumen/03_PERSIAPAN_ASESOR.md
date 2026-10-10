@@ -32,7 +32,7 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 >
 > Aplikasi juga mendukung multimedia: gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet yang beranimasi dan menyesuaikan waktu pagi, siang, sore, malam, serta audio suasana dan lagu Bad Apple!! yang bisa diputar. Tampilannya monokrom hitam-putih ala Bad Apple!! dengan mode terang dan gelap.
 >
-> Database berisi 5 tabel, dan program diuji dengan **75 test PHPUnit** yang semuanya lulus."
+> Database berisi 5 tabel, dan program diuji dengan **78 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo (± 5 menit)
 
@@ -45,7 +45,7 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 7. Login **manager_marco** → tanda jumlah Pending di menu, tidak ada tombol tambah barang.
 8. Buka permintaan → lihat foto → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berkurang, nama Manager tercatat).
 9. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci.
-10. Terminal → `php artisan test` → 75 test lulus.
+10. Terminal → `php artisan test` → 78 test lulus.
 
 ## B. Pertanyaan per Unit Kompetensi
 
@@ -311,7 +311,7 @@ Untuk menjelaskan alasan yang tidak terlihat dari kode, misalnya kenapa baris di
 
 ### B7. J.620100.025.02 — Melakukan Debugging
 
-**Inti unit:** menemukan, menganalisis, dan memperbaiki kesalahan program. Daftar lengkap 14 bug ada di dokumen 02 Bagian 9.
+**Inti unit:** menemukan, menganalisis, dan memperbaiki kesalahan program. Daftar lengkap 15 bug ada di dokumen 02 Bagian 9.
 
 | Bug | Jenis | Cara ditemukan | Perbaikan |
 |---|---|---|---|
@@ -340,6 +340,9 @@ Pernah. Error 419 muncul bila token CSRF di formulir tidak cocok dengan sesi, bi
 **6. Pernah error 500 di website online?**
 Pernah: tabel belum dibuat di database Supabase. Ditemukan dengan memeriksa status migration, lalu diselesaikan dengan `php artisan migrate --seed --env=supabase`.
 
+**Pernah error 500 saat unggah foto di website online?**
+Pernah. Saat Supabase Storage menolak file, fungsi `putFile()` hanya mengembalikan `false` tanpa pesan, lalu nilai `false` ikut disimpan ke kolom foto sehingga database menolak dan muncul error 500. Diperbaiki di `GambarService::simpan()`: kegagalan diubah menjadi `GambarGagalDisimpanException`, penyebab aslinya dicatat di log (menu Logs Vercel), dan pengguna dikembalikan ke form dengan pesan jelas. Dibuktikan oleh `GambarGagalTest` yang mensimulasikan penyimpanan yang tidak dapat dihubungi.
+
 **7. Kenapa `APP_DEBUG` harus `false` di server online?**
 Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang dapat dimanfaatkan penyerang.
 
@@ -347,7 +350,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **75 test (257 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **78 test (271 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.

@@ -63,7 +63,8 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             // Supabase Storage (S3) mewajibkan path-style endpoint.
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
-            'throw' => false,
+            // Lempar error bila gagal agar penyebabnya tercatat di log (ditangani GambarService).
+            'throw' => true,
             'report' => false,
         ],
 

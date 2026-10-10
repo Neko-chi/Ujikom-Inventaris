@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-{{-- Dapat dibuka sebagai popup (Turbo Frame) tanpa pindah halaman --}}
+{{-- Dapat dibuka sebagai popup --}}
 @section('popup', true)
 
 @section('title', 'Detail Permintaan #'.$barangKeluar->id_keluar)

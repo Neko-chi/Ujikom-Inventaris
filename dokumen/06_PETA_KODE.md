@@ -146,14 +146,15 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `StokService.php:35` | `kurangi($barang, $jumlah)` | Stok berkurang; bila tidak cukup lempar `StokTidakCukupException` |
 | `StokService.php:49` | `cukup()` | Cek stok ≥ jumlah |
 | `StokService.php:54` | `pastikanJumlahValid()` | Jumlah ≤ 0 ditolak (`InvalidArgumentException`) |
-| `GambarService.php:22` | `disk()` | Memilih tempat simpan: `public` (lokal) atau `s3` (Supabase) |
-| `GambarService.php:30` | `simpan()` | Simpan file dengan nama acak, kembalikan path-nya |
-| `GambarService.php:38` | `ganti()` | Simpan file baru lalu hapus file lama |
-| `GambarService.php:50` | `hapus()` | Hapus file bila ada |
-| `GambarService.php:60` | `url()` | Alamat gambar untuk tag `<img>` |
+| `GambarService.php:24` | `disk()` | Memilih tempat simpan: `public` (lokal) atau `s3` (Supabase) |
+| `GambarService.php:35` | `simpan()` | Simpan file dengan nama acak, kembalikan path-nya; bila gagal lempar `GambarGagalDisimpanException` dan catat penyebabnya ke log |
+| `GambarService.php:55` | `ganti()` | Simpan file baru lalu hapus file lama |
+| `GambarService.php:67` | `hapus()` | Hapus file bila ada; gagal menghapus hanya dicatat di log |
+| `GambarService.php:84` | `url()` | Alamat gambar untuk tag `<img>` |
 | `Suasana.php:46` | `dariJam($jam)` | Jam 0-23 → `pagi` / `siang` / `sore` / `malam` |
 | `Suasana.php:61` | `salam($jam)` | Jam → "Selamat pagi", dst. (dipakai Dashboard) |
 | `Suasana.php:69` | `untukBrowser()` | Data suasana + alamat file audio untuk JavaScript login |
+| `GambarGagalDisimpanException.php:15` | `__construct()` | Pesan "Gambar gagal disimpan ke penyimpanan…" |
 | `StokTidakCukupException.php:13` | `__construct()` | Menyusun pesan "Stok X tidak mencukupi..." |
 | `AppServiceProvider.php:18` | `boot()` | Paksa https di produksi, pakai tampilan pagination Indonesia, hitung jumlah Pending untuk sidebar (`View::composer`) |
 | `DatabaseSeeder.php:21` | `run()` | Mengisi data sampel |
