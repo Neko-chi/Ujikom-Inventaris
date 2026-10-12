@@ -58,6 +58,17 @@ class GambarGagalTest extends TestCase
         $this->assertNull($user->foto);
     }
 
+    public function test_penyebab_teknis_hanya_ditampilkan_untuk_admin(): void
+    {
+        $this->actingAs(User::factory()->admin()->create())
+            ->put('/profil', ['nama_user' => 'Admin', 'foto' => $this->gambarPalsu('profil.png')])
+            ->assertSessionHas('gagal', fn (string $pesan) => str_contains($pesan, 'Penyebab: disk "s3_gagal"'));
+
+        $this->actingAs(User::factory()->operator()->create())
+            ->put('/profil', ['nama_user' => 'Operator', 'foto' => $this->gambarPalsu('profil.png')])
+            ->assertSessionHas('gagal', fn (string $pesan) => ! str_contains($pesan, 'Penyebab:'));
+    }
+
     public function test_penyebab_gagal_dicatat_dalam_satu_baris_pendek(): void
     {
         $pesan = [];

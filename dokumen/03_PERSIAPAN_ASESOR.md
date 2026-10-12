@@ -32,7 +32,7 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 >
 > Aplikasi juga mendukung multimedia: gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet yang beranimasi dan menyesuaikan waktu pagi, siang, sore, malam, serta audio suasana dan lagu Bad Apple!! yang bisa diputar. Tampilannya monokrom hitam-putih ala Bad Apple!! dengan mode terang dan gelap.
 >
-> Database berisi 5 tabel, dan program diuji dengan **79 test PHPUnit** yang semuanya lulus."
+> Database berisi 5 tabel, dan program diuji dengan **80 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo (± 5 menit)
 
@@ -45,7 +45,7 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 7. Login **manager_marco** → tanda jumlah Pending di menu, tidak ada tombol tambah barang.
 8. Buka permintaan → lihat foto → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berkurang, nama Manager tercatat).
 9. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci.
-10. Terminal → `php artisan test` → 79 test lulus.
+10. Terminal → `php artisan test` → 80 test lulus.
 
 ## B. Pertanyaan per Unit Kompetensi
 
@@ -350,7 +350,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **79 test (274 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **80 test (276 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.

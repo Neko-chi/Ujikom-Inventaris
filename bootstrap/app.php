@@ -31,9 +31,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
+            // Admin juga melihat penyebab teknisnya agar bisa langsung memperbaiki pengaturan
+            $pesan = $e->getMessage();
+            if ($e->penyebab && $request->user()?->isAdmin()) {
+                $pesan .= ' Penyebab: '.$e->penyebab;
+            }
+
             return redirect()->back()
                 ->withInput($request->except(['_token', 'password', 'password_confirmation', 'password_lama']))
-                ->with('gagal', $e->getMessage());
+                ->with('gagal', $pesan);
         });
 
         // Error 419 "Page Expired": token form (CSRF) sudah tidak cocok, biasanya karena halaman
