@@ -7,6 +7,8 @@ use App\Models\BarangKeluar;
 use App\Models\Kategori;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 /**
@@ -54,6 +56,23 @@ class GambarGagalTest extends TestCase
         $user->refresh();
         $this->assertSame('Nama Lama', $user->nama_user);
         $this->assertNull($user->foto);
+    }
+
+    public function test_penyebab_gagal_dicatat_dalam_satu_baris_pendek(): void
+    {
+        $pesan = [];
+        Log::listen(function (MessageLogged $log) use (&$pesan) {
+            $pesan[] = $log->message;
+        });
+
+        $this->actingAs(User::factory()->create())
+            ->put('/profil', ['nama_user' => 'Nama', 'foto' => $this->gambarPalsu('profil.png')]);
+
+        $baris = collect($pesan)->first(fn (string $m) => str_starts_with($m, 'Gambar gagal disimpan: disk "s3_gagal"'));
+
+        $this->assertNotNull($baris);
+        $this->assertStringNotContainsString("\n", $baris);
+        $this->assertLessThan(1000, strlen($baris));
     }
 
     public function test_gambar_barang_gagal_disimpan_tidak_menyebabkan_error_500(): void

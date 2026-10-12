@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Exceptions\GambarGagalDisimpanException;
+use Aws\Exception\AwsException;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -37,12 +40,13 @@ class GambarService
         try {
             $path = $this->disk()->putFile($folder, $file);
         } catch (Throwable $e) {
-            report($e);
+            Log::error('Gambar gagal disimpan: '.$this->ringkasPenyebab($e));
             throw new GambarGagalDisimpanException($e);
         }
 
         // Sebagian driver mengembalikan false (bukan error) saat gagal menyimpan
         if (! is_string($path) || $path === '') {
+            Log::error('Gambar gagal disimpan: disk "'.config('filesystems.upload_disk').'" mengembalikan false.');
             throw new GambarGagalDisimpanException;
         }
 
@@ -84,5 +88,23 @@ class GambarService
     public function url(?string $path): ?string
     {
         return $path ? $this->disk()->url($path) : null;
+    }
+
+    /**
+     * Penyebab kegagalan dalam satu baris pendek, agar tidak terpotong di log Vercel.
+     * Contoh: disk "s3" | UnableToWriteFile: ... <- S3: InvalidAccessKeyId - The Access Key Id ... does not exist
+     */
+    private function ringkasPenyebab(Throwable $e): string
+    {
+        $bagian = [];
+        for ($x = $e; $x !== null; $x = $x->getPrevious()) {
+            if ($x instanceof AwsException) {
+                $bagian[] = 'S3: '.($x->getAwsErrorCode() ?? 'tanpa kode').' - '.($x->getAwsErrorMessage() ?? 'HTTP '.$x->getStatusCode());
+            } else {
+                $bagian[] = class_basename($x).': '.Str::limit(strtok($x->getMessage(), "\n") ?: '', 200);
+            }
+        }
+
+        return 'disk "'.config('filesystems.upload_disk').'" | '.implode(' <- ', $bagian);
     }
 }
