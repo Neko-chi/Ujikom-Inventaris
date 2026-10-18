@@ -1,0 +1,50 @@
+MIT License
+
+Copyright (c) 2026 Renaissance Ricarda Sugiarto Putra
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+THIRD-PARTY ASSETS (NOT COVERED BY THE MIT LICENSE ABOVE)
+--------------------------------------------------------------------------------
+
+The MIT License above applies only to the source code written for this project.
+The following files belong to their respective owners and are included for
+non-commercial, educational purposes (school competency exam) only:
+
+- public/audio/bad-apple.mp3
+  "Bad Apple!!" song (Alstroemeria Records; original composition by ZUN /
+  Team Shanghai Alice). All rights reserved by the rights holders.
+
+- public/images/siluet.png, latar-karakter.png, penyihir.png, karakter-sidebar.png
+  Silhouettes taken from the "Bad Apple!!" shadow-art video
+  (https://youtu.be/FtutLA63Cp8) featuring Touhou Project characters
+  (Team Shanghai Alice / ZUN). Fan work; all rights reserved by the rights holders.
+
+- Plus Jakarta Sans font (via @fontsource-variable/plus-jakarta-sans)
+  SIL Open Font License 1.1.
+
+- Icons in resources/views/components/icon.blade.php
+  Adapted from Heroicons (https://heroicons.com), MIT License, Tailwind Labs.
+
+- Laravel and other Composer / npm dependencies are distributed under their
+  own licenses (see vendor/ and node_modules/ after installation).
+
+The ambient sounds in public/audio/pagi.wav, siang.wav, sore.wav, and malam.wav
+were generated synthetically for this project and are covered by the MIT License.

@@ -5,11 +5,12 @@
 | Nama Peserta | Renaissance Ricarda Sugiarto Putra |
 | Skema | Pemrogram Junior (Junior Coder) |
 | Aplikasi | Inventaris Gudang Sekolah (berbasis web) |
-| Framework | Laravel 12 (PHP 8.2) |
-| Database | MySQL / MariaDB (XAMPP) untuk lokal; PostgreSQL (Supabase) untuk versi online |
+| Framework | Laravel 12.69.2 (PHP 8.2.12) |
+| Database | MariaDB 10.4.32 (XAMPP) untuk lokal; PostgreSQL 17.11 (Supabase) untuk versi online |
 | Penyimpanan gambar | Folder `storage/app/public` (lokal); Supabase Storage (online) |
-| Tampilan | Blade + Tailwind CSS 4 (dibuild dengan Vite), responsif untuk komputer dan HP |
-| Pengujian | PHPUnit 11 — 80 test, 276 assertion, semua lulus |
+| Tampilan | Blade + Tailwind CSS 4.3.3 (dibuild dengan Vite 7.3.6) dan Hotwire Turbo 8, responsif untuk komputer dan HP |
+| Editor | Antigravity IDE 2.5.5 |
+| Pengujian | PHPUnit 11.5.56 — 80 test, 275 assertion, semua lulus |
 | Dokumen terkait | 01 Dokumen Rancangan, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy |
 
 <!-- daftar-isi -->
@@ -69,6 +70,70 @@ Prasyarat: XAMPP (MySQL aktif), PHP 8.2 dengan ekstensi `gd` dan `fileinfo`, Com
 9. Jalankan pengujian: `php artisan test`
 
 Akun login ada di dokumen **04 Daftar Akun**. Cara mengunggah ke GitHub dan meng-online-kan aplikasi ada di dokumen **05 Tutorial Deploy**.
+
+### 2.1 Versi Alat dan Teknologi yang Digunakan
+
+Versi di bawah ini dibaca langsung dari laptop pengembang dan dari proyek (`composer.json`, `package.json`, `vercel.json`) pada 12 Oktober 2026.
+
+**a. Perangkat dan editor**
+
+| Alat | Versi | Keterangan |
+|---|---|---|
+| Sistem operasi | Windows 11 Pro 25H2 (build 10.0.26200, x64) | Laptop pengembang |
+| Antigravity IDE | 2.5.5 | Editor kode (berbasis VS Code OSS 1.107.0, Electron 39.2.3, Chromium 142.0.7444.175, Node.js 22.21.1, V8 14.2.231.21) |
+| Google Chrome | 154.0.8037.98 | Browser untuk uji tampilan |
+| Git | 2.55.0 (windows.4) | Pengelolaan versi kode, terhubung ke GitHub |
+
+**b. Server lokal (XAMPP)**
+
+| Alat | Versi | Keterangan |
+|---|---|---|
+| XAMPP | 8.2.12 (Control Panel 3.3.0) | Paket server lokal |
+| PHP | 8.2.12 | Bahasa pemrograman (dibawa XAMPP) |
+| MariaDB (MySQL) | 10.4.32 | Database lokal `gudang_sekolah` |
+| Apache | 2.4.58 | Web server bawaan XAMPP |
+| phpMyAdmin | 5.2.1 | Mengelola database lewat browser |
+
+**c. Bahasa, framework, dan pustaka PHP (Composer)**
+
+| Alat | Versi | Keterangan |
+|---|---|---|
+| Composer | 2.10.3 | Pengelola pustaka PHP |
+| Laravel Framework | 12.69.2 | Framework utama (MVC) |
+| PHPUnit | 11.5.56 | Pengujian unit dan fitur |
+| league/flysystem-aws-s3-v3 | 3.35.3 | Penyimpanan gambar ke Supabase Storage (protokol S3) |
+| laravel/tinker | 2.11.1 | Konsol interaktif Laravel |
+| laravel/pint | 1.30.4 | Perapi format kode PHP |
+| fakerphp/faker | 1.24.1 | Data palsu untuk pengujian |
+| mockery/mockery | 1.6.15 | Objek tiruan untuk pengujian |
+| nunomaduro/collision | 8.9.5 | Tampilan error di terminal |
+
+**d. Tampilan dan JavaScript (npm)**
+
+| Alat | Versi | Keterangan |
+|---|---|---|
+| Node.js | 26.7.0 | Menjalankan alat build tampilan |
+| npm | 11.19.0 | Pengelola pustaka JavaScript |
+| Vite | 7.3.6 | Build CSS dan JavaScript ke `public/build` |
+| laravel-vite-plugin | 2.1.0 | Penghubung Vite dengan Laravel |
+| Tailwind CSS (+ @tailwindcss/vite) | 4.3.3 | Kerangka gaya tampilan |
+| Hotwire Turbo (@hotwired/turbo) | 8.0.23 | Pindah halaman tanpa muat ulang dan popup |
+| @fontsource-variable/plus-jakarta-sans | 5.3.0 | Font aplikasi (dibundel, tanpa internet) |
+| axios | 1.20.0 | Pustaka permintaan HTTP bawaan Laravel |
+
+**e. Layanan online (hosting)**
+
+| Layanan | Versi / Paket | Keterangan |
+|---|---|---|
+| GitHub | — | Menyimpan kode (repository `Ujikom-Inventaris`) |
+| Vercel | Paket Hobby (gratis), runtime `vercel-php@0.7.4` (PHP 8.3), region Singapura (`sin1`) | Hosting aplikasi |
+| Supabase PostgreSQL | 17.11 | Database versi online |
+| Supabase Storage | Protokol S3 | Penyimpanan gambar versi online |
+
+**f. Kebutuhan minimum**
+
+PHP **8.2** atau lebih baru (sesuai `composer.json`) dengan ekstensi `gd`, `fileinfo`, `pdo_mysql` (lokal) / `pdo_pgsql` (online); MySQL 5.7+/MariaDB 10.3+ atau PostgreSQL; Composer 2; Node.js 20 atau lebih baru untuk build tampilan.
+
 
 ## 3. Spesifikasi Program
 
@@ -236,7 +301,7 @@ Contoh `BarangKeluarRequest`: `required`, `integer`, `min:1`, `exists:barang,id_
 4. Model menyediakan alamat gambar: `$user->foto_url`, `$barang->gambar_url`, `$transaksi->foto_url`.
 5. `ganti()` menghapus file lama setelah file baru tersimpan. Pada barang masuk, bila transaksi database gagal, file baru dihapus kembali.
 6. Lokasi penyimpanan diatur `UPLOAD_DISK`: `public` (lokal) atau `s3` (Supabase Storage), tanpa mengubah kode.
-7. Bila penyimpanan gagal (kunci salah, bucket tidak ada, koneksi putus), `simpan()` melempar `GambarGagalDisimpanException`. `bootstrap/app.php` mengembalikan pengguna ke form dengan pesan jelas, dan penyebab aslinya dicatat ke log dalam satu baris pendek berawalan "Gambar gagal disimpan:" (di Vercel: menu Logs, cari kata itu). Bila yang mengunggah adalah Admin, penyebab singkat itu juga ditampilkan langsung di pesan error.
+7. Bila penyimpanan gagal (kunci salah, bucket tidak ada, koneksi putus), `simpan()` melempar `GambarGagalDisimpanException`. `bootstrap/app.php` mengembalikan pengguna ke form dengan pesan jelas, dan penyebab aslinya dicatat ke log dalam satu baris pendek berawalan "Gambar gagal disimpan:" (di Vercel: menu Logs, cari kata itu).
 
 ### 7.8 Suasana Login dan Audio — `App\Support\Suasana`
 
@@ -324,7 +389,7 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 
 Pengujian memakai **PHPUnit** dengan database SQLite di memori (`phpunit.xml`), sehingga data asli tidak terganggu. Setiap test memakai `RefreshDatabase`. File unggahan disimpan di penyimpanan palsu (`Storage::fake()`), dan gambar uji dibuat dengan `UploadedFile::fake()->image()`.
 
-Perintah: `php artisan test` — hasil terakhir **80 passed (276 assertions)**.
+Perintah: `php artisan test` — hasil terakhir **80 passed (275 assertions)**.
 
 | File | Jenis | Jumlah | Yang diuji |
 |---|---|---|---|
@@ -338,7 +403,7 @@ Perintah: `php artisan test` — hasil terakhir **80 passed (276 assertions)**.
 | `tests/Feature/KategoriBarangTest.php` | Fitur | 8 | CRUD kategori & barang, validasi, pencarian, gambar barang |
 | `tests/Feature/TransaksiBarangTest.php` | Fitur | 18 | Barang masuk, barang keluar, verifikasi, foto bukti |
 | `tests/Feature/SesiKedaluwarsaTest.php` | Fitur | 3 | Penanganan error 419 |
-| `tests/Feature/GambarGagalTest.php` | Fitur | 5 | Penyimpanan gambar gagal (profil, barang, barang keluar): kembali ke form dengan pesan, bukan error 500, data tidak tersimpan; penyebab dicatat dalam satu baris log pendek dan ditampilkan untuk Admin |
+| `tests/Feature/GambarGagalTest.php` | Fitur | 5 | Penyimpanan gambar gagal (profil, barang, barang keluar): kembali ke form dengan pesan, bukan error 500, data tidak tersimpan; penyebab dicatat dalam satu baris log pendek, pesan di layar tanpa detail teknis |
 | `tests/Feature/PopupTest.php` | Fitur | 5 | Halaman dikirim sebagai isi popup / panel kanan, halaman daftar tetap utuh, simpan profil kembali ke halaman asal dan menolak alamat situs lain |
 
 Contoh test case:

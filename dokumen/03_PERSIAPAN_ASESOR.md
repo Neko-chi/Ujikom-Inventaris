@@ -5,6 +5,7 @@
 | Peserta | Renaissance Ricarda Sugiarto Putra |
 | Skema | Pemrogram Junior (Junior Coder) |
 | Aplikasi | Inventaris Gudang Sekolah (Laravel 12) — 3 role: Admin, Operator, Manager |
+| Versi utama | PHP 8.2.12 · Laravel 12.69.2 · MariaDB 10.4.32 (lokal) · PostgreSQL 17.11 (online) · Tailwind CSS 4.3.3 · Antigravity IDE 2.5.5. Daftar lengkap: dokumen 02 Bagian 2.1 |
 | Akun demo | Admin `admin_ohim` / `admin123` · Manager `manager_marco` / `@admin123` · Operator `operator_siti` / `operator123` |
 
 Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkinan diajukan asesor untuk setiap unit kompetensi beserta contoh jawabannya. Setiap jawaban menyebut **lokasi bukti di kode** agar bisa langsung dibuka di depan asesor (VS Code: **Ctrl+P** untuk mencari file, **Ctrl+Shift+O** untuk mencari method di dalam file).
@@ -350,7 +351,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **80 test (276 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **80 test (275 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.

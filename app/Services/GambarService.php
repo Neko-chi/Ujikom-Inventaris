@@ -40,16 +40,14 @@ class GambarService
         try {
             $path = $this->disk()->putFile($folder, $file);
         } catch (Throwable $e) {
-            $penyebab = $this->ringkasPenyebab($e);
-            Log::error('Gambar gagal disimpan: '.$penyebab);
-            throw new GambarGagalDisimpanException($e, $penyebab);
+            Log::error('Gambar gagal disimpan: '.$this->ringkasPenyebab($e));
+            throw new GambarGagalDisimpanException($e);
         }
 
         // Sebagian driver mengembalikan false (bukan error) saat gagal menyimpan
         if (! is_string($path) || $path === '') {
-            $penyebab = 'disk "'.config('filesystems.upload_disk').'" mengembalikan false';
-            Log::error('Gambar gagal disimpan: '.$penyebab);
-            throw new GambarGagalDisimpanException(null, $penyebab);
+            Log::error('Gambar gagal disimpan: disk "'.config('filesystems.upload_disk').'" mengembalikan false');
+            throw new GambarGagalDisimpanException;
         }
 
         return $path;

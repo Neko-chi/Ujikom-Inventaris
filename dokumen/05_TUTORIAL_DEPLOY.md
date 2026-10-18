@@ -286,6 +286,7 @@ php artisan migrate:fresh --seed --env=supabase
 | `Migration table not found` / error 500 saat login | Tabel belum dibuat di Supabase | `php artisan migrate --seed --env=supabase` |
 | `column "foto" does not exist` | Migration terbaru belum dijalankan | `php artisan migrate --env=supabase` |
 | `No application encryption key` | `APP_KEY` kosong | Isi `APP_KEY`, lalu Redeploy |
+| Log: `$bucket must be of type string, null given` | Variabel `AWS_BUCKET` (dan `AWS_*` lain) belum diisi di Vercel | Isi semua variabel `UPLOAD_DISK` dan `AWS_*` dari langkah 2.7, lalu Redeploy |
 | `Vite manifest not found` / tampilan tanpa CSS | `public/build` belum ikut / `APP_URL` salah | `npm run build`, commit, push; cek `APP_URL` |
 | Pesan "Gambar gagal disimpan ke penyimpanan" | Kunci S3 / endpoint / region / nama bucket salah, atau bucket belum dibuat | Cek `UPLOAD_DISK` dan `AWS_*` (langkah 2.7), Redeploy. Penyebab pastinya tercatat di **Logs** Vercel: cari `Gambar gagal disimpan` |
 | Gambar tidak tampil (ikon rusak) | Bucket belum publik / `AWS_URL` salah | Aktifkan Public bucket; `AWS_URL` berakhiran `/object/public/gambar` |
