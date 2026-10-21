@@ -35,9 +35,10 @@
                         <th>Tanggal</th>
                         <th>Barang</th>
                         <th class="text-right">Jumlah</th>
+                        <th>Kondisi</th>
+                        <th>Lokasi</th>
                         <th>Sumber Barang</th>
                         <th>Bukti</th>
-                        <th>Kondisi</th>
                         <th>Dicatat oleh</th>
                         @if (auth()->user()->isAdmin())
                             <th class="text-right print:hidden">Aksi</th>
@@ -58,6 +59,10 @@
                             <td class="text-right whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-1 text-sm font-semibold text-emerald-700">+{{ $m->jumlah }} <span class="text-xs font-normal">{{ $m->barang->satuan }}</span></span>
                             </td>
+                            <td><x-rincian-kondisi :rincian="$m->rincian()" /></td>
+                            <td>
+                                <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-slate-600"><x-icon name="map-pin" class="size-4 text-slate-400" />{{ $m->lokasi?->nama_lokasi ?? '-' }}</span>
+                            </td>
                             <td>{{ $m->sumber_barang }}</td>
                             <td>
                                 @if ($m->foto_url)
@@ -68,7 +73,6 @@
                                     <span class="text-xs text-slate-400">&mdash;</span>
                                 @endif
                             </td>
-                            <td><x-badge :nilai="$m->status_barang" /></td>
                             <td>
                                 <span class="inline-flex items-center gap-2 whitespace-nowrap">
                                     <span class="flex size-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">{{ $m->user->inisial() }}</span>
@@ -90,7 +94,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <x-empty icon="masuk" judul="Belum ada data barang masuk" pesan="Data akan muncul setelah Operator mencatat penerimaan barang." />
                             </td>
                         </tr>

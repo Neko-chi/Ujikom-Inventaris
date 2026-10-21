@@ -30,21 +30,22 @@
             <div class="flex-1">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="kode">{{ $barang->kode_barang }}</span>
-                    <x-badge :nilai="$barang->status_barang" />
+                    <x-rincian-kondisi :rincian="$barang->stokPerKondisi()" />
                 </div>
                 <h2 class="mt-1 text-xl font-bold text-slate-900">{{ $barang->nama_barang }}</h2>
                 <p class="text-sm text-slate-500">{{ $barang->kategori->nama_kategori }}</p>
             </div>
             <div class="text-right">
-                <p class="text-xs font-medium tracking-wide text-slate-500 uppercase">Stok tersedia</p>
+                <p class="text-xs font-medium tracking-wide text-slate-500 uppercase">Stok (semua lokasi)</p>
                 <p @class(['text-4xl font-bold tracking-tight', 'text-rose-600' => $barang->stokMenipis(), 'text-slate-900' => ! $barang->stokMenipis()])>{{ $barang->stok }}</p>
                 <p class="text-sm text-slate-500">{{ $barang->satuan }}</p>
             </div>
         </div>
         <dl class="grid grid-cols-2 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/60 text-sm sm:grid-cols-4">
+            @php($dipinjam = $barang->barangKeluar->sum(fn ($k) => $k->sisaPinjaman()))
             @foreach ([
-                ['Lokasi', $barang->lokasi],
-                ['Satuan', $barang->satuan],
+                ['Sedang dipinjam', $dipinjam.' '.$barang->satuan],
+                ['Jumlah lokasi', count($barang->stokPerLokasi()).' lokasi'],
                 ['Total masuk', $barang->barangMasuk->sum('jumlah').' '.$barang->satuan],
                 ['Total keluar (disetujui)', $barang->barangKeluar->where('verifikasi', 'Disetujui')->sum('jumlah').' '.$barang->satuan],
             ] as [$label, $nilai])
@@ -56,6 +57,51 @@
         </dl>
     </div>
 
+    {{-- Stok per lokasi dan kondisi --}}
+    <div class="card mb-6 overflow-hidden">
+        <div class="card-header">
+            <h3 class="card-title flex items-center gap-2"><x-icon name="map-pin" class="size-5 text-slate-500" />Stok per Lokasi</h3>
+            <span class="text-xs text-slate-500">Posisi barang saat ini</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table-data">
+                <thead>
+                    <tr>
+                        <th>Lokasi</th>
+                        @foreach (\App\Models\Barang::KONDISI as $kondisi)
+                            <th class="text-right">{{ $kondisi }}</th>
+                        @endforeach
+                        <th class="text-right">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($barang->stokPerLokasi() as $namaLokasi => $perKondisi)
+                        <tr>
+                            <td class="font-medium whitespace-nowrap text-slate-900">{{ $namaLokasi }}</td>
+                            @foreach ($perKondisi as $jumlah)
+                                <td @class(['text-right tabular-nums', 'text-slate-300' => $jumlah === 0])>{{ $jumlah }}</td>
+                            @endforeach
+                            <td class="text-right font-semibold text-slate-900 tabular-nums">{{ array_sum($perKondisi) }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5"><x-empty icon="map-pin" judul="Belum ada stok" pesan="Catat lewat menu Barang Masuk." /></td></tr>
+                    @endforelse
+                </tbody>
+                @if ($barang->stok > 0)
+                    <tfoot>
+                        <tr class="border-t border-slate-200 bg-slate-50/60 text-sm font-semibold text-slate-900">
+                            <td class="px-5 py-3">Total</td>
+                            @foreach ($barang->stokPerKondisi() as $jumlah)
+                                <td class="px-5 py-3 text-right tabular-nums">{{ $jumlah }}</td>
+                            @endforeach
+                            <td class="px-5 py-3 text-right tabular-nums">{{ $barang->stok }}</td>
+                        </tr>
+                    </tfoot>
+                @endif
+            </table>
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-2">
         <div class="card overflow-hidden">
             <div class="card-header">
@@ -64,17 +110,18 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="table-data">
-                    <thead><tr><th>Tanggal</th><th class="text-right">Jumlah</th><th>Sumber</th><th>Dicatat oleh</th></tr></thead>
+                    <thead><tr><th>Tanggal</th><th class="text-right">Jumlah</th><th>Kondisi</th><th>Lokasi</th><th>Sumber</th></tr></thead>
                     <tbody>
                         @forelse ($barang->barangMasuk as $m)
                             <tr>
                                 <td class="whitespace-nowrap">{{ $m->tanggal->translatedFormat('d M Y') }}</td>
                                 <td class="text-right font-semibold text-emerald-600">+{{ $m->jumlah }}</td>
+                                <td><x-rincian-kondisi :rincian="$m->rincian()" /></td>
+                                <td class="whitespace-nowrap">{{ $m->lokasi?->nama_lokasi }}</td>
                                 <td>{{ $m->sumber_barang }}</td>
-                                <td>{{ $m->user->nama_user }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="4"><x-empty icon="masuk" judul="Belum ada barang masuk" /></td></tr>
+                            <tr><td colspan="5"><x-empty icon="masuk" judul="Belum ada barang masuk" /></td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -88,17 +135,23 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="table-data">
-                    <thead><tr><th>Tanggal</th><th class="text-right">Jumlah</th><th>Tujuan</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Tanggal</th><th>Jenis</th><th class="text-right">Jumlah</th><th>Tujuan</th><th>Status</th></tr></thead>
                     <tbody>
                         @forelse ($barang->barangKeluar as $k)
                             <tr>
                                 <td class="whitespace-nowrap"><a href="{{ route('barang-keluar.show', $k) }}" data-turbo-frame="modal" class="hover:text-brand-700">{{ $k->tanggal->translatedFormat('d M Y') }}</a></td>
+                                <td class="whitespace-nowrap">{{ $k->jenis_keluar }}</td>
                                 <td class="text-right font-semibold">−{{ $k->jumlah }}</td>
-                                <td>{{ $k->tujuan }}</td>
-                                <td><x-badge :nilai="$k->verifikasi" /></td>
+                                <td>{{ $k->lokasiTujuan?->nama_lokasi ?? $k->pemohon }}</td>
+                                <td class="space-y-1">
+                                    <x-badge :nilai="$k->verifikasi" />
+                                    @if ($k->statusPinjam())
+                                        <x-badge :nilai="$k->statusPinjam()" />
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4"><x-empty icon="keluar" judul="Belum ada barang keluar" /></td></tr>
+                            <tr><td colspan="5"><x-empty icon="keluar" judul="Belum ada barang keluar" /></td></tr>
                         @endforelse
                     </tbody>
                 </table>

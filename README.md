@@ -2,7 +2,9 @@
 
 Aplikasi web inventaris gudang sekolah (Laravel 12) untuk Uji Kompetensi skema Pemrogram Junior (Junior Coder).
 
-Tiga role: **Admin** (pengelola sistem), **Operator** (petugas gudang), **Manager** (pemberi persetujuan barang keluar). Multimedia: unggah gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet dengan animasi dan suara suasana sesuai waktu (pagi, siang, sore, malam), musik Bad Apple!! (MP3), serta tema monokrom dengan mode terang / gelap. Menu dibuka tanpa memuat ulang halaman (Turbo), form tambah / ubah / detail tampil sebagai popup.
+Tiga role: **Admin** (pengelola sistem), **Operator** (petugas gudang), **Manager** (pemberi persetujuan barang keluar).
+
+Fitur inventaris: stok dicatat **per lokasi** (gudang / ruangan) dan **per kondisi** (Baik, Rusak Ringan, Rusak Berat); barang keluar berupa **Peminjaman** (dengan pengembalian, boleh bertahap), **Pemindahan** ke ruangan, atau **Pemusnahan** barang rusak berat; Manager memeriksa dan dapat mengoreksi rincian kondisi sebelum menyetujui. Multimedia: unggah gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet dengan animasi dan suara suasana sesuai waktu (pagi, siang, sore, malam), musik Bad Apple!! (MP3), serta tema monokrom dengan mode terang / gelap. Menu dibuka tanpa memuat ulang halaman (Turbo), form tambah / ubah / detail tampil sebagai popup.
 
 ## Dokumen
 
@@ -41,6 +43,8 @@ php artisan storage:link
 php artisan serve
 ```
 
+Database lama yang sudah berisi data cukup diperbarui dengan `php artisan migrate` (data lama otomatis dipindahkan ke struktur lokasi dan kondisi).
+
 Buka `http://localhost:8000`. Akun login:
 
 | Role | Username | Password |
@@ -55,7 +59,7 @@ Buka `http://localhost:8000`. Akun login:
 php artisan test
 ```
 
-Hasil: 80 test lulus (275 assertion).
+Hasil: 96 test lulus (371 assertion).
 
 ## Lisensi
 

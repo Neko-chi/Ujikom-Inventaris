@@ -18,13 +18,16 @@ class HakAksesTest extends TestCase
     private function buatPermintaanPending(User $operator): BarangKeluar
     {
         return BarangKeluar::create([
+            'jenis_keluar' => BarangKeluar::PEMINJAMAN,
             'id_barang' => $this->buatBarang()->id_barang,
+            'id_lokasi_asal' => $this->lokasi()->id_lokasi,
             'id_user' => $operator->id_user,
             'tanggal' => '2026-10-08',
+            'tanggal_kembali' => '2026-10-15',
             'jumlah' => 1,
+            'jumlah_baik' => 1,
             'pemohon' => 'Budi',
-            'tujuan' => 'Lab TKJ 3',
-            'status_barang' => 'Baik',
+            'tujuan' => 'Praktik',
         ]);
     }
 
@@ -56,7 +59,7 @@ class HakAksesTest extends TestCase
         $operator = User::factory()->operator()->create();
         $masuk = BarangMasuk::create([
             'id_barang' => $this->buatBarang()->id_barang, 'id_user' => $operator->id_user, 'tanggal' => '2026-10-01',
-            'jumlah' => 5, 'sumber_barang' => 'Pembelian', 'status_barang' => 'Baik',
+            'id_lokasi' => $this->lokasi()->id_lokasi, 'jumlah' => 5, 'jumlah_baik' => 5, 'sumber_barang' => 'Pembelian',
         ]);
 
         $this->actingAs($operator);

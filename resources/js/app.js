@@ -11,6 +11,7 @@ import { pasangTombolTema } from './tema';
 import { pasangSuasanaLogin } from './suasana';
 import { pasangMusik } from './musik';
 import { pasangPopup } from './popup';
+import { pasangFormKondisi } from './form-kondisi';
 
 window.Turbo = Turbo;
 
@@ -18,6 +19,7 @@ window.Turbo = Turbo;
 pasangTombolTema();
 pasangMusik();
 pasangPopup();
+pasangFormKondisi();
 
 const html = document.documentElement;
 

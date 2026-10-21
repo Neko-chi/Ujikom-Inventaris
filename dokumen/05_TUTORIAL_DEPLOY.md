@@ -269,6 +269,8 @@ Bila ada **migration baru** (struktur database berubah):
 php artisan migrate --env=supabase
 ```
 
+Contoh: pembaruan fitur peminjaman, kondisi, dan lokasi membawa migration `2026_10_21_000001_tambah_lokasi_kondisi_peminjaman`. Jalankan perintah di atas **segera setelah `git push`** (kode baru membutuhkan tabel `lokasi`, `stok_barang`, `pengembalian`). Migration ini memindahkan data lama secara otomatis: teks lokasi barang menjadi data master Lokasi, stok dan kondisi lama menjadi stok per lokasi, dan barang keluar lama menjadi Pemindahan. Bila tidak perlu mempertahankan data lama, cukup jalankan perintah di bawah untuk mengisi ulang data sampel.
+
 Mengembalikan data online ke data sampel (misalnya sebelum demo):
 
 ```bash
@@ -285,6 +287,7 @@ php artisan migrate:fresh --seed --env=supabase
 | `prepared statement ... already exists` | Memakai port 6543 | Ganti `DB_PORT=5432` |
 | `Migration table not found` / error 500 saat login | Tabel belum dibuat di Supabase | `php artisan migrate --seed --env=supabase` |
 | `column "foto" does not exist` | Migration terbaru belum dijalankan | `php artisan migrate --env=supabase` |
+| `relation "lokasi" does not exist` / `relation "stok_barang" does not exist` | Migration fitur lokasi dan peminjaman belum dijalankan | `php artisan migrate --env=supabase` |
 | `No application encryption key` | `APP_KEY` kosong | Isi `APP_KEY`, lalu Redeploy |
 | Log: `$bucket must be of type string, null given` | Variabel `AWS_BUCKET` (dan `AWS_*` lain) belum diisi di Vercel | Isi semua variabel `UPLOAD_DISK` dan `AWS_*` dari langkah 2.7, lalu Redeploy |
 | `Vite manifest not found` / tampilan tanpa CSS | `public/build` belum ikut / `APP_URL` salah | `npm run build`, commit, push; cek `APP_URL` |

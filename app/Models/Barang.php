@@ -15,17 +15,28 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $kode_barang contoh: AT-001
  * @property int $id_kategori
  * @property string $nama_barang
- * @property int $stok
+ * @property int $stok total unit milik sekolah di semua lokasi (tidak termasuk yang sedang dipinjam)
  * @property string $satuan
- * @property string $lokasi
- * @property string $status_barang Baik | Rusak Ringan | Rusak Berat
  * @property string|null $gambar path gambar barang
  * @property-read string|null $gambar_url
  */
 class Barang extends Model
 {
-    /** Pilihan kondisi barang (Kamus Data field status_barang). */
-    public const STATUS_BARANG = ['Baik', 'Rusak Ringan', 'Rusak Berat'];
+    public const BAIK = 'Baik';
+
+    public const RUSAK_RINGAN = 'Rusak Ringan';
+
+    public const RUSAK_BERAT = 'Rusak Berat';
+
+    /** Pilihan kondisi barang (Kamus Data field kondisi). */
+    public const KONDISI = [self::BAIK, self::RUSAK_RINGAN, self::RUSAK_BERAT];
+
+    /** Kolom jumlah per kondisi pada tabel transaksi (barang_masuk, barang_keluar, pengembalian). */
+    public const KOLOM_KONDISI = [
+        self::BAIK => 'jumlah_baik',
+        self::RUSAK_RINGAN => 'jumlah_rusak_ringan',
+        self::RUSAK_BERAT => 'jumlah_rusak_berat',
+    ];
 
     /** Prefix kode barang per kategori (Kamus Data field kode prefix). */
     public const PREFIX_KATEGORI = [
@@ -51,8 +62,6 @@ class Barang extends Model
         'nama_barang',
         'stok',
         'satuan',
-        'lokasi',
-        'status_barang',
         'gambar',
     ];
 
@@ -83,6 +92,55 @@ class Barang extends Model
     public function barangKeluar(): HasMany
     {
         return $this->hasMany(BarangKeluar::class, 'id_barang', 'id_barang');
+    }
+
+    /** Relasi 1:N stok per lokasi dan kondisi. */
+    public function stokBarang(): HasMany
+    {
+        return $this->hasMany(StokBarang::class, 'id_barang', 'id_barang');
+    }
+
+    /**
+     * Jumlah per kondisi di semua lokasi, contoh ['Baik' => 8, 'Rusak Ringan' => 2, 'Rusak Berat' => 0].
+     *
+     * @return array<string, int>
+     */
+    public function stokPerKondisi(): array
+    {
+        $hasil = array_fill_keys(self::KONDISI, 0);
+        foreach ($this->stokBarang as $s) {
+            $hasil[$s->kondisi] = ($hasil[$s->kondisi] ?? 0) + $s->jumlah;
+        }
+
+        return $hasil;
+    }
+
+    /**
+     * Stok per lokasi lalu per kondisi, hanya yang jumlahnya lebih dari 0.
+     * Contoh: ['Gudang Utama' => ['Baik' => 5, ...], 'Lab TKJ 3' => [...]].
+     *
+     * @return array<string, array<string, int>>
+     */
+    public function stokPerLokasi(): array
+    {
+        $hasil = [];
+        foreach ($this->stokBarang->load('lokasi')->where('jumlah', '>', 0)->sortBy('lokasi.nama_lokasi') as $s) {
+            $hasil[$s->lokasi->nama_lokasi] ??= array_fill_keys(self::KONDISI, 0);
+            $hasil[$s->lokasi->nama_lokasi][$s->kondisi] = $s->jumlah;
+        }
+
+        return $hasil;
+    }
+
+    /** Jumlah unit yang sedang dipinjam (peminjaman disetujui yang belum dikembalikan seluruhnya). */
+    public function jumlahDipinjam(): int
+    {
+        return $this->barangKeluar()
+            ->where('jenis_keluar', BarangKeluar::PEMINJAMAN)
+            ->where('verifikasi', BarangKeluar::DISETUJUI)
+            ->withSum('pengembalian as jumlah_kembali', 'jumlah')
+            ->get()
+            ->sum(fn (BarangKeluar $k) => $k->jumlah - (int) $k->jumlah_kembali);
     }
 
     /**

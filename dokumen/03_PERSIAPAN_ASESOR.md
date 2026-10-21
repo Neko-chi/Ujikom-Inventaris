@@ -25,15 +25,15 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 
 > "Aplikasi saya bernama **Inventaris Gudang Sekolah**, dibuat dengan **Laravel 12**. Lokal memakai MySQL, versi online memakai PostgreSQL di Supabase dan di-hosting di Vercel.
 >
-> Masalah yang diselesaikan: pencatatan barang gudang sering manual, stok tidak jelas, dan barang bisa keluar tanpa persetujuan dan tanpa bukti.
+> Masalah yang diselesaikan: pencatatan barang gudang sering manual, stok tidak jelas, barang bisa keluar tanpa persetujuan dan tanpa bukti, barang pinjaman tidak terlacak, dan tidak diketahui barang ada di gudang atau ruangan mana.
 >
-> Ada tiga role. **Admin** mengelola sistem: pengguna, kategori, dan data barang. **Operator** mencatat barang masuk dan mengajukan barang keluar dengan foto bukti. **Manager** menyetujui atau menolak barang keluar dan hanya bisa melihat data. Tugasnya dipisah supaya tidak ada orang yang menyetujui permintaannya sendiri.
+> Ada tiga role. **Admin** mengelola sistem: pengguna, kategori, lokasi, dan data barang. **Operator** mencatat barang masuk, mengajukan barang keluar dengan foto bukti, dan mencatat pengembalian. **Manager** memeriksa rincian kondisi lalu menyetujui atau menolak barang keluar, dan hanya bisa melihat data. Tugasnya dipisah supaya tidak ada orang yang menyetujui permintaannya sendiri.
 >
-> Stok bertambah saat barang masuk dicatat, dan baru berkurang setelah Manager menyetujui. Setiap persetujuan mencatat siapa, kapan, dan alasannya.
+> Stok dicatat per lokasi (misalnya Gudang Utama, Gudang 2, Lab TKJ 3) dan per kondisi (Baik, Rusak Ringan, Rusak Berat). Barang keluar ada tiga jenis: **Peminjaman** yang nanti dikembalikan, **Pemindahan** ke ruangan, dan **Pemusnahan** barang rusak berat. Stok bertambah saat barang masuk dicatat, dan baru berubah setelah Manager menyetujui. Setiap persetujuan mencatat siapa, kapan, dan alasannya.
 >
 > Aplikasi juga mendukung multimedia: gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet yang beranimasi dan menyesuaikan waktu pagi, siang, sore, malam, serta audio suasana dan lagu Bad Apple!! yang bisa diputar. Tampilannya monokrom hitam-putih ala Bad Apple!! dengan mode terang dan gelap.
 >
-> Database berisi 5 tabel, dan program diuji dengan **80 test PHPUnit** yang semuanya lulus."
+> Database berisi 8 tabel, dan program diuji dengan **96 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo (± 5 menit)
 
@@ -41,12 +41,13 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 2. Login **operator_siti** → menu Kategori dan Pengguna tidak ada.
 3. Klik **foto profil** di kanan atas → panel profil muncul dari kanan → unggah foto → foto langsung tampil di menu samping.
 4. **Data Barang** → Tambah barang (popup, halaman tidak berpindah) + gambar → kode otomatis AT-002, ada pratinjau gambar. Klik tombol burger untuk menutup/membuka sidebar.
-5. **Barang Masuk** → catat 5 unit → stok bertambah.
-6. **Barang Keluar** → ajukan tanpa foto (ditolak) → ajukan dengan foto (Pending, stok tetap).
+5. **Barang Masuk** → catat 10 unit ke Gudang Utama = 8 Baik + 2 Rusak Ringan → stok per kondisi bertambah.
+6. **Barang Keluar** → pilih jenis Peminjaman / Pemindahan / Pemusnahan (form berubah sesuai jenis, stok di lokasi asal tampil) → ajukan tanpa foto (ditolak) → ajukan dengan foto (Pending, stok tetap).
 7. Login **manager_marco** → tanda jumlah Pending di menu, tidak ada tombol tambah barang.
-8. Buka permintaan → lihat foto → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berkurang, nama Manager tercatat).
-9. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci.
-10. Terminal → `php artisan test` → 80 test lulus.
+8. Buka permintaan → lihat foto dan stok lokasi asal → koreksi rincian kondisi bila perlu → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berubah, nama Manager dan koreksi tercatat).
+9. Login **operator_siti** → tab **Sedang Dipinjam** → buka peminjaman bola basket → catat pengembalian (kondisi boleh berbeda) → status Dikembalikan.
+10. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci; menu **Lokasi**; detail Kursi Siswa menampilkan stok per lokasi.
+11. Terminal → `php artisan test` → 96 test lulus.
 
 ## B. Pertanyaan per Unit Kompetensi
 
@@ -56,9 +57,10 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 
 | Struktur data | Lokasi | Kegunaan |
 |---|---|---|
-| Array (list) | `Barang::STATUS_BARANG`, `BarangKeluar::VERIFIKASI`, `User::ROLES` | Daftar nilai sah sesuai kamus data; dipakai di validasi dan pilihan form |
-| Array asosiatif | `Barang::PREFIX_KATEGORI` | Memetakan nama kategori ke prefix kode, misalnya `'Alat Tulis' => 'AT'` |
-| Array asosiatif bersarang | `User::INFO_ROLE` | Setiap role → ikon, warna, keterangan; dipakai di halaman Pengguna |
+| Array (list) | `Barang::KONDISI`, `BarangKeluar::JENIS`, `BarangKeluar::VERIFIKASI`, `User::ROLES`, `Lokasi::JENIS` | Daftar nilai sah sesuai kamus data; dipakai di validasi dan pilihan form |
+| Array asosiatif | `Barang::PREFIX_KATEGORI`, `Barang::KOLOM_KONDISI`, `BarangKeluar::INFO_JENIS` | Memetakan nama kategori ke prefix kode (`'Alat Tulis' => 'AT'`), kondisi ke nama kolom (`'Rusak Ringan' => 'jumlah_rusak_ringan'`), jenis keluar ke keterangannya |
+| Array rincian kondisi | `PunyaRincianKondisi::rincian()`, `StokService::kurangiRincian()` | `['Baik' => 5, 'Rusak Ringan' => 10, 'Rusak Berat' => 5]`: jumlah per kondisi dalam satu transaksi |
+| Array asosiatif bersarang | `User::INFO_ROLE`; peta stok `[id_barang][id_lokasi][kondisi] => jumlah` di `BarangKeluarController::create()`; `Barang::stokPerLokasi()` | Info tiap role; stok per lokasi dan kondisi untuk form barang keluar (dibaca JavaScript sebagai JSON) dan tabel Stok per Lokasi |
 | Collection | `Barang::generateKode()` | `pluck` → `map` → `max` untuk mencari nomor kode terbesar |
 | Penggabungan koleksi | `DashboardController::aktivitasTerbaru()` | `concat` barang masuk + keluar, lalu `sortByDesc` dan `take` |
 | Objek & relasi | `app/Models/*.php` | Satu baris tabel = satu objek; relasi `hasMany` / `belongsTo` |
@@ -67,10 +69,10 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 Array untuk daftar nilai tetap, array asosiatif untuk pemetaan (prefix kode, info role), Collection Laravel untuk mengolah hasil query, dan objek model untuk mewakili baris tabel.
 
 **2. Apa beda array biasa dan array asosiatif?**
-Array biasa diakses dengan indeks angka: `STATUS_BARANG[0]` = `'Baik'`. Array asosiatif diakses dengan kunci teks: `PREFIX_KATEGORI['Furnitur']` = `'FR'`.
+Array biasa diakses dengan indeks angka: `KONDISI[0]` = `'Baik'`. Array asosiatif diakses dengan kunci teks: `PREFIX_KATEGORI['Furnitur']` = `'FR'`.
 
 **3. Kenapa daftar status disimpan sebagai konstanta?**
-Supaya ada satu sumber kebenaran. Daftar yang sama dipakai untuk validasi (`Rule::in(Barang::STATUS_BARANG)`) dan pilihan di form. Bila ada perubahan, cukup ubah satu tempat.
+Supaya ada satu sumber kebenaran. Daftar yang sama dipakai untuk validasi (`Rule::in(BarangKeluar::JENIS)`) dan pilihan di form. Bila ada perubahan, cukup ubah satu tempat.
 
 **4. Jelaskan cara kerja kode barang otomatis.**
 `Barang::generateKode()`: ambil prefix kategori (misal `AO`) → `pluck` semua kode `AO-...` menjadi `[AO-001, AO-003, AO-007]` → `map` ambil angkanya `[1, 3, 7]` → `max` = 7 (bila kosong `?? 0`) → `sprintf('%s-%03d', 'AO', 8)` = `AO-008`.
@@ -85,7 +87,13 @@ Agar database hanya menerima nilai yang ada di kamus data. Pengamanannya berlapi
 Primary key angka lebih efisien untuk relasi dan indeks. `kode_barang` adalah kode yang mudah dibaca manusia dan bersifat unik.
 
 **8. Apa itu relasi 1:N di program ini?**
-Satu kategori memiliki banyak barang (`Kategori::barang()` = `hasMany`), satu barang dimiliki satu kategori (`Barang::kategori()` = `belongsTo`). Begitu juga barang–transaksi dan user–transaksi.
+Satu kategori memiliki banyak barang (`Kategori::barang()` = `hasMany`), satu barang dimiliki satu kategori (`Barang::kategori()` = `belongsTo`). Begitu juga barang–transaksi, user–transaksi, lokasi–stok, dan satu peminjaman memiliki banyak pengembalian (`BarangKeluar::pengembalian()`).
+
+**9. Kenapa stok dipecah ke tabel `stok_barang`, tidak cukup kolom `barang.stok`?**
+Satu barang bisa ada di beberapa lokasi dengan kondisi berbeda, misalnya Kursi Siswa 110 Baik di Gudang Utama, serta 3 Baik dan 7 Rusak Ringan di Gudang 2. Satu kolom tidak bisa menyimpan itu. `stok_barang` menyimpan satu baris per barang + lokasi + kondisi (unik), sedangkan `barang.stok` tetap disimpan sebagai total agar daftar barang dan dashboard cepat.
+
+**10. Kenapa rincian kondisi transaksi disimpan sebagai tiga kolom, bukan tabel detail?**
+Kondisinya hanya tiga dan tetap, sehingga tiga kolom (`jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat`) lebih sederhana: satu transaksi tetap satu baris, mudah dicetak dan divalidasi. Kolom `jumlah` menyimpan totalnya. Konstanta `Barang::KOLOM_KONDISI` menghubungkan nama kondisi dengan nama kolomnya.
 
 ### B2. J.620100.009.01 — Menggunakan Spesifikasi Program
 
@@ -94,11 +102,11 @@ Satu kategori memiliki banyak barang (`Kategori::barang()` = `hasMany`), satu ba
 Bukti: hak akses, aturan bisnis, dan alur di dokumen 02 Bagian 3; rancangan database di dokumen 01; penerapan di `routes/web.php`, `CekRole`, Form Request, `StokService`, dan migration.
 
 **1. Apa kebutuhan utama aplikasi ini?**
-Mencatat barang dan kategori, mencatat barang masuk (stok bertambah), mengajukan barang keluar dengan foto bukti yang disetujui Manager (stok berkurang), mengelola pengguna, mengunggah gambar, serta menampilkan ringkasan dan riwayat.
+Mencatat barang, kategori, dan lokasi; mencatat barang masuk dengan rincian kondisi (stok bertambah); mengajukan barang keluar (pinjam, pindah, musnahkan) dengan foto bukti yang diperiksa dan disetujui Manager; mencatat pengembalian pinjaman; mengelola pengguna; mengunggah gambar; serta menampilkan ringkasan dan riwayat.
 
 **2. Apa input, proses, dan output fitur barang keluar?**
-- Input: barang, tanggal, jumlah, pemohon, tujuan, kondisi, foto.
-- Proses: validasi (wajib, jumlah ≥ 1, tidak melebihi stok, foto JPG/PNG/WEBP ≤ 2 MB), simpan foto dengan nama acak, simpan status Pending; saat disetujui, stok dicek ulang lalu dikurangi dalam satu transaksi.
+- Input: jenis keluar, barang, lokasi asal, lokasi tujuan (Pemindahan) / tanggal kembali (Peminjaman), tanggal, jumlah per kondisi, pemohon, tujuan, foto.
+- Proses: validasi (wajib, total ≥ 1, tiap kondisi tidak melebihi stok kondisi itu di lokasi asal, Pemusnahan hanya Rusak Berat, foto JPG/PNG/WEBP ≤ 2 MB), simpan foto dengan nama acak, simpan status Pending; saat disetujui (rincian boleh dikoreksi Manager), stok dicek ulang lalu diperbarui sesuai jenis dalam satu transaksi.
 - Output: data permintaan dan statusnya, foto bukti, stok terbaru, pesan sukses / gagal.
 
 **3. Bagaimana hak akses diterapkan?**
@@ -114,7 +122,19 @@ Karena Manager adalah pemberi persetujuan. Bila bisa mencatat, ia dapat mengajuk
 Saat implementasi ditemukan masalah: password VARCHAR(50) tidak muat untuk hash, data sampel merujuk barang yang tidak ada, persetujuan tidak tercatat, belum ada fitur gambar. Rancangan direvisi dan semua perubahan tercatat di dokumen 01 Bagian 6.
 
 **7. Apa batasan sistem?**
-Kondisi barang dicatat per jenis (bukan per unit) dan fitur peminjaman / pengembalian belum ada. Keduanya bahan pengembangan berikutnya.
+Kondisi dicatat sebagai jumlah per kondisi, bukan per unit (tidak ada nomor seri), dan perbaikan barang Rusak Ringan menjadi Baik belum punya menu khusus. Keduanya bahan pengembangan berikutnya.
+
+**8. Ada masukan dari pembina, bagaimana menerapkannya?**
+Ada tiga masukan: (1) barang gudang sekolah sering dipinjam, (2) satu transaksi bisa berisi kondisi campuran dan Manager harus bisa memeriksanya, (3) perlu diketahui posisi barang. Penerapannya: kolom `jenis_keluar` (Peminjaman / Pemindahan / Pemusnahan) dan tabel `pengembalian`; kolom `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat` beserta koreksi oleh Manager; data master `lokasi` dan tabel `stok_barang`. Rancangan di dokumen 01 diperbarui (Bagian 6 nomor 13–15), dan migration `2026_10_21_000001_tambah_lokasi_kondisi_peminjaman` memindahkan data lama tanpa kehilangan data.
+
+**9. Apa beda Peminjaman, Pemindahan, dan Pemusnahan?**
+Peminjaman: stok lokasi asal berkurang selama dipinjam, data tidak dihapus, dan stok bertambah lagi saat dikembalikan. Pemindahan: stok pindah dari gudang ke ruangan tujuan, total stok barang tetap. Pemusnahan: hanya barang Rusak Berat, stok berkurang permanen. Logikanya di `BarangKeluarController::terapkanStok()`.
+
+**10. Bagaimana Manager memeriksa 20 barang keluar yang kondisinya campuran?**
+Operator mengisi rincian, misalnya 5 Baik, 10 Rusak Ringan, 5 Rusak Berat. Di halaman verifikasi, Manager melihat rincian itu beserta stok tiap kondisi di lokasi asal. Bila hasil pemeriksaan berbeda, Manager mengubah angkanya lalu menekan Setujui. Rincian baru divalidasi ulang dengan `BarangKeluarRequest::periksaRincian()`, dan catatan "Rincian dikoreksi Manager dari (...) menjadi (...)" disimpan otomatis sebagai jejak audit.
+
+**11. Bagaimana bila barang pinjaman kembali dalam kondisi lebih rusak?**
+Saat mencatat pengembalian, Operator mengisi kondisi saat kembali, misalnya dipinjam 4 Baik, kembali 2 Baik dan 1 Rusak Ringan. Stok ditambah sesuai kondisi saat kembali, bukan kondisi saat dipinjam. Pengembalian boleh bertahap; sisa pinjaman dihitung `sisaPinjaman()` dan status `statusPinjam()` menjadi Dikembalikan Sebagian sampai semuanya kembali.
 
 ### B3. J.620100.010.01 — Perintah Eksekusi Berbasis Teks, Grafik, dan Multimedia
 
@@ -125,6 +145,9 @@ Kondisi barang dicatat per jenis (bukan per unit) dan fitur peminjaman / pengemb
 | Perintah teks | `php artisan migrate:fresh --seed`, `php artisan storage:link`, `php artisan serve`, `php artisan test`, `php artisan route:list`, `php artisan tinker`, `npm run build`, `composer install`, `vendor/bin/pint`, `git push` |
 | Grafis | Halaman web Blade + Tailwind, grafik batang stok per kategori dan komposisi status di dashboard |
 | Multimedia | Gambar: unggah foto profil, gambar barang, foto bukti, dengan pratinjau. Animasi: siluet dan kartu login muncul perlahan, cahaya apel berdenyut, partikel melayang, efek lingkaran saat ganti tema. Audio: suara suasana di halaman login (`<audio>`). Musik: lagu Bad Apple!! (MP3) dengan tombol putar / jeda. Ikon SVG, mode gelap, fitur cetak |
+
+**1a. Database sudah berisi data, bagaimana memperbaruinya ke struktur baru?**
+`php artisan migrate`. Migration `tambah_lokasi_kondisi_peminjaman` membuat tabel baru lalu memindahkan data lama: teks lokasi barang menjadi data master lokasi, stok dan kondisi lama menjadi baris `stok_barang`, dan barang keluar lama menjadi Pemindahan ke ruangan tujuannya. Untuk versi online: `php artisan migrate --env=supabase`.
 
 **1. Bagaimana menjalankan aplikasi dari awal?**
 Nyalakan MySQL di XAMPP → `php artisan migrate:fresh --seed` → `php artisan storage:link` → `npm run build` → `php artisan serve` → buka `http://localhost:8000`.
@@ -189,7 +212,10 @@ Controller mengarahkan ke halaman daftar yang tidak punya isi popup. Turbo memic
 **21. Kenapa kotak tetap terlihat jelas di atas karakter latar?**
 Kotak (kartu) mengikuti tema dan latarnya tidak tembus pandang, sehingga karakter di belakang hanya tampak di sela-sela kotak. Di mode gelap kotak diberi garis dan cahaya putih tipis (`html.dark main .card` di `app.css`) agar tepinya tetap terlihat.
 
-**22. Bagaimana efek percikan cahaya dibuat?**
+**22. Bagaimana form barang keluar berubah sesuai jenis?**
+`resources/js/form-kondisi.js`. Saat jenis dipilih, bagian bertanda `data-hanya-jenis` ditampilkan atau disembunyikan (lokasi tujuan untuk Pemindahan, tanggal kembali untuk Peminjaman), dan kotak Baik / Rusak Ringan dikunci untuk Pemusnahan. Peta stok dikirim dari controller sebagai JSON; saat barang dan lokasi asal dipilih, stok tiap kondisi ditampilkan dan dipasang sebagai batas `max` kotak isian. Total dihitung otomatis setiap kali angka diubah. Pengecekan sebenarnya tetap di server.
+
+**23. Bagaimana efek percikan cahaya dibuat?**
 Layout membuat 34 elemen kecil dengan posisi, ukuran, durasi, dan jeda acak (`mt_rand` dengan seed tetap). CSS `@keyframes percikan-naik` menggerakkan tiap titik naik setinggi layar sambil muncul lalu memudar. Warnanya `--color-slate-900`, sehingga hitam di mode terang dan putih di mode gelap.
 
 ### B4. J.620100.016.01 — Menulis Kode sesuai Guidelines dan Best Practices
@@ -239,13 +265,15 @@ Agar password database dan `APP_KEY` tidak tertulis di kode dan tidak ikut ter-u
 |---|---|---|
 | Urut | Validasi → simpan → kurangi stok → redirect | `BarangKeluarController::setujui()` |
 | `if` | Stok cukup atau tidak | `StokService::kurangi()` |
-| `if / elseif` | Koreksi barang masuk: selisih positif tambah stok, negatif kurangi | `BarangMasukController::update()` |
+| `foreach` + `if` | Total minimal 1, Pemusnahan hanya Rusak Berat, tiap kondisi tidak melebihi stok | `BarangKeluarRequest::periksaRincian()` |
+| `match (true)` | Status pinjam: Dikembalikan / Dikembalikan Sebagian / Dipinjam | `BarangKeluar::statusPinjam()` |
+| `foreach` | Mengurangi stok setiap kondisi dalam rincian | `StokService::kurangiRincian()` |
 | `foreach` + `if` | Menentukan pagi / siang / sore / malam dari jam | `Suasana::dariJam()` |
 | `match` | Warna badge sesuai status; aksi cepat per role | `components/badge.blade.php`, `dashboard.blade.php` |
 | `foreach` | Mengisi data barang | `DatabaseSeeder::run()` |
 | `@foreach` / `@forelse` | Menampilkan baris tabel | `resources/views/*/index.blade.php` |
-| Fungsi (return) | `cukup(Barang $barang, int $jumlah): bool` | `StokService` |
-| Prosedur (`void`) | `pastikanJumlahValid(int $jumlah): void` | `StokService` |
+| Fungsi (return) | `cukup(Barang $barang, int $idLokasi, string $kondisi, int $jumlah): bool` | `StokService` |
+| Prosedur (`void`) | `pastikanValid(string $kondisi, int $jumlah): void` | `StokService` |
 | Penanganan error | `try { ... } catch (StokTidakCukupException $e)` | `BarangKeluarController::setujui()` |
 
 **1. Apa itu pemrograman terstruktur?**
@@ -266,23 +294,24 @@ return 'Selamat malam';
 
 **3. Jelaskan `StokService::kurangi()` baris per baris.**
 ```php
-public function kurangi(Barang $barang, int $jumlah): Barang
+public function kurangi(Barang $barang, int $idLokasi, string $kondisi, int $jumlah): void
 {
-    $this->pastikanJumlahValid($jumlah);          // 1. jumlah harus > 0
+    $this->pastikanValid($kondisi, $jumlah);                  // 1. jumlah > 0 dan kondisi dikenal
 
-    if (! $this->cukup($barang, $jumlah)) {       // 2. cek stok
-        throw new StokTidakCukupException($barang, $jumlah);   // 3. hentikan dengan error
-    }
+    $baris = $this->baris($barang, $idLokasi, $kondisi);      // 2. ambil & kunci baris stok_barang
+    if ($baris->jumlah < $jumlah) {                           // 3. cek stok kondisi itu di lokasi itu
+        throw new StokTidakCukupException($barang, $jumlah, $baris->jumlah, $kondisi, Lokasi::find($idLokasi)?->nama_lokasi);
+    }                                                         // 4. hentikan dengan error bila kurang
 
-    $barang->stok -= $jumlah;                     // 4. kurangi stok
-    $barang->save();                              // 5. simpan
+    $baris->jumlah -= $jumlah;                                // 5. kurangi stok
+    $baris->save();                                           // 6. simpan
 
-    return $barang;                               // 6. kembalikan data terbaru
+    $this->perbaruiTotal($barang);                            // 7. hitung ulang barang.stok (total)
 }
 ```
 
 **4. Apa beda fungsi dan prosedur?**
-Fungsi mengembalikan nilai (`cukup()` → `true`/`false`). Prosedur menjalankan aksi tanpa nilai kembali (`pastikanJumlahValid()` bertipe `void`).
+Fungsi mengembalikan nilai (`cukup()` → `true`/`false`). Prosedur menjalankan aksi tanpa nilai kembali (`pastikanValid()` dan `kurangi()` bertipe `void`).
 
 **5. Apa fungsi `try ... catch`?**
 Menangkap error supaya program tidak berhenti. Di `setujui()`, bila stok tidak cukup, exception ditangkap dan pengguna melihat pesan "Stok ... tidak mencukupi".
@@ -301,18 +330,18 @@ Dengan PHPDoc di atas class dan method (fungsi, parameter, error), komentar untu
 /**
  * @throws StokTidakCukupException jika stok kurang dari jumlah yang diminta
  */
-public function kurangi(Barang $barang, int $jumlah): Barang
+public function kurangi(Barang $barang, int $idLokasi, string $kondisi, int $jumlah): void
 ```
 
 **3. Kapan perlu komentar?**
 Untuk menjelaskan alasan yang tidak terlihat dari kode, misalnya kenapa baris dikunci atau kenapa cache diarahkan ke `/tmp`. Kode yang namanya sudah jelas (`generateKode()`, `stokMenipis()`) tidak perlu dikomentari.
 
 **4. Dokumen apa saja yang dibuat?**
-01 Dokumen Rancangan (ERD, desain database, relasi, kamus data, data sampel), 02 Dokumentasi Program, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy.
+01 Dokumen Rancangan (ERD, desain database, relasi, kamus data, data sampel), 02 Dokumentasi Program, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy, 06 Peta Kode.
 
 ### B7. J.620100.025.02 — Melakukan Debugging
 
-**Inti unit:** menemukan, menganalisis, dan memperbaiki kesalahan program. Daftar lengkap 15 bug ada di dokumen 02 Bagian 9.
+**Inti unit:** menemukan, menganalisis, dan memperbaiki kesalahan program. Daftar lengkap 16 bug ada di dokumen 02 Bagian 9.
 
 | Bug | Jenis | Cara ditemukan | Perbaikan |
 |---|---|---|---|
@@ -351,7 +380,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **80 test (275 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **96 test (371 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.
@@ -366,16 +395,16 @@ Unit test menguji satu class / method langsung (`tests/Unit`). Feature test meng
 Test memakai SQLite di memori (`phpunit.xml`) dan `RefreshDatabase`, serta penyimpanan file palsu `Storage::fake()`.
 
 **5. Jelaskan satu test case lengkap.**
-`test_manager_menyetujui_mengurangi_stok_dan_mencatat_verifikator`:
-- Persiapan: barang stok 10, permintaan keluar 4 oleh Operator.
+`test_peminjaman_disetujui_mengurangi_stok_dan_mencatat_verifikator`:
+- Persiapan: barang stok 10 (Baik, Gudang Utama), permintaan Peminjaman 4 Baik oleh Operator.
 - Aksi: Manager mengirim `PATCH` ke route `barang-keluar.setujui`.
-- Pemeriksaan: status Disetujui, `id_verifikator` = Manager, tanggal hari ini, stok 6.
+- Pemeriksaan: status Disetujui, `id_verifikator` = Manager, tanggal hari ini, stok 6, status pinjam "Dipinjam", sisa pinjaman 4, dan data barang keluar tetap ada (tidak dihapus).
 
 **6. Apa itu assertion?**
 Pernyataan yang harus benar agar test lulus, misalnya `assertSame(6, $barang->fresh()->stok)`, `assertForbidden()`, `assertSessionHasErrors('foto')`, `assertDatabaseHas(...)`, `expectException(...)`.
 
 **7. Skenario apa saja yang diuji?**
-Bukan hanya skenario berhasil, tetapi juga gagal dan batas: stok tepat habis, stok kurang, jumlah 0, foto tidak diunggah, file PDF / 3 MB, tolak tanpa alasan, verifikasi ulang, akses role yang tidak berhak (403), token kedaluwarsa (419).
+Bukan hanya skenario berhasil, tetapi juga gagal dan batas: stok tepat habis, stok kurang, stok di lokasi lain tidak boleh dipakai, jumlah 0, pemusnahan barang Baik, koreksi Manager melebihi stok, pengembalian melebihi sisa pinjaman, foto tidak diunggah, file PDF / 3 MB, tolak tanpa alasan, verifikasi ulang, akses role yang tidak berhak (403), token kedaluwarsa (419).
 
 **8. Bagaimana menguji unggah gambar tanpa file sungguhan?**
 Dengan `Storage::fake()` dan `UploadedFile::fake()->image('bukti.jpg')`, lalu memeriksa file tersimpan (`assertExists`) atau terhapus (`assertMissing`).
@@ -398,7 +427,7 @@ Eloquent: akses tabel sebagai objek PHP. Migration: kode pembuat struktur tabel.
 Form mengirim username dan password → validasi → `Auth::attempt()` mencocokkan hash → bila cocok, sesi dibuat ulang dan diarahkan ke dashboard; bila tidak, kembali dengan pesan error.
 
 **5. Kenapa stok barang keluar tidak langsung berkurang?**
-Karena permintaan bisa ditolak Manager. Stok berkurang setelah disetujui agar selalu sesuai barang yang benar-benar ada.
+Karena permintaan bisa ditolak atau rinciannya dikoreksi Manager. Stok berubah setelah disetujui agar selalu sesuai barang yang benar-benar ada.
 
 **6. Bagaimana bila Operator salah input barang masuk?**
 Admin mengoreksi lewat menu Barang Masuk dan stok menyesuaikan otomatis. Bila stok dari transaksi itu sudah terpakai, koreksi ditolak agar stok tidak negatif.
@@ -413,7 +442,7 @@ Kode di GitHub, aplikasi di Vercel (runtime PHP), database PostgreSQL dan gambar
 Laravel mendukung keduanya. Semua test sudah dijalankan di PostgreSQL dan lulus. Dua perbedaan ditemukan dan diperbaiki: `LIKE` yang peka huruf besar/kecil (diganti `whereLike()`) dan cara mengubah enum di migration.
 
 **10. Apa rencana pengembangan berikutnya?**
-Peminjaman dan pengembalian barang, kondisi per unit, laporan per periode (PDF / Excel), notifikasi ke Manager, kompresi gambar otomatis, dan *audit log*.
+Menu perbaikan barang (Rusak Ringan → Baik), kondisi per unit dengan nomor seri, pengingat pinjaman terlambat, laporan per periode (PDF / Excel), notifikasi ke Manager, kompresi gambar otomatis, dan *audit log*.
 
 ## D. Pertanyaan Jebakan / Kritis
 
@@ -429,6 +458,15 @@ Server tetap memvalidasi role (`Rule::in(User::ROLES)`), dan Admin tidak dapat m
 **4. Stok bisa negatif?**
 Tidak. Ada validasi saat pengajuan, pengecekan ulang di `StokService::kurangi()` saat disetujui, dan transaksi yang di-*rollback* bila stok kurang.
 
+**4a. Bila barang pinjaman dikembalikan dua kali bersamaan sehingga melebihi jumlah pinjaman?**
+Tidak bisa. `PengembalianController::store()` mengunci baris peminjaman di dalam transaksi lalu menghitung ulang sisa pinjaman sebelum menyimpan. Pengembalian kedua menunggu, lalu ditolak bila sisa sudah tidak cukup.
+
+**4b. Bila Operator mengajukan pemusnahan barang yang masih Baik?**
+Ditolak di server: `periksaRincian()` hanya mengizinkan Rusak Berat untuk Pemusnahan. Di form, kotak Baik dan Rusak Ringan juga dikunci, tetapi pengamanan sebenarnya tetap di server.
+
+**4c. Bila stok diambil dari lokasi yang tidak punya barang itu?**
+Ditolak. Stok diperiksa per lokasi dan kondisi; stok di Gudang 2 tidak bisa dipakai untuk permintaan dari Gudang Utama. Dibuktikan oleh `test_stok_di_lokasi_lain_tidak_bisa_dipakai`.
+
 **5. Password bisa dilihat di database?**
 Tidak, hanya hash bcrypt yang tersimpan.
 
@@ -442,7 +480,7 @@ Tidak. `GambarService::ganti()` menghapus file lama setelah file baru tersimpan;
 Tampilan mudah diakali. Validasi di server (Form Request) adalah pengamanan utama; atribut `required` / `min` di form hanya membantu pengguna.
 
 **9. Apa kelemahan aplikasi?**
-Kondisi barang per jenis, belum ada peminjaman, laporan baru sebatas cetak browser, dan layanan gratis punya batasan (Supabase di-*pause* bila tidak dipakai seminggu).
+Kondisi dicatat per jumlah (bukan per unit bernomor seri), belum ada menu perbaikan barang, laporan baru sebatas cetak browser, dan layanan gratis punya batasan (Supabase di-*pause* bila tidak dipakai seminggu).
 
 ## E. Lokasi Kode yang Perlu Dihafal
 
@@ -452,10 +490,14 @@ Kondisi barang per jenis, belum ada peminjaman, laporan baru sebatas cetak brows
 | Middleware role | `app/Http/Middleware/CekRole.php` | `handle()` |
 | Route & hak akses | `routes/web.php` | — |
 | Kode barang otomatis | `app/Models/Barang.php` | `generateKode()`, `prefixKategori()` |
-| Logika stok | `app/Services/StokService.php` | `tambah()`, `kurangi()`, `cukup()` |
+| Logika stok | `app/Services/StokService.php` | `tambah()`, `kurangi()`, `tambahRincian()`, `kurangiRincian()`, `cukup()`, `tersedia()` |
+| Rincian kondisi | `app/Models/Concerns/PunyaRincianKondisi.php` | `rincian()`, `isiRincian()`, `ringkasKondisi()` |
+| Lokasi | `app/Http/Controllers/LokasiController.php`, `app/Models/Lokasi.php` | `index()`, `destroy()`, `sudahDipakai()` |
+| Pengembalian | `app/Http/Controllers/PengembalianController.php` | `store()` |
+| Status pinjam | `app/Models/BarangKeluar.php` | `statusPinjam()`, `sisaPinjaman()`, `terlambat()` |
 | Unggah gambar | `app/Services/GambarService.php` | `simpan()`, `ganti()`, `hapus()`, `url()` |
-| Verifikasi | `app/Http/Controllers/BarangKeluarController.php` | `setujui()`, `tolak()`, `kunciPermintaanPending()` |
-| Validasi stok & foto | `app/Http/Requests/BarangKeluarRequest.php` | `rules()`, `after()` |
+| Verifikasi | `app/Http/Controllers/BarangKeluarController.php` | `setujui()`, `tolak()`, `terapkanStok()`, `kunciPermintaanPending()` |
+| Validasi stok & foto | `app/Http/Requests/BarangKeluarRequest.php` | `rules()`, `after()`, `periksaRincian()` |
 | Profil | `app/Http/Controllers/ProfilController.php` | `update()` |
 | Penanganan error 419 | `bootstrap/app.php` | `withExceptions` |
 | Struktur tabel | `database/migrations/` | — |
@@ -465,6 +507,7 @@ Kondisi barang per jenis, belum ada peminjaman, laporan baru sebatas cetak brows
 | Audio & animasi login | `resources/js/suasana.js` | `pasangSuasanaLogin()`, `putar()` |
 | Mode gelap | `resources/js/tema.js` | `gantiTema()` |
 | Musik Bad Apple!! | `resources/js/musik.js` | `pasangMusik()` |
+| Form kondisi & jenis keluar | `resources/js/form-kondisi.js` | `pasangFormKondisi()` |
 | Test | `tests/Unit`, `tests/Feature` | — |
 
 ## F. Daftar Istilah

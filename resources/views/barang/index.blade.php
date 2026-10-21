@@ -24,8 +24,14 @@
                     <option value="{{ $k->id_kategori }}" @selected($idKategori == $k->id_kategori)>{{ $k->nama_kategori }}</option>
                 @endforeach
             </select>
+            <select id="lokasi" name="lokasi" class="input w-auto min-w-48" aria-label="Filter lokasi">
+                <option value="">Semua lokasi</option>
+                @foreach ($lokasi as $l)
+                    <option value="{{ $l->id_lokasi }}" @selected($idLokasi == $l->id_lokasi)>{{ $l->nama_lokasi }}</option>
+                @endforeach
+            </select>
             <button type="submit" class="btn-primary"><x-icon name="search" />Cari</button>
-            @if ($cari || $idKategori)
+            @if ($cari || $idKategori || $idLokasi)
                 <a href="{{ route('barang.index') }}" class="btn-secondary"><x-icon name="refresh" />Reset</a>
             @endif
         </form>
@@ -62,7 +68,17 @@
                             </td>
                             <td class="whitespace-nowrap">{{ $b->kategori->nama_kategori }}</td>
                             <td>
-                                <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-slate-600"><x-icon name="map-pin" class="size-4 text-slate-400" />{{ $b->lokasi }}</span>
+                                {{-- Lokasi tempat barang ini berada beserta jumlahnya --}}
+                                <div class="space-y-0.5">
+                                    @forelse ($b->stokPerLokasi() as $namaLokasi => $perKondisi)
+                                        <p class="flex items-center gap-1.5 whitespace-nowrap text-slate-600">
+                                            <x-icon name="map-pin" class="size-3.5 text-slate-400" />{{ $namaLokasi }}
+                                            <span class="text-xs text-slate-400">({{ array_sum($perKondisi) }})</span>
+                                        </p>
+                                    @empty
+                                        <span class="text-xs text-slate-400">Belum ada stok</span>
+                                    @endforelse
+                                </div>
                             </td>
                             <td class="text-right whitespace-nowrap">
                                 <span @class(['font-semibold', 'text-rose-600' => $b->stokMenipis(), 'text-slate-900' => ! $b->stokMenipis()])>{{ $b->stok }}</span>
@@ -71,7 +87,7 @@
                                     <p class="text-[11px] font-medium text-rose-500">Stok menipis</p>
                                 @endif
                             </td>
-                            <td><x-badge :nilai="$b->status_barang" /></td>
+                            <td><x-rincian-kondisi :rincian="$b->stokPerKondisi()" /></td>
                             <td class="print:hidden">
                                 <div class="flex justify-end gap-1">
                                     <a href="{{ route('barang.show', $b) }}" data-turbo-frame="modal" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
@@ -89,7 +105,7 @@
                     @empty
                         <tr>
                             <td colspan="6">
-                                <x-empty icon="search" judul="Barang tidak ditemukan" pesan="Coba ubah kata kunci atau filter kategori." />
+                                <x-empty icon="search" judul="Barang tidak ditemukan" pesan="Coba ubah kata kunci, filter kategori, atau filter lokasi." />
                             </td>
                         </tr>
                     @endforelse

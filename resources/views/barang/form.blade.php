@@ -45,37 +45,36 @@
             </div>
 
             <div>
-                <label for="status_barang" class="label">Kondisi Barang</label>
-                <select id="status_barang" name="status_barang" class="input" required>
-                    @foreach (\App\Models\Barang::STATUS_BARANG as $status)
-                        <option value="{{ $status }}" @selected(old('status_barang', $barang->status_barang) === $status)>{{ $status }}</option>
-                    @endforeach
-                </select>
-                <x-error field="status_barang" />
-            </div>
-
-            <div>
-                <label for="stok" class="label">{{ $barang->exists ? 'Stok Saat Ini' : 'Stok Awal' }}</label>
-                @if ($barang->exists)
-                    <input id="stok" type="number" class="input" value="{{ $barang->stok }}" disabled>
-                    <p class="hint">Stok berubah melalui transaksi barang masuk / keluar.</p>
-                @else
-                    <input id="stok" name="stok" type="number" min="0" class="input" value="{{ old('stok', $barang->stok) }}" required>
-                    <x-error field="stok" />
-                @endif
-            </div>
-
-            <div>
                 <label for="satuan" class="label">Satuan</label>
                 <input id="satuan" name="satuan" type="text" maxlength="20" class="input" value="{{ old('satuan', $barang->satuan) }}" placeholder="buah / unit / pack" required>
                 <x-error field="satuan" />
             </div>
 
-            <div class="sm:col-span-2">
-                <label for="lokasi" class="label">Lokasi Penyimpanan</label>
-                <input id="lokasi" name="lokasi" type="text" maxlength="100" class="input" value="{{ old('lokasi', $barang->lokasi) }}" placeholder="Contoh: gudang utama" required>
-                <x-error field="lokasi" />
-            </div>
+            @if ($barang->exists)
+                <div class="sm:col-span-2 rounded-xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-slate-200">
+                    Stok saat ini <strong class="text-slate-900">{{ $barang->stok }} {{ $barang->satuan }}</strong>.
+                    Stok, lokasi, dan kondisi berubah melalui transaksi barang masuk, barang keluar, dan pengembalian.
+                </div>
+            @else
+                {{-- Stok awal (opsional): langsung dicatat di satu lokasi dengan rincian kondisinya --}}
+                <div class="sm:col-span-2 space-y-4 rounded-xl border border-dashed border-slate-300 p-4">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-900">Stok Awal <span class="font-normal text-slate-400">(opsional)</span></p>
+                        <p class="text-xs text-slate-500">Isi bila barang sudah ada di gudang. Bisa juga dikosongkan lalu dicatat lewat Barang Masuk.</p>
+                    </div>
+                    <div>
+                        <label for="id_lokasi" class="label">Lokasi Penyimpanan</label>
+                        <select id="id_lokasi" name="id_lokasi" class="input">
+                            <option value="">Pilih lokasi</option>
+                            @foreach ($lokasi as $l)
+                                <option value="{{ $l->id_lokasi }}" @selected(old('id_lokasi') == $l->id_lokasi)>{{ $l->nama_lokasi }} ({{ $l->jenis }})</option>
+                            @endforeach
+                        </select>
+                        <x-error field="id_lokasi" />
+                    </div>
+                    <x-input-kondisi label="Jumlah per Kondisi" />
+                </div>
+            @endif
 
             <div class="sm:col-span-2">
                 <x-unggah-gambar name="gambar" label="Gambar Barang" :url="$barang->gambar_url" hapus="hapus_gambar" />

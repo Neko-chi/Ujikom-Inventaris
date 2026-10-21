@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PunyaRincianKondisi;
 use App\Services\GambarService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,14 +16,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id_barang
  * @property int $id_user
  * @property Carbon $tanggal
- * @property int $jumlah
+ * @property int $id_lokasi lokasi tempat barang disimpan
+ * @property int $jumlah total semua kondisi
+ * @property int $jumlah_baik
+ * @property int $jumlah_rusak_ringan
+ * @property int $jumlah_rusak_berat
  * @property string $sumber_barang
- * @property string $status_barang
  * @property string|null $foto path foto bukti
  * @property-read string|null $foto_url
  */
 class BarangMasuk extends Model
 {
+    use PunyaRincianKondisi;
+
     protected $table = 'barang_masuk';
 
     protected $primaryKey = 'id_masuk';
@@ -33,9 +39,12 @@ class BarangMasuk extends Model
         'id_barang',
         'id_user',
         'tanggal',
+        'id_lokasi',
         'jumlah',
+        'jumlah_baik',
+        'jumlah_rusak_ringan',
+        'jumlah_rusak_berat',
         'sumber_barang',
-        'status_barang',
         'foto',
     ];
 
@@ -44,8 +53,12 @@ class BarangMasuk extends Model
         return [
             'id_barang' => 'integer',
             'id_user' => 'integer',
+            'id_lokasi' => 'integer',
             'tanggal' => 'date',
             'jumlah' => 'integer',
+            'jumlah_baik' => 'integer',
+            'jumlah_rusak_ringan' => 'integer',
+            'jumlah_rusak_berat' => 'integer',
         ];
     }
 
@@ -63,5 +76,10 @@ class BarangMasuk extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
+    public function lokasi(): BelongsTo
+    {
+        return $this->belongsTo(Lokasi::class, 'id_lokasi', 'id_lokasi');
     }
 }

@@ -58,7 +58,7 @@
         @foreach ([
             ['Jenis Barang', $ringkasan['jenis_barang'], 'cube', 'bg-brand-50 text-brand-600', 'terdaftar di gudang'],
             ['Total Stok', $ringkasan['total_stok'], 'archive', 'bg-violet-50 text-violet-600', 'unit dari seluruh barang'],
-            ['Unit Masuk', $ringkasan['total_masuk'], 'masuk', 'bg-emerald-50 text-emerald-600', 'sejak awal pencatatan'],
+            ['Sedang Dipinjam', $ringkasan['dipinjam'], 'refresh', 'bg-emerald-50 text-emerald-600', 'unit belum dikembalikan'],
             ['Perlu Verifikasi', $ringkasan['menunggu_verifikasi'], 'clock', 'bg-amber-50 text-amber-600', 'permintaan barang keluar'],
         ] as [$judul, $angka, $ikon, $warna, $keterangan])
             <div class="card p-5">

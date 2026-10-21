@@ -47,20 +47,34 @@ class KategoriBarangTest extends TestCase
         $this->assertDatabaseHas('kategori', ['id_kategori' => $barang->id_kategori]);
     }
 
-    public function test_tambah_barang_membuat_kode_otomatis(): void
+    public function test_tambah_barang_membuat_kode_otomatis_dan_stok_awal_per_lokasi(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Elektronik']);
+        $gudang = $this->lokasi();
+
+        // Stok awal 6: 5 baik, 1 rusak ringan, disimpan di Gudang Utama
+        $this->post('/barang', [
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Proyektor Epson',
+            'satuan' => 'unit',
+            'id_lokasi' => $gudang->id_lokasi,
+        ] + $this->kondisi(5, 1))->assertRedirect('/barang');
+
+        $barang = Barang::where('kode_barang', 'EK-001')->firstOrFail();
+        $this->assertSame(6, $barang->stok);
+        $this->assertSame(5, $this->stokDi($barang, $gudang, Barang::BAIK));
+        $this->assertSame(1, $this->stokDi($barang, $gudang, Barang::RUSAK_RINGAN));
+    }
+
+    public function test_tambah_barang_tanpa_stok_awal_diperbolehkan(): void
     {
         $kategori = Kategori::create(['nama_kategori' => 'Elektronik']);
 
         $this->post('/barang', [
-            'id_kategori' => $kategori->id_kategori,
-            'nama_barang' => 'Proyektor Epson',
-            'stok' => 6,
-            'satuan' => 'unit',
-            'lokasi' => 'gudang utama',
-            'status_barang' => 'Baik',
+            'id_kategori' => $kategori->id_kategori, 'nama_barang' => 'Printer', 'satuan' => 'unit',
         ])->assertRedirect('/barang');
 
-        $this->assertDatabaseHas('barang', ['kode_barang' => 'EK-001', 'nama_barang' => 'Proyektor Epson', 'stok' => 6]);
+        $this->assertDatabaseHas('barang', ['nama_barang' => 'Printer', 'stok' => 0]);
     }
 
     public function test_ubah_barang_tidak_mengubah_stok(): void
@@ -72,27 +86,22 @@ class KategoriBarangTest extends TestCase
             'nama_barang' => 'Pulpen Hitam',
             'stok' => 999,
             'satuan' => 'pack',
-            'lokasi' => 'sarpras',
-            'status_barang' => 'Rusak Ringan',
-        ])->assertRedirect('/barang');
+        ] + $this->kondisi(500))->assertRedirect('/barang');
 
         $barang->refresh();
         $this->assertSame('Pulpen Hitam', $barang->nama_barang);
         $this->assertSame(10, $barang->stok);
     }
 
-    public function test_status_barang_harus_sesuai_kamus_data(): void
+    public function test_stok_awal_wajib_memilih_lokasi(): void
     {
         $kategori = Kategori::create(['nama_kategori' => 'Furnitur']);
 
         $this->post('/barang', [
             'id_kategori' => $kategori->id_kategori,
             'nama_barang' => 'Meja',
-            'stok' => 1,
             'satuan' => 'buah',
-            'lokasi' => 'gudang',
-            'status_barang' => 'Hilang',
-        ])->assertSessionHasErrors('status_barang');
+        ] + $this->kondisi(3))->assertSessionHasErrors('id_lokasi');
 
         $this->assertSame(0, Barang::count());
     }
@@ -111,8 +120,7 @@ class KategoriBarangTest extends TestCase
     {
         $kategori = Kategori::create(['nama_kategori' => 'Elektronik']);
         $data = [
-            'id_kategori' => $kategori->id_kategori, 'nama_barang' => 'Proyektor Epson', 'stok' => 6,
-            'satuan' => 'unit', 'lokasi' => 'gudang utama', 'status_barang' => 'Baik',
+            'id_kategori' => $kategori->id_kategori, 'nama_barang' => 'Proyektor Epson', 'satuan' => 'unit',
         ];
 
         // Unggah saat tambah barang

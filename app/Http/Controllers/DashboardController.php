@@ -20,7 +20,12 @@ class DashboardController extends Controller
         $ringkasan = [
             'jenis_barang' => Barang::count(),
             'total_stok' => (int) Barang::sum('stok'),
-            'total_masuk' => (int) BarangMasuk::sum('jumlah'),
+            // Unit yang sedang dipinjam: peminjaman disetujui dikurangi yang sudah dikembalikan
+            'dipinjam' => (int) BarangKeluar::where('jenis_keluar', BarangKeluar::PEMINJAMAN)
+                ->where('verifikasi', BarangKeluar::DISETUJUI)
+                ->withSum('pengembalian as jumlah_kembali', 'jumlah')
+                ->get()
+                ->sum(fn (BarangKeluar $k) => $k->sisaPinjaman()),
             'menunggu_verifikasi' => BarangKeluar::where('verifikasi', BarangKeluar::PENDING)->count(),
         ];
 
@@ -58,13 +63,13 @@ class DashboardController extends Controller
      */
     private function aktivitasTerbaru(int $batas = 6): Collection
     {
-        $masuk = BarangMasuk::with('barang')->latest('tanggal')->latest('id_masuk')->take($batas)->get()
+        $masuk = BarangMasuk::with(['barang', 'lokasi'])->latest('tanggal')->latest('id_masuk')->take($batas)->get()
             ->map(fn (BarangMasuk $m) => [
                 'jenis' => 'masuk',
                 'tanggal' => $m->tanggal,
                 'urutan' => $m->id_masuk,
                 'barang' => $m->barang->nama_barang,
-                'keterangan' => $m->sumber_barang,
+                'keterangan' => $m->sumber_barang.($m->lokasi ? ' → '.$m->lokasi->nama_lokasi : ''),
                 'jumlah' => $m->jumlah,
                 'satuan' => $m->barang->satuan,
                 'status' => null,
@@ -77,7 +82,7 @@ class DashboardController extends Controller
                 'tanggal' => $k->tanggal,
                 'urutan' => $k->id_keluar,
                 'barang' => $k->barang->nama_barang,
-                'keterangan' => $k->pemohon.' · '.$k->tujuan,
+                'keterangan' => $k->jenis_keluar.' · '.$k->pemohon,
                 'jumlah' => $k->jumlah,
                 'satuan' => $k->barang->satuan,
                 'status' => $k->verifikasi,

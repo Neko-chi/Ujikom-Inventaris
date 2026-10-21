@@ -3,9 +3,11 @@
 
 @php
     [$warna, $titik] = match ($nilai) {
-        'Baik', 'Disetujui' => ['bg-emerald-50 text-emerald-700 ring-emerald-600/20', 'bg-emerald-500'],
-        'Rusak Ringan', 'Pending' => ['bg-amber-50 text-amber-700 ring-amber-600/20', 'bg-amber-500'],
-        'Rusak Berat', 'Ditolak' => ['bg-rose-50 text-rose-700 ring-rose-600/20', 'bg-rose-500'],
+        'Baik', 'Disetujui', 'Dikembalikan' => ['bg-emerald-50 text-emerald-700 ring-emerald-600/20', 'bg-emerald-500'],
+        'Rusak Ringan', 'Pending', 'Dikembalikan Sebagian' => ['bg-amber-50 text-amber-700 ring-amber-600/20', 'bg-amber-500'],
+        'Rusak Berat', 'Ditolak', 'Pemusnahan', 'Terlambat' => ['bg-rose-50 text-rose-700 ring-rose-600/20', 'bg-rose-500'],
+        'Dipinjam', 'Peminjaman' => ['bg-violet-50 text-violet-700 ring-violet-600/20', 'bg-violet-500'],
+        'Pemindahan' => ['bg-brand-50 text-brand-700 ring-brand-600/20', 'bg-brand-600'],
         default => ['bg-slate-50 text-slate-700 ring-slate-600/20', 'bg-slate-400'],
     };
 @endphp

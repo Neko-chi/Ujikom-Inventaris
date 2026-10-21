@@ -91,10 +91,7 @@ class GambarGagalTest extends TestCase
             ->post('/barang', [
                 'id_kategori' => $kategori->id_kategori,
                 'nama_barang' => 'Pulpen',
-                'stok' => 5,
                 'satuan' => 'pack',
-                'lokasi' => 'sarpras',
-                'status_barang' => 'Baik',
                 'gambar' => $this->gambarPalsu('pulpen.jpg'),
             ])
             ->assertRedirect('/barang/create')
@@ -106,23 +103,20 @@ class GambarGagalTest extends TestCase
 
     public function test_foto_barang_keluar_gagal_disimpan_tidak_menyebabkan_error_500(): void
     {
-        $kategori = Kategori::create(['nama_kategori' => 'Alat Tulis']);
-        $barang = Barang::create([
-            'kode_barang' => 'AT-001', 'id_kategori' => $kategori->id_kategori, 'nama_barang' => 'Pulpen',
-            'stok' => 10, 'satuan' => 'pack', 'lokasi' => 'sarpras', 'status_barang' => 'Baik',
-        ]);
+        $barang = $this->buatBarang(['stok' => 10]);
 
         $this->actingAs(User::factory()->operator()->create())
             ->from('/barang-keluar/create')
             ->post('/barang-keluar', [
+                'jenis_keluar' => BarangKeluar::PEMINJAMAN,
                 'id_barang' => $barang->id_barang,
+                'id_lokasi_asal' => $this->lokasi()->id_lokasi,
                 'tanggal' => now()->toDateString(),
-                'jumlah' => 2,
+                'tanggal_kembali' => now()->addWeek()->toDateString(),
                 'pemohon' => 'Budi',
                 'tujuan' => 'Kelas 10',
-                'status_barang' => 'Baik',
                 'foto' => $this->gambarPalsu('bukti.jpg'),
-            ])
+            ] + $this->kondisi(2))
             ->assertRedirect('/barang-keluar/create')
             ->assertSessionHas('gagal');
 

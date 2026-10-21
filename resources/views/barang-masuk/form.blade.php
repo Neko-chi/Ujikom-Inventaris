@@ -54,25 +54,25 @@
             </div>
 
             <div>
-                <label for="jumlah" class="label">Jumlah</label>
-                <input id="jumlah" name="jumlah" type="number" min="1" class="input" value="{{ old('jumlah', $barangMasuk->jumlah) }}" placeholder="0" required>
-                <x-error field="jumlah" />
+                <label for="id_lokasi" class="label">Disimpan di Lokasi</label>
+                <select id="id_lokasi" name="id_lokasi" class="input" required>
+                    <option value="">Pilih lokasi</option>
+                    @foreach ($lokasi as $l)
+                        <option value="{{ $l->id_lokasi }}" @selected(old('id_lokasi', $barangMasuk->id_lokasi) == $l->id_lokasi)>{{ $l->nama_lokasi }} ({{ $l->jenis }})</option>
+                    @endforeach
+                </select>
+                <x-error field="id_lokasi" />
             </div>
 
-            <div>
+            <div class="sm:col-span-2">
                 <label for="sumber_barang" class="label">Sumber Barang</label>
                 <input id="sumber_barang" name="sumber_barang" type="text" maxlength="255" class="input" value="{{ old('sumber_barang', $barangMasuk->sumber_barang) }}" placeholder="Dana BOS / Pembelian / Bantuan Dinas" required>
                 <x-error field="sumber_barang" />
             </div>
 
-            <div>
-                <label for="status_barang" class="label">Kondisi Barang</label>
-                <select id="status_barang" name="status_barang" class="input" required>
-                    @foreach (\App\Models\Barang::STATUS_BARANG as $status)
-                        <option value="{{ $status }}" @selected(old('status_barang', $barangMasuk->status_barang) === $status)>{{ $status }}</option>
-                    @endforeach
-                </select>
-                <x-error field="status_barang" />
+            <div class="sm:col-span-2">
+                <x-input-kondisi :nilai="$barangMasuk->exists ? $barangMasuk->rincian() : []" label="Jumlah Diterima per Kondisi"
+                                 petunjuk="Tidak semua barang datang dalam kondisi baik: pisahkan jumlahnya per kondisi." />
             </div>
 
             <div class="sm:col-span-2">

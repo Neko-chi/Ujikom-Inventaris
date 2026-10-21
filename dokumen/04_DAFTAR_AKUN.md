@@ -9,9 +9,9 @@
 
 | No | Nama | Username | Password | Role | Tugas |
 |---|---|---|---|---|---|
-| 1 | Ibrahim Risyad | `admin_ohim` | `admin123` | Admin | Mengelola pengguna, kategori, data barang; mengoreksi barang masuk |
-| 2 | Marco Ivanos | `manager_marco` | `@admin123` | Manager | Menyetujui / menolak barang keluar; melihat semua data |
-| 3 | Siti Aminah | `operator_siti` | `operator123` | Operator | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar |
+| 1 | Ibrahim Risyad | `admin_ohim` | `admin123` | Admin | Mengelola pengguna, kategori, lokasi, data barang; mengoreksi barang masuk |
+| 2 | Marco Ivanos | `manager_marco` | `@admin123` | Manager | Memeriksa rincian kondisi, menyetujui / menolak barang keluar; melihat semua data |
+| 3 | Siti Aminah | `operator_siti` | `operator123` | Operator | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar (pinjam / pindah / musnahkan), mencatat pengembalian |
 
 Catatan:
 
@@ -24,14 +24,16 @@ Catatan:
 | Menu / Aksi | Admin | Operator | Manager |
 |---|---|---|---|
 | Dashboard, Profil (klik foto profil) | Ya | Ya | Ya |
-| Pengguna, Kategori | Ya | Tidak | Tidak |
+| Pengguna, Kategori, Lokasi | Ya | Tidak | Tidak |
 | Data Barang — lihat | Ya | Ya | Ya |
 | Data Barang — tambah | Ya | Ya | Tidak |
 | Data Barang — ubah / hapus | Ya | Tidak | Tidak |
 | Barang Masuk — catat | Tidak | Ya | Tidak |
 | Barang Masuk — koreksi | Ya | Tidak | Tidak |
-| Barang Keluar — ajukan (foto wajib) | Tidak | Ya | Tidak |
-| Barang Keluar — Setujui / Tolak | Tidak | Tidak | Ya |
+| Barang Keluar — ajukan Peminjaman / Pemindahan / Pemusnahan (foto wajib) | Tidak | Ya | Tidak |
+| Barang Keluar — periksa / koreksi rincian kondisi, Setujui / Tolak | Tidak | Tidak | Ya |
+| Pengembalian barang pinjaman — catat | Tidak | Ya | Tidak |
+| Barang masuk / keluar / pengembalian — lihat, cetak | Ya | Ya | Ya |
 
 ## 3. Mengganti Password
 

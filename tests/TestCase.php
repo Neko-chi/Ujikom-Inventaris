@@ -4,6 +4,8 @@ namespace Tests;
 
 use App\Models\Barang;
 use App\Models\Kategori;
+use App\Models\Lokasi;
+use App\Models\StokBarang;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -19,21 +21,62 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Helper: membuat satu barang beserta kategorinya untuk keperluan pengujian.
+     * Helper: lokasi (dibuat bila belum ada). Default "Gudang Utama" berjenis Gudang.
      */
-    protected function buatBarang(array $data = [], string $namaKategori = 'Alat Tulis'): Barang
+    protected function lokasi(string $nama = 'Gudang Utama', string $jenis = Lokasi::GUDANG): Lokasi
+    {
+        return Lokasi::firstOrCreate(['nama_lokasi' => $nama], ['jenis' => $jenis]);
+    }
+
+    /**
+     * Helper: membuat satu barang beserta kategorinya untuk keperluan pengujian.
+     * $data['stok'] = jumlah kondisi Baik di Gudang Utama (default 10);
+     * $rincian (opsional) = [Baik, Rusak Ringan, Rusak Berat] di Gudang Utama.
+     */
+    protected function buatBarang(array $data = [], string $namaKategori = 'Alat Tulis', ?array $rincian = null): Barang
     {
         $kategori = Kategori::firstOrCreate(['nama_kategori' => $namaKategori]);
+        $rincian ??= [$data['stok'] ?? 10, 0, 0];
 
-        return Barang::create(array_merge([
+        $barang = Barang::create(array_merge([
             'kode_barang' => Barang::generateKode($kategori),
             'id_kategori' => $kategori->id_kategori,
             'nama_barang' => 'Pulpen',
-            'stok' => 10,
             'satuan' => 'pack',
-            'lokasi' => 'sarpras',
-            'status_barang' => 'Baik',
-        ], $data));
+        ], $data, ['stok' => array_sum($rincian)]));
+
+        $this->isiStok($barang, $this->lokasi(), $rincian);
+
+        return $barang;
+    }
+
+    /**
+     * Helper: menambah stok awal barang di satu lokasi, [Baik, Rusak Ringan, Rusak Berat].
+     */
+    protected function isiStok(Barang $barang, Lokasi $lokasi, array $rincian): void
+    {
+        foreach (Barang::KONDISI as $i => $kondisi) {
+            if (($rincian[$i] ?? 0) > 0) {
+                StokBarang::create(['id_barang' => $barang->id_barang, 'id_lokasi' => $lokasi->id_lokasi, 'kondisi' => $kondisi, 'jumlah' => $rincian[$i]]);
+            }
+        }
+        $barang->update(['stok' => (int) StokBarang::where('id_barang', $barang->id_barang)->sum('jumlah')]);
+    }
+
+    /**
+     * Helper: stok satu barang di satu lokasi dan kondisi.
+     */
+    protected function stokDi(Barang $barang, Lokasi $lokasi, string $kondisi = Barang::BAIK): int
+    {
+        return (int) StokBarang::where(['id_barang' => $barang->id_barang, 'id_lokasi' => $lokasi->id_lokasi, 'kondisi' => $kondisi])->value('jumlah');
+    }
+
+    /**
+     * Helper: input form jumlah per kondisi.
+     */
+    protected function kondisi(int $baik, int $ringan = 0, int $berat = 0): array
+    {
+        return ['jumlah_baik' => $baik, 'jumlah_rusak_ringan' => $ringan, 'jumlah_rusak_berat' => $berat];
     }
 
     /**

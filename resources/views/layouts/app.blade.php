@@ -54,6 +54,7 @@
             'Data Master' => [
                 ['barang.index', 'barang.*', 'Data Barang', 'cube', false, null],
                 ['kategori.index', 'kategori.*', 'Kategori', 'tag', true, null],
+                ['lokasi.index', 'lokasi.*', 'Lokasi', 'map-pin', true, null],
             ],
             'Pengaturan' => [
                 ['user.index', 'user.*', 'Pengguna', 'users', true, null],

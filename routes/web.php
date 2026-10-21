@@ -6,6 +6,8 @@ use App\Http\Controllers\BarangKeluarController;
 use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\LokasiController;
+use App\Http\Controllers\PengembalianController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +43,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/barang-masuk', [BarangMasukController::class, 'store'])->name('barang-masuk.store');
         Route::get('/barang-keluar/create', [BarangKeluarController::class, 'create'])->name('barang-keluar.create');
         Route::post('/barang-keluar', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+        // Pengembalian barang pinjaman (boleh sebagian, kondisi saat kembali dicatat).
+        Route::post('/barang-keluar/{barangKeluar}/pengembalian', [PengembalianController::class, 'store'])->name('pengembalian.store');
     });
 
     // Admin: mengelola pengguna & data master, mengoreksi barang masuk.
@@ -48,6 +52,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('user', UserController::class)->except('show');
         Route::resource('kategori', KategoriController::class)->except('show')
             ->parameters(['kategori' => 'kategori']);
+        Route::resource('lokasi', LokasiController::class)->except('show')
+            ->parameters(['lokasi' => 'lokasi']);
         Route::resource('barang', BarangController::class)->only(['edit', 'update', 'destroy']);
         Route::resource('barang-masuk', BarangMasukController::class)->only(['edit', 'update', 'destroy']);
     });
