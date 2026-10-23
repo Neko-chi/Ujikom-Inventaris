@@ -89,6 +89,9 @@ Primary key angka lebih efisien untuk relasi dan indeks. `kode_barang` adalah ko
 **8. Apa itu relasi 1:N di program ini?**
 Satu kategori memiliki banyak barang (`Kategori::barang()` = `hasMany`), satu barang dimiliki satu kategori (`Barang::kategori()` = `belongsTo`). Begitu juga barang–transaksi, user–transaksi, lokasi–stok, dan satu peminjaman memiliki banyak pengembalian (`BarangKeluar::pengembalian()`).
 
+**8a. Bagaimana membaca ERD-nya?**
+Persegi = entitas (tabel), elips = atribut (kolom), belah ketupat = relasi, angka 1 / N = kardinalitas. Atribut bergaris bawah penuh adalah **primary key** (contoh `id_barang` di entitas barang), sedangkan atribut bergaris bawah **titik-titik** adalah **foreign key** yang merujuk tabel lain (contoh `id_barang` dan `id_lokasi` di entitas stok barang). Satu kolom yang sama bisa menjadi PK di tabelnya sendiri dan FK di tabel lain.
+
 **9. Kenapa stok dipecah ke tabel `stok_barang`, tidak cukup kolom `barang.stok`?**
 Satu barang bisa ada di beberapa lokasi dengan kondisi berbeda, misalnya Kursi Siswa 110 Baik di Gudang Utama, serta 3 Baik dan 7 Rusak Ringan di Gudang 2. Satu kolom tidak bisa menyimpan itu. `stok_barang` menyimpan satu baris per barang + lokasi + kondisi (unik), sedangkan `barang.stok` tetap disimpan sebagai total agar daftar barang dan dashboard cepat.
 

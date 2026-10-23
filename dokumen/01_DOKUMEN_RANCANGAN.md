@@ -20,6 +20,8 @@ Nama Database: **gudang_sekolah** · Jumlah Tabel: **8** (`user`, `kategori`, `b
 
 ![Gambar 1. Entity Relationship Diagram](gambar/erd.png)
 
+Keterangan simbol: persegi = entitas, elips = atribut, belah ketupat = relasi, 1 / N = kardinalitas. Atribut bergaris bawah penuh = **primary key**; atribut bergaris bawah titik-titik = **foreign key**.
+
 <!-- portrait -->
 
 Penjelasan relasi pada ERD:
