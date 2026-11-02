@@ -65,9 +65,9 @@ Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45)
 | `routes/web.php:23` | grup `auth` | Semua halaman lain wajib login |
 | `routes/web.php:35` | grup `role:Admin,Operator` | Tambah barang |
 | `routes/web.php:41` | grup `role:Operator` | Catat barang masuk, ajukan barang keluar, catat pengembalian (baris 47) |
-| `routes/web.php:51` | grup `role:Admin` | Kelola pengguna, kategori, lokasi (baris 55), ubah/hapus barang, koreksi barang masuk |
-| `routes/web.php:62` | grup `role:Manager` | Setujui / tolak barang keluar |
-| `routes/web.php:68-72` | tanpa grup role | Halaman lihat data, untuk semua role |
+| `routes/web.php:51` | grup `role:Admin` | Tambah / hapus pengguna (baris 53, `->only([...])`), kategori, lokasi (baris 56), ubah/hapus barang, koreksi barang masuk |
+| `routes/web.php:63` | grup `role:Manager` | Setujui / tolak barang keluar |
+| `routes/web.php:69-73` | tanpa grup role | Halaman lihat data, untuk semua role |
 | `CekRole.php:17` | `handle($request, $next, ...$roles)` | Bila role pengguna tidak ada di daftar `$roles`, tampilkan error 403. `...$roles` = parameter variadic (bisa banyak role) |
 | `bootstrap/app.php:18` | `$middleware->alias(['role' => CekRole::class])` | Mendaftarkan nama pendek `role` agar bisa ditulis `role:Admin` di route |
 | `bootstrap/app.php:29` | `$exceptions->render(...)` | Gambar gagal disimpan → kembali ke form dengan pesan jelas, bukan error 500 |
@@ -84,10 +84,9 @@ Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45)
 | `DashboardController.php:64` | `aktivitasTerbaru()` | Menggabungkan barang masuk & keluar terbaru menjadi satu daftar urut tanggal |
 | `ProfilController.php:20` | `edit()` | Form profil milik pengguna yang login |
 | `ProfilController.php:25` | `update()` | Simpan nama, ganti/hapus foto, ganti password (bila diisi); dari panel kanan kembali ke halaman asal |
-| `UserController.php:17` | `index()` | Daftar pengguna + jumlah transaksinya (`withCount`) |
-| `UserController.php:27` / `:32` | `create()` / `store()` | Form dan simpan pengguna baru |
-| `UserController.php:39` / `:44` | `edit()` / `update()` | Ubah pengguna; password kosong = tidak diganti; Admin tidak bisa menurunkan role dirinya sendiri (baris 54) |
-| `UserController.php:63` | `destroy()` | Hapus pengguna, kecuali diri sendiri atau yang sudah punya transaksi |
+| `UserController.php:19` | `index()` | Daftar pengguna + jumlah transaksinya (`withCount`) |
+| `UserController.php:29` / `:34` | `create()` / `store()` | Form dan simpan pengguna baru (password awal) |
+| `UserController.php:41` | `destroy()` | Hapus pengguna, kecuali diri sendiri atau yang sudah punya transaksi. Tidak ada `edit()` / `update()`: Admin tidak dapat mengubah data atau password pengguna lain |
 | `KategoriController.php:15-46` | `index`, `create`, `store`, `edit`, `update`, `destroy` | CRUD kategori; kategori yang masih dipakai barang tidak bisa dihapus (baris 49) |
 | `LokasiController.php:16` | `index()` | Daftar lokasi + total stok (`withSum`) dan jumlah jenis barang per lokasi |
 | `LokasiController.php:32-56` | `create`, `store`, `edit`, `update`, `destroy` | CRUD lokasi (Admin); lokasi yang masih berisi stok / dipakai transaksi tidak bisa dihapus (baris 59, `sudahDipakai()`) |
@@ -269,7 +268,7 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 
 | Konsep | Contoh lokasi | Penjelasan |
 |---|---|---|
-| `if / else` | `UserController.php:49` | Password kosong → tidak diganti |
+| `if / elseif` | `ProfilController.php:30` | Ada foto baru → ganti, centang hapus → hapus foto |
 | `if / elseif` | `PengembalianRequest.php:53`, `BarangController.php:120` | Total 0 → error "minimal 1", melebihi sisa → error "melebihi sisa pinjaman"; gambar baru → ganti, centang hapus → hapus |
 | `match (true)` | `BarangKeluar.php:189` | Status pinjam berdasarkan jumlah yang sudah kembali |
 | `match` (PHP 8) | `dashboard.blade.php:10`, `badge.blade.php:5` | Pilih nilai berdasarkan role / status, lebih ringkas dari `switch` |

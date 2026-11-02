@@ -27,13 +27,13 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 >
 > Masalah yang diselesaikan: pencatatan barang gudang sering manual, stok tidak jelas, barang bisa keluar tanpa persetujuan dan tanpa bukti, barang pinjaman tidak terlacak, dan tidak diketahui barang ada di gudang atau ruangan mana.
 >
-> Ada tiga role. **Admin** mengelola sistem: pengguna, kategori, lokasi, dan data barang. **Operator** mencatat barang masuk, mengajukan barang keluar dengan foto bukti, dan mencatat pengembalian. **Manager** memeriksa rincian kondisi lalu menyetujui atau menolak barang keluar, dan hanya bisa melihat data. Tugasnya dipisah supaya tidak ada orang yang menyetujui permintaannya sendiri.
+> Ada tiga role. **Admin** mengelola sistem: menambah / menghapus pengguna, kategori, lokasi, dan data barang. **Operator** mencatat barang masuk, mengajukan barang keluar dengan foto bukti, dan mencatat pengembalian. **Manager** memeriksa rincian kondisi lalu menyetujui atau menolak barang keluar, dan hanya bisa melihat data. Tugasnya dipisah supaya tidak ada orang yang menyetujui permintaannya sendiri.
 >
 > Stok dicatat per lokasi (misalnya Gudang Utama, Gudang 2, Lab TKJ 3) dan per kondisi (Baik, Rusak Ringan, Rusak Berat). Barang keluar ada tiga jenis: **Peminjaman** yang nanti dikembalikan, **Pemindahan** ke ruangan, dan **Pemusnahan** barang rusak berat. Stok bertambah saat barang masuk dicatat, dan baru berubah setelah Manager menyetujui. Setiap persetujuan mencatat siapa, kapan, dan alasannya.
 >
 > Aplikasi juga mendukung multimedia: gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet yang beranimasi dan menyesuaikan waktu pagi, siang, sore, malam, serta audio suasana dan lagu Bad Apple!! yang bisa diputar. Tampilannya monokrom hitam-putih ala Bad Apple!! dengan mode terang dan gelap.
 >
-> Database berisi 8 tabel, dan program diuji dengan **96 test PHPUnit** yang semuanya lulus."
+> Database berisi 8 tabel, dan program diuji dengan **95 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo (± 5 menit)
 
@@ -46,8 +46,8 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 7. Login **manager_marco** → tanda jumlah Pending di menu, tidak ada tombol tambah barang.
 8. Buka permintaan → lihat foto dan stok lokasi asal → koreksi rincian kondisi bila perlu → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berubah, nama Manager dan koreksi tercatat).
 9. Login **operator_siti** → tab **Sedang Dipinjam** → buka peminjaman bola basket → catat pengembalian (kondisi boleh berbeda) → status Dikembalikan.
-10. Login **admin_ohim** → menu Pengguna menampilkan 3 role; role akun sendiri terkunci; menu **Lokasi**; detail Kursi Siswa menampilkan stok per lokasi.
-11. Terminal → `php artisan test` → 96 test lulus.
+10. Login **admin_ohim** → menu Pengguna menampilkan 3 role; pengguna lain hanya bisa dihapus, tidak bisa diubah atau diganti password-nya; menu **Lokasi**; detail Kursi Siswa menampilkan stok per lokasi.
+11. Terminal → `php artisan test` → 95 test lulus.
 
 ## B. Pertanyaan per Unit Kompetensi
 
@@ -383,7 +383,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **96 test (371 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **95 test (363 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.
@@ -456,7 +456,10 @@ Hanya satu yang berhasil. Baris permintaan dikunci di dalam transaksi; Manager k
 `CekRole` memeriksa role di server untuk setiap request → 403. Menyembunyikan tombol hanya kenyamanan; pengamanan sebenarnya di server.
 
 **3. Bila nilai role diubah lewat *inspect element*?**
-Server tetap memvalidasi role (`Rule::in(User::ROLES)`), dan Admin tidak dapat mengubah role akunnya sendiri meskipun data form diubah.
+Server tetap memvalidasi role (`Rule::in(User::ROLES)`). Role hanya dipilih saat akun dibuat; setelah itu tidak ada route untuk mengubahnya.
+
+**3a. Kenapa Admin tidak bisa mengganti password pengguna lain?**
+Password adalah rahasia pemilik akun. Bila Admin bisa menggantinya, Admin dapat masuk sebagai Operator atau Manager lalu mencatat atau menyetujui transaksi atas nama orang lain, sehingga pemisahan tugas dan jejak audit tidak berarti. Karena itu route ubah pengguna dihapus (`Route::resource('user', ...)->only(['index', 'create', 'store', 'destroy'])`): Admin hanya menambah dan menghapus akun, sedangkan password diganti pemiliknya sendiri lewat Profil dengan memasukkan password lama. Dibuktikan oleh `test_admin_tidak_dapat_mengubah_data_atau_password_pengguna_lain`.
 
 **4. Stok bisa negatif?**
 Tidak. Ada validasi saat pengajuan, pengecekan ulang di `StokService::kurangi()` saat disetujui, dan transaksi yang di-*rollback* bila stok kurang.

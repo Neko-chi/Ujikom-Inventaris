@@ -49,58 +49,38 @@ class UserTest extends TestCase
         ])->assertSessionHasErrors(['username', 'role']);
     }
 
-    public function test_ubah_pengguna_tanpa_password_tidak_mengganti_password(): void
+    public function test_admin_tidak_dapat_mengubah_data_atau_password_pengguna_lain(): void
     {
-        $user = User::factory()->operator()->create(['password' => 'lama12345']);
+        $operator = User::factory()->operator()->create(['nama_user' => 'Nama Lama', 'password' => 'lama12345']);
 
-        $this->put(route('user.update', $user), [
-            'nama_user' => 'Nama Baru', 'username' => $user->username, 'password' => '', 'role' => 'Operator',
-        ])->assertRedirect('/user');
+        // Halaman ubah dan proses ubah tidak tersedia.
+        $this->get("/user/{$operator->id_user}/edit")->assertNotFound();
+        $this->put("/user/{$operator->id_user}", [
+            'nama_user' => 'Nama Baru', 'username' => $operator->username, 'role' => 'Operator',
+            'password' => 'baru12345', 'password_confirmation' => 'baru12345',
+        ])->assertStatus(405);
 
-        $user->refresh();
-        $this->assertSame('Nama Baru', $user->nama_user);
-        $this->assertTrue(Hash::check('lama12345', $user->password));
+        $operator->refresh();
+        $this->assertSame('Nama Lama', $operator->nama_user);
+        $this->assertTrue(Hash::check('lama12345', $operator->password));
     }
 
-    public function test_admin_dapat_mengubah_nama_dan_username_akun_sendiri(): void
+    public function test_daftar_pengguna_hanya_menampilkan_tombol_hapus_untuk_pengguna_lain(): void
     {
-        // Form akun sendiri mengirim role lewat input tersembunyi (role dikunci).
-        $this->put(route('user.update', $this->admin), [
-            'nama_user' => 'Admin Nama Baru', 'username' => 'admin_baru',
-            'role' => 'Admin', 'password' => '', 'password_confirmation' => '',
-        ])->assertRedirect('/user')->assertSessionHas('sukses');
+        User::factory()->operator()->create();
 
-        $this->admin->refresh();
-        $this->assertSame('Admin Nama Baru', $this->admin->nama_user);
-        $this->assertSame('admin_baru', $this->admin->username);
-
-        // Login berikutnya memakai username baru.
-        $this->post('/logout');
-        $this->post('/login', ['username' => 'admin_baru', 'password' => 'password'])->assertRedirect(route('dashboard'));
+        $this->get(route('user.index'))
+            ->assertOk()
+            ->assertSee('title="Hapus"', false)
+            ->assertSee('title="Ubah lewat Profil"', false)
+            ->assertDontSee('title="Ubah"', false);
     }
 
-    public function test_admin_tidak_dapat_mengubah_role_dan_menghapus_akun_sendiri(): void
+    public function test_admin_tidak_dapat_menghapus_akun_sendiri(): void
     {
-        $this->put(route('user.update', $this->admin), [
-            'nama_user' => $this->admin->nama_user, 'username' => $this->admin->username, 'role' => 'Operator',
-        ])->assertSessionHas('gagal');
-
         $this->delete(route('user.destroy', $this->admin))->assertSessionHas('gagal');
 
-        $this->assertSame('Admin', $this->admin->fresh()->role);
-    }
-
-    public function test_pilihan_role_terkunci_saat_admin_mengubah_akun_sendiri(): void
-    {
-        $this->get(route('user.edit', $this->admin))
-            ->assertOk()
-            ->assertSee('Role akun Anda sendiri tidak dapat diubah.');
-
-        // Akun orang lain tetap bisa diubah role-nya.
-        $operator = User::factory()->operator()->create();
-        $this->get(route('user.edit', $operator))
-            ->assertOk()
-            ->assertDontSee('Role akun Anda sendiri tidak dapat diubah.');
+        $this->assertModelExists($this->admin);
     }
 
     public function test_pengguna_yang_memiliki_transaksi_tidak_dapat_dihapus(): void

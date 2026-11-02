@@ -59,7 +59,7 @@ Buka `http://localhost:8000`. Akun login:
 php artisan test
 ```
 
-Hasil: 96 test lulus (371 assertion).
+Hasil: 95 test lulus (363 assertion).
 
 ## Lisensi
 

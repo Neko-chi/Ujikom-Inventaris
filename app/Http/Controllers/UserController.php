@@ -10,7 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Kelola akun pengguna (khusus Admin).
+ * Kelola akun pengguna (khusus Admin): lihat, tambah, dan hapus.
+ * Admin tidak dapat mengubah data maupun password pengguna lain;
+ * setiap pengguna mengubah akunnya sendiri lewat Profil.
  */
 class UserController extends Controller
 {
@@ -34,30 +36,6 @@ class UserController extends Controller
         User::create($request->validated());
 
         return redirect()->route('user.index')->with('sukses', 'Pengguna berhasil ditambahkan.');
-    }
-
-    public function edit(User $user): View
-    {
-        return view('user.form', compact('user'));
-    }
-
-    public function update(UserRequest $request, User $user): RedirectResponse
-    {
-        $data = $request->validated();
-
-        // Password kosong berarti tidak diganti.
-        if (empty($data['password'])) {
-            unset($data['password']);
-        }
-
-        // Admin tidak boleh menurunkan role dirinya sendiri agar sistem tidak kehilangan Admin.
-        if ($user->is($request->user()) && $data['role'] !== User::ROLE_ADMIN) {
-            return back()->withInput()->with('gagal', 'Anda tidak dapat mengubah role akun Anda sendiri.');
-        }
-
-        $user->update($data);
-
-        return redirect()->route('user.index')->with('sukses', 'Data pengguna berhasil diperbarui.');
     }
 
     public function destroy(Request $request, User $user): RedirectResponse

@@ -49,7 +49,8 @@ Route::middleware('auth')->group(function () {
 
     // Admin: mengelola pengguna & data master, mengoreksi barang masuk.
     Route::middleware('role:Admin')->group(function () {
-        Route::resource('user', UserController::class)->except('show');
+        // Admin hanya menambah dan menghapus pengguna; data / password pengguna lain tidak dapat diubah.
+        Route::resource('user', UserController::class)->only(['index', 'create', 'store', 'destroy']);
         Route::resource('kategori', KategoriController::class)->except('show')
             ->parameters(['kategori' => 'kategori']);
         Route::resource('lokasi', LokasiController::class)->except('show')

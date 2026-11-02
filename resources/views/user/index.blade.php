@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pengguna')
-@section('subtitle', 'Kelola akun Admin dan Operator yang dapat mengakses sistem.')
+@section('subtitle', 'Tambah dan hapus akun yang dapat mengakses sistem. Setiap pengguna mengubah data dan password-nya sendiri lewat Profil.')
 
 @section('aksi')
     <a href="{{ route('user.create') }}" data-turbo-frame="modal" class="btn-primary"><x-icon name="plus" />Tambah Pengguna</a>
@@ -11,8 +11,9 @@
     {{-- Penjelasan singkat peran --}}
     <div class="mb-6 grid gap-4 md:grid-cols-3">
         @foreach (\App\Models\User::INFO_ROLE as $role => $info)
-            <div class="flex gap-4 rounded-2xl border p-4 {{ $info['kotak'] }}">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $info['ikon_bg'] }}"><x-icon :name="$info['ikon']" /></div>
+            {{-- Kotak memakai kelas .card sehingga warnanya mengikuti tema terang / gelap --}}
+            <div class="card flex gap-4 p-4">
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-on-brand"><x-icon :name="$info['ikon']" /></div>
                 <div>
                     <p class="font-semibold text-slate-900">{{ $role }}</p>
                     <p class="text-sm text-slate-600">{{ $info['keterangan'] }}</p>
@@ -67,14 +68,16 @@
                             </td>
                             <td>
                                 <div class="flex justify-end gap-1">
-                                    <a href="{{ route('user.edit', $u) }}" data-turbo-frame="modal" class="btn-icon" title="Ubah"><x-icon name="pencil" /></a>
-                                    @unless ($u->is(auth()->user()))
+                                    @if ($u->is(auth()->user()))
+                                        {{-- Akun sendiri diubah lewat panel Profil --}}
+                                        <a href="{{ route('profil.edit') }}" data-turbo-frame="laci" class="btn-icon" title="Ubah lewat Profil"><x-icon name="pencil" /></a>
+                                    @else
                                         <form action="{{ route('user.destroy', $u) }}" method="POST" onsubmit="return confirm(@js('Hapus pengguna '.$u->nama_user.'?'))">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon hover:bg-rose-50 hover:text-rose-600" title="Hapus"><x-icon name="trash" /></button>
                                         </form>
-                                    @endunless
+                                    @endif
                                 </div>
                             </td>
                         </tr>

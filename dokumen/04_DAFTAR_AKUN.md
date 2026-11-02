@@ -9,7 +9,7 @@
 
 | No | Nama | Username | Password | Role | Tugas |
 |---|---|---|---|---|---|
-| 1 | Ibrahim Risyad | `admin_ohim` | `admin123` | Admin | Mengelola pengguna, kategori, lokasi, data barang; mengoreksi barang masuk |
+| 1 | Ibrahim Risyad | `admin_ohim` | `admin123` | Admin | Menambah / menghapus pengguna; mengelola kategori, lokasi, data barang; mengoreksi barang masuk |
 | 2 | Marco Ivanos | `manager_marco` | `@admin123` | Manager | Memeriksa rincian kondisi, menyetujui / menolak barang keluar; melihat semua data |
 | 3 | Siti Aminah | `operator_siti` | `operator123` | Operator | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar (pinjam / pindah / musnahkan), mencatat pengembalian |
 
@@ -24,7 +24,7 @@ Catatan:
 | Menu / Aksi | Admin | Operator | Manager |
 |---|---|---|---|
 | Dashboard, Profil (klik foto profil) | Ya | Ya | Ya |
-| Pengguna, Kategori, Lokasi | Ya | Tidak | Tidak |
+| Pengguna (tambah / hapus saja), Kategori, Lokasi | Ya | Tidak | Tidak |
 | Data Barang — lihat | Ya | Ya | Ya |
 | Data Barang — tambah | Ya | Ya | Tidak |
 | Data Barang — ubah / hapus | Ya | Tidak | Tidak |
@@ -38,7 +38,7 @@ Catatan:
 ## 3. Mengganti Password
 
 - **Password sendiri**: klik **foto profil** di kanan atas → panel Profil Saya → bagian *Ganti Password* → isi password lama, password baru, dan ulangi password baru.
-- **Password pengguna lain**: login sebagai Admin → menu **Pengguna** → **Ubah** → isi password baru (kosongkan bila tidak ingin mengganti).
+- **Password pengguna lain**: tidak dapat diganti oleh siapa pun, termasuk Admin. Admin hanya dapat menambah dan menghapus akun. Bila pengguna lupa password, Admin dapat menghapus akunnya (bila belum punya transaksi) lalu membuat akun baru, atau mengembalikan data awal (Bagian 4).
 - Password minimal 6 karakter.
 
 ## 4. Mengembalikan Akun ke Kondisi Awal

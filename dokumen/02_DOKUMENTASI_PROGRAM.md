@@ -10,7 +10,7 @@
 | Penyimpanan gambar | Folder `storage/app/public` (lokal); Supabase Storage (online) |
 | Tampilan | Blade + Tailwind CSS 4.3.3 (dibuild dengan Vite 7.3.6) dan Hotwire Turbo 8, responsif untuk komputer dan HP |
 | Editor | Antigravity IDE 2.5.5 |
-| Pengujian | PHPUnit 11.5.56 — 96 test, 371 assertion, semua lulus |
+| Pengujian | PHPUnit 11.5.56 — 95 test, 363 assertion, semua lulus |
 | Dokumen terkait | 01 Dokumen Rancangan, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy |
 
 <!-- daftar-isi -->
@@ -46,7 +46,7 @@ Aturan utama: **stok bertambah saat barang masuk dicatat**, dan **stok baru beru
 | 1 | Login & logout | Login memakai username dan password (password tersimpan ter-hash); halaman login bergaya siluet monokrom dengan animasi, jam berjalan, salam dan suara suasana (audio) sesuai waktu pagi/siang/sore/malam |
 | 2 | Dashboard | Sapaan sesuai jam, kartu statistik, grafik stok per kategori, status permintaan, stok menipis, aktivitas terbaru, aksi cepat per role |
 | 3 | Profil saya | Klik foto profil → panel kanan untuk ubah nama, foto profil, dan password (wajib password lama) |
-| 4 | Kelola pengguna | Tambah, ubah, hapus akun beserta role-nya (Admin) |
+| 4 | Kelola pengguna | Tambah dan hapus akun beserta role-nya (Admin); data dan password pengguna lain tidak dapat diubah Admin |
 | 5 | Kategori | Tambah, ubah, hapus kategori; prefix kode barang otomatis |
 | 6 | Data barang | Daftar, cari, filter kategori dan lokasi, detail riwayat, stok per lokasi dan kondisi, tambah dengan kode otomatis, gambar barang |
 | 7 | Lokasi | Data master tempat barang (Gudang / Ruangan): tambah, ubah, hapus (Admin) |
@@ -184,8 +184,9 @@ Alasan pembagian:
 - Pengajuan barang keluar tidak dapat diubah / dihapus (jejak audit); pengajuan keliru cukup ditolak Manager.
 - Gambar hanya JPG, PNG, atau WEBP dengan ukuran maksimal 2 MB. File lama dihapus saat gambar diganti atau datanya dihapus.
 - Kategori yang masih dipakai, barang yang punya transaksi, dan pengguna yang punya transaksi tidak dapat dihapus.
-- Admin tidak dapat menghapus akunnya sendiri atau mengubah role-nya sendiri (dikunci di form dan ditolak di server).
-- Ganti password di Profil wajib memasukkan password lama yang benar. Username dan role hanya diubah Admin.
+- Admin hanya dapat **menambah** dan **menghapus** pengguna. Admin tidak dapat mengubah data maupun password pengguna lain (route ubah tidak ada, sehingga permintaan ubah ditolak server dengan 404 / 405).
+- Setiap pengguna mengubah nama, foto, dan password-nya sendiri lewat Profil; ganti password wajib memasukkan password lama yang benar. Username dan role tidak dapat diubah setelah akun dibuat.
+- Admin tidak dapat menghapus akunnya sendiri.
 - Koreksi / hapus barang masuk menyesuaikan stok; ditolak bila stok tersebut sudah terpakai.
 - Bila formulir dibuka terlalu lama hingga sesi berakhir (error 419), pengguna dikembalikan ke halaman sebelumnya dengan pesan dan isian tetap terisi.
 
@@ -264,7 +265,7 @@ Browser → `routes/web.php` → Middleware (`auth`, `role`) → Form Request (v
 | `resources/js/` | `app.js` (menu HP, notifikasi, lihat password, pratinjau gambar), `tema.js` (mode gelap), `suasana.js` (salam, jam, dan audio login), `musik.js` (musik Bad Apple!!), `popup.js` (popup dan panel), `form-kondisi.js` (total kondisi otomatis dan form barang keluar sesuai jenis) |
 | `public/images/siluet.png` | Gambar siluet halaman login (PNG transparan) |
 | `public/audio/` | Suara suasana (`pagi.wav`, `siang.wav`, `sore.wav`, `malam.wav`) dan lagu `bad-apple.mp3` |
-| `tests/Unit`, `tests/Feature` | 96 test PHPUnit |
+| `tests/Unit`, `tests/Feature` | 95 test PHPUnit |
 | `vercel.json`, `api/index.php` | Konfigurasi hosting Vercel |
 
 ## 6. Desain Antarmuka
@@ -422,7 +423,7 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 
 Pengujian memakai **PHPUnit** dengan database SQLite di memori (`phpunit.xml`), sehingga data asli tidak terganggu. Setiap test memakai `RefreshDatabase`. File unggahan disimpan di penyimpanan palsu (`Storage::fake()`), dan gambar uji dibuat dengan `UploadedFile::fake()->image()`.
 
-Perintah: `php artisan test` — hasil terakhir **96 passed (371 assertions)**.
+Perintah: `php artisan test` — hasil terakhir **95 passed (363 assertions)**.
 
 | File | Jenis | Jumlah | Yang diuji |
 |---|---|---|---|
@@ -431,7 +432,7 @@ Perintah: `php artisan test` — hasil terakhir **96 passed (371 assertions)**.
 | `tests/Unit/SuasanaTest.php` | Unit | 3 | Suasana dan salam sesuai jam, file audio tersedia |
 | `tests/Feature/AuthTest.php` | Fitur | 7 | Login berhasil / gagal, password ter-hash, tamu diarahkan ke login, logout, suasana login sesuai jam |
 | `tests/Feature/HakAksesTest.php` | Fitur | 6 | Pembatasan halaman untuk Admin, Operator, Manager |
-| `tests/Feature/UserTest.php` | Fitur | 8 | Kelola pengguna, username unik, role valid, Admin dapat mengubah nama / username sendiri tetapi tidak dapat mengubah role / menghapus akun sendiri |
+| `tests/Feature/UserTest.php` | Fitur | 7 | Tambah pengguna, username unik, role valid, Admin tidak dapat mengubah data / password pengguna lain (404 / 405), daftar pengguna hanya punya tombol hapus, Admin tidak dapat menghapus akun sendiri, pengguna bertransaksi tidak dapat dihapus |
 | `tests/Feature/ProfilTest.php` | Fitur | 5 | Ubah profil, unggah / ganti / hapus foto, ganti password |
 | `tests/Feature/KategoriBarangTest.php` | Fitur | 9 | CRUD kategori & barang, stok awal per lokasi dan kondisi, validasi, pencarian, gambar barang |
 | `tests/Feature/LokasiTest.php` | Fitur | 5 | Tambah / ubah lokasi oleh Admin, nama unik dan jenis valid, lokasi berisi barang tidak dapat dihapus, filter barang per lokasi, hanya Admin yang mengelola |
@@ -470,7 +471,7 @@ Contoh test case:
 | 5 | J.620100.017.02 | Mengimplementasikan Pemrograman Terstruktur | Percabangan `if/elseif/else` dan `match`, perulangan `foreach` / `@forelse`, fungsi dengan parameter dan nilai kembali, prosedur `void`, `try...catch` |
 | 6 | J.620100.023.02 | Membuat Dokumen Kode Program | PHPDoc di class dan method, komentar Blade, dokumen 01–05 |
 | 7 | J.620100.025.02 | Melakukan Debugging | 16 bug beserta perbaikannya dan teknik debugging (Bagian 9) |
-| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 96 test PHPUnit unit dan fitur (Bagian 10) |
+| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 95 test PHPUnit unit dan fitur (Bagian 10) |
 
 ## 12. Skenario Demo
 
@@ -481,8 +482,8 @@ Contoh test case:
 5. **Barang Keluar**: ajukan Peminjaman tanpa foto (ditolak), lalu dengan foto (Pending, stok tetap). Tunjukkan form berubah saat jenis diganti Pemindahan / Pemusnahan.
 6. Login **manager_marco**: tidak ada tombol tambah barang; buka permintaan, lihat foto dan stok lokasi asal, koreksi rincian kondisi, coba Tolak tanpa alasan (ditolak), lalu Setujui (stok berkurang).
 7. Login **operator_siti** lagi: tab **Sedang Dipinjam** → buka peminjaman bola basket → catat pengembalian 1 bola Rusak Ringan → status Dikembalikan.
-8. Login **admin_ohim**: menu Pengguna menampilkan tiga role; role akun sendiri terkunci; menu **Lokasi** menampilkan jumlah stok per lokasi; koreksi barang masuk.
+8. Login **admin_ohim**: menu Pengguna menampilkan tiga role; pengguna lain hanya bisa dihapus (tidak ada tombol ubah / ganti password); menu **Lokasi** menampilkan jumlah stok per lokasi; koreksi barang masuk.
 9. Detail barang Kursi Siswa: tabel **Stok per Lokasi** (Gudang Utama, Gudang 2) per kondisi. Tombol **Cetak** pada daftar barang.
-10. Terminal: `php artisan test` → 96 test lulus.
+10. Terminal: `php artisan test` → 95 test lulus.
 
 Mengembalikan data ke kondisi awal sebelum demo: `php artisan migrate:fresh --seed`.
