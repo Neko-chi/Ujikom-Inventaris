@@ -49,9 +49,9 @@ Buka `http://localhost:8000`. Akun login:
 
 | Role | Username | Password |
 |---|---|---|
-| Admin | `admin_ohim` | `admin123` |
-| Manager | `manager_marco` | `@admin123` |
-| Operator | `operator_siti` | `operator123` |
+| Admin | 
+| Manager | 
+| Operator |
 
 ## Pengujian
 
