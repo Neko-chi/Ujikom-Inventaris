@@ -207,7 +207,7 @@ Kategori baru di luar daftar ini memakai huruf awal dua kata pertama (contoh "Al
 
 | Data | Keterangan |
 |---|---|
-| Admin | Pengelola sistem: mengelola pengguna, kategori, lokasi, dan data barang, serta mengoreksi data barang masuk. |
+| Admin | Pengelola sistem: menambah / menghapus pengguna (tidak dapat mengubah data atau password pengguna lain), mengelola kategori, lokasi, dan data barang, serta mengoreksi data barang masuk. |
 | Operator | Petugas gudang: mendaftarkan barang baru, mencatat barang masuk, mengajukan barang keluar, dan mencatat pengembalian pinjaman. |
 | Manager | Pengawas: memeriksa rincian kondisi lalu menyetujui atau menolak barang keluar, serta melihat seluruh data, tanpa menambah atau mengeluarkan barang. |
 

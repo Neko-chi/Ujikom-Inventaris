@@ -130,11 +130,32 @@ class User extends Authenticatable
         return $this->hasMany(BarangKeluar::class, 'id_verifikator', 'id_user');
     }
 
+    /** Pengembalian barang pinjaman yang dicatat pengguna ini (Operator). */
+    public function pengembalian(): HasMany
+    {
+        return $this->hasMany(Pengembalian::class, 'id_user', 'id_user');
+    }
+
+    /** Pemeriksaan kondisi yang diajukan pengguna ini (Operator). */
+    public function pemeriksaanKondisi(): HasMany
+    {
+        return $this->hasMany(PemeriksaanKondisi::class, 'id_user', 'id_user');
+    }
+
+    /** Pemeriksaan kondisi yang diverifikasi pengguna ini (Manager). */
+    public function verifikasiPemeriksaanKondisi(): HasMany
+    {
+        return $this->hasMany(PemeriksaanKondisi::class, 'id_verifikator', 'id_user');
+    }
+
     /** Pengguna yang sudah memiliki riwayat transaksi tidak boleh dihapus. */
     public function punyaTransaksi(): bool
     {
         return $this->barangMasuk()->exists()
             || $this->barangKeluar()->exists()
-            || $this->verifikasiBarangKeluar()->exists();
+            || $this->verifikasiBarangKeluar()->exists()
+            || $this->pengembalian()->exists()
+            || $this->pemeriksaanKondisi()->exists()
+            || $this->verifikasiPemeriksaanKondisi()->exists();
     }
 }

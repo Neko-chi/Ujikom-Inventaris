@@ -7,6 +7,7 @@ use App\Models\BarangKeluar;
 use App\Models\BarangMasuk;
 use App\Models\Kategori;
 use App\Models\Lokasi;
+use App\Models\PemeriksaanKondisi;
 use App\Models\Pengembalian;
 use App\Models\StokBarang;
 use App\Models\User;
@@ -18,7 +19,8 @@ use Illuminate\Database\Seeder;
  * Stok dicatat per lokasi dan kondisi (saran pembina), sehingga data sampel memuat:
  * barang di lebih dari satu gudang (Kursi Siswa), barang masuk yang tidak semuanya baik
  * (Bola Basket), pemindahan ke ruangan (Speaker ke Lab TKJ 3), peminjaman yang baru
- * dikembalikan sebagian, dan pengajuan pemusnahan barang rusak berat.
+ * dikembalikan sebagian, pengajuan pemusnahan barang rusak berat, dan pemeriksaan kondisi
+ * (meja yang di data Baik ternyata rusak ringan) yang menunggu verifikasi Manager.
  * Stok akhir di bawah sudah sesuai dengan semua transaksi sampel.
  */
 class DatabaseSeeder extends Seeder
@@ -144,6 +146,14 @@ class DatabaseSeeder extends Seeder
         Pengembalian::create([
             'id_keluar' => $pinjamBasket->id_keluar, 'id_user' => $operator->id_user, 'id_lokasi' => $lokasi['Gudang Olahraga'],
             'tanggal' => '2026-10-10', 'catatan' => '1 bola kempes, perlu dipompa ulang', ...$rincian(2, 1),
+        ]);
+
+        // Pemeriksaan kondisi Pending: 1 Meja Guru di data Baik ternyata rusak ringan (stok belum berubah).
+        PemeriksaanKondisi::create([
+            'id_barang' => $idBarang['FR-001'], 'id_lokasi' => $lokasi['Gudang Utama'], 'id_user' => $operator->id_user,
+            'tanggal' => '2026-10-11', 'kondisi_asal' => Barang::BAIK, 'kondisi_baru' => Barang::RUSAK_RINGAN, 'jumlah' => 1,
+            'alasan' => 'Saat dicek, satu meja kakinya goyang dan permukaannya tergores',
+            'verifikasi' => BarangKeluar::PENDING,
         ]);
     }
 }

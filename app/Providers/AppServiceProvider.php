@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\BarangKeluar;
+use App\Models\PemeriksaanKondisi;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -29,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
         // dihitung di sini agar view tidak berisi query database.
         View::composer(['layouts.app', 'barang-keluar.index'], function ($view) {
             $view->with('jumlahPending', BarangKeluar::where('verifikasi', BarangKeluar::PENDING)->count());
+        });
+        View::composer(['layouts.app', 'pemeriksaan-kondisi.index'], function ($view) {
+            $view->with('jumlahPendingKondisi', PemeriksaanKondisi::where('verifikasi', BarangKeluar::PENDING)->count());
         });
     }
 }

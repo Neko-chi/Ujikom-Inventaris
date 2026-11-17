@@ -21,6 +21,8 @@ use InvalidArgumentException;
  *      Peminjaman  : stok lokasi asal berkurang (kembali bertambah saat dikembalikan)
  *      Pemindahan  : stok lokasi asal berkurang, stok lokasi tujuan bertambah (total tetap)
  *      Pemusnahan  : stok Rusak Berat lokasi asal berkurang permanen
+ *  - Pemeriksaan kondisi -> setelah disetujui Manager, jumlah pindah antar kondisi di lokasi yang sama
+ *    (contoh 10 Baik menjadi Rusak Ringan), total stok tetap.
  *  - Stok tidak boleh bernilai negatif.
  *
  * Method di sini sebaiknya dipanggil di dalam DB::transaction()
@@ -104,6 +106,18 @@ class StokService
                 $this->kurangi($barang, $idLokasi, $kondisi, $jumlah);
             }
         }
+    }
+
+    /**
+     * Pemeriksaan kondisi: memindahkan jumlah dari satu kondisi ke kondisi lain di lokasi yang sama
+     * (contoh 10 Baik -> Rusak Ringan). Total stok tidak berubah.
+     *
+     * @throws StokTidakCukupException jika stok kondisi asal kurang
+     */
+    public function ubahKondisi(Barang $barang, int $idLokasi, string $kondisiAsal, string $kondisiBaru, int $jumlah): void
+    {
+        $this->kurangi($barang, $idLokasi, $kondisiAsal, $jumlah);
+        $this->tambah($barang, $idLokasi, $kondisiBaru, $jumlah);
     }
 
     /** Baris stok (dikunci untuk transaksi), dibuat baru dengan jumlah 0 bila belum ada. */

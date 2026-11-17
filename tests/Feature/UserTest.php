@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\BarangKeluar;
 use App\Models\BarangMasuk;
+use App\Models\Pengembalian;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -91,6 +93,27 @@ class UserTest extends TestCase
             'jumlah' => 1, 'sumber_barang' => 'Pembelian', 'status_barang' => 'Baik',
         ]);
 
+        $this->delete(route('user.destroy', $operator))->assertSessionHas('gagal');
+        $this->assertModelExists($operator);
+    }
+
+    public function test_pengguna_yang_hanya_mencatat_pengembalian_tidak_dapat_dihapus(): void
+    {
+        $operator = User::factory()->operator()->create();
+        $pengaju = User::factory()->operator()->create();
+        $lokasi = $this->lokasi();
+        $pinjaman = BarangKeluar::create([
+            'id_barang' => $this->buatBarang()->id_barang, 'id_user' => $pengaju->id_user, 'tanggal' => '2026-10-01',
+            'jenis_keluar' => BarangKeluar::PEMINJAMAN, 'id_lokasi_asal' => $lokasi->id_lokasi, 'tanggal_kembali' => '2026-10-08',
+            'jumlah' => 1, 'jumlah_baik' => 1, 'pemohon' => 'Guru', 'tujuan' => 'Praktik',
+            'verifikasi' => BarangKeluar::DISETUJUI, 'id_verifikator' => $this->admin->id_user,
+        ]);
+        Pengembalian::create([
+            'id_keluar' => $pinjaman->id_keluar, 'id_user' => $operator->id_user, 'id_lokasi' => $lokasi->id_lokasi,
+            'tanggal' => '2026-10-05', 'jumlah' => 1, 'jumlah_baik' => 1,
+        ]);
+
+        // Ditolak dengan pesan, bukan error 500 dari foreign key.
         $this->delete(route('user.destroy', $operator))->assertSessionHas('gagal');
         $this->assertModelExists($operator);
     }

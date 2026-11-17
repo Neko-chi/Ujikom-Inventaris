@@ -135,7 +135,7 @@ class BarangController extends Controller
     public function destroy(Barang $barang): RedirectResponse
     {
         // Barang yang sudah punya riwayat transaksi tidak boleh dihapus agar laporan tetap utuh.
-        if ($barang->barangMasuk()->exists() || $barang->barangKeluar()->exists()) {
+        if ($barang->barangMasuk()->exists() || $barang->barangKeluar()->exists() || $barang->pemeriksaanKondisi()->exists()) {
             return back()->with('gagal', "Barang {$barang->nama_barang} sudah memiliki riwayat transaksi sehingga tidak dapat dihapus.");
         }
 

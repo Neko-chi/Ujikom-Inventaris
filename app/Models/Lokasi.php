@@ -42,6 +42,7 @@ class Lokasi extends Model
         return $this->stokBarang()->where('jumlah', '>', 0)->exists()
             || BarangMasuk::where('id_lokasi', $this->id_lokasi)->exists()
             || BarangKeluar::where('id_lokasi_asal', $this->id_lokasi)->orWhere('id_lokasi_tujuan', $this->id_lokasi)->exists()
-            || Pengembalian::where('id_lokasi', $this->id_lokasi)->exists();
+            || Pengembalian::where('id_lokasi', $this->id_lokasi)->exists()
+            || PemeriksaanKondisi::where('id_lokasi', $this->id_lokasi)->exists();
     }
 }

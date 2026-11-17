@@ -30,7 +30,7 @@ Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45)
 
 | Folder / File | Isi |
 |---|---|
-| `routes/web.php` | Semua URL aplikasi (48 route) dan pembagian hak akses per role |
+| `routes/web.php` | Semua URL aplikasi (46 route) dan pembagian hak akses per role |
 | `app/Http/Controllers/` | 10 controller: Auth, Dashboard, Profil, User, Kategori, Lokasi, Barang, BarangMasuk, BarangKeluar, Pengembalian |
 | `app/Http/Requests/` | 8 class validasi form |
 | `app/Http/Middleware/CekRole.php` | Pembatas akses berdasarkan role |
@@ -125,19 +125,19 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `BarangMasukRequest.php:39` | `after()` | Total rincian kondisi minimal 1 |
 | `PengembalianRequest.php:38` | `after()` | Total minimal 1 dan tidak boleh melebihi sisa pinjaman |
 | `BarangRequest.php:33` | `if ($this->isMethod('post'))` | Stok awal (lokasi + rincian kondisi) hanya diisi saat tambah barang, bukan saat ubah; `after()` (baris 44) mewajibkan lokasi bila stok awal diisi |
-| `UserRequest.php:28` | `Rule::unique(...)->ignore(...)` | Username unik, kecuali milik pengguna yang sedang diubah |
+| `UserRequest.php:23` | `Rule::unique('user', 'username')` | Username tidak boleh sama dengan pengguna lain |
 | `ProfilRequest.php:25` | `current_password` | Password lama harus benar sebelum ganti password |
 
 ### 3.4 Model
 
 | Lokasi | Fungsi | Untuk apa |
 |---|---|---|
-| `User.php:84` | `casts()` | `'password' => 'hashed'`: password otomatis di-hash bcrypt |
-| `User.php:92/105/110` | `isAdmin()`, `isOperator()`, `isManager()` | Cek role, mengembalikan `true/false` |
-| `User.php:98` | `inisial()` | "Marco Ivanos" → "MI" untuk avatar tanpa foto |
-| `User.php:116` | `fotoUrl()` | Accessor: `$user->foto_url` = alamat foto profil |
-| `User.php:122/128/134` | `barangMasuk()`, `barangKeluar()`, `verifikasiBarangKeluar()` | Relasi 1 pengguna → banyak transaksi (`hasMany`) |
-| `User.php:140` | `punyaTransaksi()` | Cek apakah pengguna sudah punya transaksi (tidak boleh dihapus) |
+| `User.php:78` | `casts()` | `'password' => 'hashed'`: password otomatis di-hash bcrypt |
+| `User.php:86/99/104` | `isAdmin()`, `isOperator()`, `isManager()` | Cek role, mengembalikan `true/false` |
+| `User.php:92` | `inisial()` | "Marco Ivanos" → "MI" untuk avatar tanpa foto |
+| `User.php:110` | `fotoUrl()` | Accessor: `$user->foto_url` = alamat foto profil |
+| `User.php:116/122/128/134` | `barangMasuk()`, `barangKeluar()`, `verifikasiBarangKeluar()`, `pengembalian()` | Relasi 1 pengguna → banyak transaksi (`hasMany`) |
+| `User.php:140` | `punyaTransaksi()` | Cek apakah pengguna sudah punya transaksi: barang masuk, pengajuan / verifikasi barang keluar, atau pengembalian (tidak boleh dihapus) |
 | `Barang.php:77` | `gambarUrl()` | Accessor: `$barang->gambar_url` |
 | `Barang.php:82` | `kategori()` | Relasi barang → kategori (`belongsTo`) |
 | `Barang.php:87/92` | `barangMasuk()`, `barangKeluar()` | Relasi barang → transaksi (`hasMany`) |
@@ -179,15 +179,15 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `StokService.php:110` | `baris()` | Ambil / buat baris `stok_barang` dan kunci dengan `lockForUpdate()` |
 | `StokService.php:119` | `perbaruiTotal()` | Menghitung ulang `barang.stok` = jumlah semua baris stok barang itu |
 | `StokService.php:125` | `pastikanValid()` | Jumlah ≤ 0 atau kondisi tidak dikenal ditolak (`InvalidArgumentException`) |
-| `GambarService.php:24` | `disk()` | Memilih tempat simpan: `public` (lokal) atau `s3` (Supabase) |
-| `GambarService.php:35` | `simpan()` | Simpan file dengan nama acak, kembalikan path-nya; bila gagal lempar `GambarGagalDisimpanException` dan catat penyebabnya ke log |
-| `GambarService.php:55` | `ganti()` | Simpan file baru lalu hapus file lama |
-| `GambarService.php:67` | `hapus()` | Hapus file bila ada; gagal menghapus hanya dicatat di log |
-| `GambarService.php:84` | `url()` | Alamat gambar untuk tag `<img>` |
+| `GambarService.php:27` | `disk()` | Memilih tempat simpan: `public` (lokal) atau `s3` (Supabase) |
+| `GambarService.php:38` | `simpan()` | Simpan file dengan nama acak, kembalikan path-nya; bila gagal lempar `GambarGagalDisimpanException` dan catat penyebabnya ke log |
+| `GambarService.php:59` | `ganti()` | Simpan file baru lalu hapus file lama |
+| `GambarService.php:71` | `hapus()` | Hapus file bila ada; gagal menghapus hanya dicatat di log |
+| `GambarService.php:88` | `url()` | Alamat gambar untuk tag `<img>` |
 | `Suasana.php:46` | `dariJam($jam)` | Jam 0-23 → `pagi` / `siang` / `sore` / `malam` |
 | `Suasana.php:61` | `salam($jam)` | Jam → "Selamat pagi", dst. (dipakai Dashboard) |
 | `Suasana.php:69` | `untukBrowser()` | Data suasana + alamat file audio untuk JavaScript login |
-| `GambarGagalDisimpanException.php:15` | `__construct()` | Pesan "Gambar gagal disimpan ke penyimpanan…" |
+| `GambarGagalDisimpanException.php:16` | `__construct()` | Pesan "Gambar gagal disimpan ke penyimpanan…" |
 | `StokTidakCukupException.php:13` | `__construct()` | Menyusun pesan "Stok X kondisi Rusak Ringan di Gudang Utama tidak mencukupi..." |
 | `AppServiceProvider.php:18` | `boot()` | Paksa https di produksi, pakai tampilan pagination Indonesia, hitung jumlah Pending untuk sidebar (`View::composer`) |
 | `DatabaseSeeder.php:26` | `run()` | Mengisi data sampel: akun, kategori, lokasi, barang + stok per lokasi & kondisi, transaksi, pengembalian |
@@ -234,8 +234,8 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 |---|---|---|---|
 | `User.php:32` | `ROLES` | Array biasa (indeks) | `['Admin', 'Operator', 'Manager']`, dipakai validasi role |
 | `User.php:38` | `INFO_ROLE` | Array asosiatif bersarang | Per role: ikon, warna badge, keterangan tugas (halaman Pengguna) |
-| `User.php:72` | `$fillable` | Array biasa | Kolom yang boleh diisi massal (mencegah *mass assignment*) |
-| `User.php:80` | `$hidden` | Array biasa | `password` disembunyikan saat model diubah ke JSON |
+| `User.php:66` | `$fillable` | Array biasa | Kolom yang boleh diisi massal (mencegah *mass assignment*) |
+| `User.php:74` | `$hidden` | Array biasa | `password` disembunyikan saat model diubah ke JSON |
 | `Barang.php:32` | `KONDISI` | Array biasa | `['Baik', 'Rusak Ringan', 'Rusak Berat']` |
 | `Barang.php:35` | `KOLOM_KONDISI` | Array asosiatif | `'Baik' => 'jumlah_baik'`, `'Rusak Ringan' => 'jumlah_rusak_ringan'`, `'Rusak Berat' => 'jumlah_rusak_berat'` |
 | `Barang.php:42` | `PREFIX_KATEGORI` | Array asosiatif | `'Alat Tulis' => 'AT'`, dst. (Kamus Data) |
@@ -248,7 +248,7 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `BarangKeluarController.php:81` | `$petaStok` | Array asosiatif 3 tingkat | `[id_barang][id_lokasi][kondisi] => jumlah`; dikirim ke form sebagai JSON |
 | `Barang.php:124` | hasil `stokPerLokasi()` | Array asosiatif bersarang | `nama_lokasi => [kondisi => jumlah]` |
 | `form-kondisi.js:7` | `KONDISI` | Array JavaScript | Urutan kondisi untuk menampilkan stok |
-| `GambarService.php:20` | `ATURAN` | Array biasa | Aturan validasi gambar: jenis file dan maks 2 MB; disisipkan ke Request dengan operator spread `...` |
+| `GambarService.php:25` | `ATURAN` | Array biasa | Aturan validasi gambar: jenis file dan maks 2 MB; disisipkan ke Request dengan operator spread `...` |
 | `Suasana.php:16` | `DAFTAR` | Array asosiatif bersarang | Per waktu: jam mulai, salam, kalimat, file audio |
 | `DashboardController.php:20` | `$ringkasan` | Array asosiatif | 4 angka kartu statistik dashboard |
 | `DatabaseSeeder.php:52` | `$daftarBarang` | Array bersarang | 11 barang sampel beserta stok `lokasi => [Baik, Rusak Ringan, Rusak Berat]`; dibongkar dengan *destructuring* `[$kode, $idKategori, ...]` |
@@ -278,7 +278,7 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `try / catch` | `BarangKeluarController.php:126`, `BarangMasukController.php:103` | Menangkap error stok kurang dan menghapus file yang terlanjur disimpan |
 | `throw` | `StokService.php:62` | Melempar error bila stok tidak cukup |
 | Operator ternary `? :` | `BarangMasukController.php:63` | Foto ada → simpan, tidak ada → `null` |
-| Null-safe `?->` | `UserRequest.php:22` | Ambil id hanya bila data ada |
+| Null-safe `?->` | `StokService.php:62` | `Lokasi::find(...)?->nama_lokasi`: ambil nama lokasi hanya bila lokasinya ada |
 
 ## 6. Konsep OOP di Kode
 
@@ -308,24 +308,24 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | Validasi gagal | `popup.js:46` | Laravel kembali ke form di dalam popup dengan pesan error |
 | Simpan berhasil | `popup.js:68` | Server mengarahkan ke halaman daftar; popup ditutup dan halaman daftar tampil dengan pesan sukses |
 | Simpan profil | `ProfilController::update()` | Kembali ke halaman yang sedang dibuka (header `X-Halaman-Asal`, hanya alamat aplikasi sendiri) agar nama dan foto di sidebar ikut berubah |
-| Tombol burger | `app.js:41`, `app.css:456` (`html.sidebar-tutup`) | Layar besar: sidebar ditutup/dibuka, isi halaman melebar; posisi diingat di `localStorage`. HP: membuka menu geser |
+| Tombol burger | `app.js:43`, `app.css:456` (`html.sidebar-tutup`) | Layar besar: sidebar ditutup/dibuka, isi halaman melebar; posisi diingat di `localStorage`. HP: membuka menu geser |
 | Latar karakter | `public/images/latar-karakter.png`, `app.css:470` (`.latar-karakter`), `layouts/app.blade.php:66` | Karakter tersenyum bersayap, besar di tengah area isi. Warnanya kebalikan latar seperti di login: hitam di mode terang, putih di mode gelap |
-| Percikan cahaya | `layouts/app.blade.php:69` (34 titik), `app.css:496` (`.percikan`) | Titik cahaya dan bintang kecil naik lalu menghilang (`@keyframes percikan-naik`); putih di mode gelap, hitam di mode terang |
+| Percikan cahaya | `layouts/app.blade.php:69` (34 titik), `app.css:501` (`.percikan`) | Titik cahaya dan bintang kecil naik lalu menghilang (`@keyframes percikan-naik`); putih di mode gelap, hitam di mode terang |
 | Kotak ikut tema | `app.css:539` (`html.dark main .card`) | Kotak (kartu) mengikuti tema; di mode gelap diberi garis dan cahaya putih tipis di tepinya agar terpisah dari karakter latar |
-| Penyihir di banner | `public/images/penyihir.png`, `dashboard.blade.php:34`, `app.css:701` (`.penyihir-banner`) | Penyihir terbang diam dan samar; warnanya mengikuti tinta teks banner sehingga menyatu |
-| Karakter sidebar | `public/images/karakter-sidebar.png`, `layouts/app.blade.php:87`, `app.css:711` (`.karakter-sidebar`) | Karakter samar sebagai latar sidebar di belakang menu, tanpa bingkai; warnanya ikut tema |
-| Warna ikut tema | sidebar `bg-surface`, banner `app.css:633` (`.banner-sapaan`) | Sidebar dan banner sapaan berwarna terang di mode terang dan gelap di mode gelap |
+| Penyihir di banner | `public/images/penyihir.png`, `dashboard.blade.php:34`, `app.css:616` (`.penyihir-banner`) | Penyihir terbang diam dan samar; warnanya mengikuti tinta teks banner sehingga menyatu |
+| Karakter sidebar | `public/images/karakter-sidebar.png`, `layouts/app.blade.php:87`, `app.css:626` (`.karakter-sidebar`) | Karakter samar sebagai latar sidebar di belakang menu, tanpa bingkai; warnanya ikut tema |
+| Warna ikut tema | sidebar `bg-surface`, banner `app.css:548` (`.banner-sapaan`) | Sidebar dan banner sapaan berwarna terang di mode terang dan gelap di mode gelap |
 
 ### 7.1 Tema Monokrom ala Bad Apple!! dan Mode Terang / Gelap
 
 | Bagian | Lokasi | Cara kerja |
 |---|---|---|
-| Warna dasar | `app.css:17` (dalam `@theme`) | Warna utama `brand` dibuat hitam dan `slate` dibuat abu-abu netral, sehingga seluruh aplikasi hitam-putih seperti video Bad Apple!!. Warna status (hijau, kuning, merah) tetap berwarna agar artinya jelas |
+| Warna dasar | `app.css:13` (dalam `@theme`) | Warna utama `brand` dibuat hitam dan `slate` dibuat abu-abu netral, sehingga seluruh aplikasi hitam-putih seperti video Bad Apple!!. Warna status (hijau, kuning, merah) tetap berwarna agar artinya jelas |
 | Teks di atas tombol utama | `--color-on-brand` (`app.css:47`) | Putih di mode terang, hitam di mode gelap; dipakai kelas `text-on-brand` |
-| Mode gelap | `app.css:762` (`html.dark`) | Nilai variabel warna ditukar: abu-abu dibalik, tinta menjadi putih. Semua halaman ikut berubah tanpa diubah satu per satu |
+| Mode gelap | `app.css:664` (`html.dark`) | Nilai variabel warna ditukar: abu-abu dibalik, tinta menjadi putih. Semua halaman ikut berubah tanpa diubah satu per satu |
 | Tema awal | `partials/tema-awal.blade.php` | Dijalankan di `<head>` sebelum halaman tampil. Bila pengguna sudah memilih di tab ini (`sessionStorage`), pakai pilihan itu; bila belum, **ikut jam**: malam (18.00-03.59) gelap, selain itu terang |
 | Tombol | `components/tombol-tema.blade.php` di topbar (`layouts/app.blade.php:151`) dan `login.blade.php:48` | Ikon bulan (mode terang) / matahari (mode gelap) |
-| Transisi lingkaran | `tema.js:27` `gantiTema()` + `app.css:739` | **View Transitions API**: tema baru muncul sebagai lingkaran yang membesar dari tombol yang diklik. Browser lama memakai transisi warna biasa |
+| Transisi lingkaran | `tema.js:27` `gantiTema()` + `app.css:642` | **View Transitions API**: tema baru muncul sebagai lingkaran yang membesar dari tombol yang diklik. Browser lama memakai transisi warna biasa |
 
 ### 7.2 Halaman Login Siluet (Gambar, Animasi, Audio)
 
@@ -340,10 +340,10 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | Animasi lain | `app.css` `@keyframes` (muncul-siluet, muncul-kartu, muncul-teks, denyut-apel, melayang, apel-jatuh) | Animasi CSS murni, tanpa library |
 | Penentu waktu | `app/Support/Suasana.php` | Pagi 04.00-10.59, siang 11.00-14.59, sore 15.00-17.59, malam 18.00-03.59 |
 | Data ke browser | `AuthController.php:16` → `login.blade.php:16` | Array `DAFTAR` dikirim sebagai JSON (`@json`) |
-| Jam berjalan | `suasana.js:60` | Diperbarui setiap detik; salam, warna cahaya apel, dan suara ikut berganti saat jamnya lewat |
-| Suara suasana (audio) | `public/audio/*.wav`, tag `<audio>` di `login.blade.php:110`, `suasana.js:68` | Tombol "Putar suara ..." memutar suara suasana (kicau burung pagi, angin & tonggeret siang, lonceng angin sore, jangkrik malam) secara berulang (`loop`) |
+| Jam berjalan | `suasana.js:64` | Diperbarui setiap detik; salam, warna cahaya apel, dan suara ikut berganti saat jamnya lewat |
+| Suara suasana (audio) | `public/audio/*.wav`, tag `<audio>` di `login.blade.php:110`, `suasana.js:72` | Tombol "Putar suara ..." memutar suara suasana (kicau burung pagi, angin & tonggeret siang, lonceng angin sore, jangkrik malam) secara berulang (`loop`) |
 | Layar kecil | `app.css` `@media (width < 1024px)` | Siluet menjadi hiasan samar di belakang kartu, teks raksasa pindah ke atas |
-| Aksesibilitas | `app.css:746` | Bila perangkat diatur "kurangi animasi", animasi dimatikan |
+| Aksesibilitas | `app.css:649` | Bila perangkat diatur "kurangi animasi", animasi dimatikan |
 
 ### 7.3 Musik Bad Apple!! (Audio MP3)
 
@@ -380,7 +380,7 @@ Catatan: gambar siluet dan lagu berasal dari video Bad Apple!! (https://youtu.be
 | Pertanyaan | Jawaban |
 |---|---|
 | Di mana proses login? | `AuthController::login()` (`AuthController.php:25`) |
-| Di mana password di-hash? | `User.php:84`, cast `'password' => 'hashed'` (bcrypt) |
+| Di mana password di-hash? | `User.php:78`, cast `'password' => 'hashed'` (bcrypt) |
 | Di mana hak akses role dicek? | `CekRole.php:17`, dipasang di `routes/web.php` |
 | Di mana stok bertambah / berkurang? | Hanya di `StokService.php` (`tambah()` baris 42, `kurangi()` baris 56, `tambahRincian()` baris 76, `kurangiRincian()` baris 93) |
 | Di mana stok dicek tidak boleh minus? | `StokService::kurangi()` / `kurangiRincian()` dan validasi `BarangKeluarRequest::periksaRincian()` |
@@ -397,7 +397,7 @@ Catatan: gambar siluet dan lagu berasal dari video Bad Apple!! (https://youtu.be
 | Di mana popup tambah/ubah/detail? | `resources/js/popup.js` dan bagian atas `layouts/app.blade.php` |
 | Di mana pindah halaman tanpa muat ulang? | Turbo, dipasang di `resources/js/app.js` |
 | Di mana musik Bad Apple!!? | File `public/audio/bad-apple.mp3`, elemen di `partials/pemutar-musik.blade.php`, logika di `resources/js/musik.js` |
-| Di mana pengaturan mode gelap? | `tema.js`, `partials/tema-awal.blade.php`, `app.css:762` |
+| Di mana pengaturan mode gelap? | `tema.js`, `partials/tema-awal.blade.php`, `app.css:664` |
 | Di mana pengujian? | `tests/Feature/` dan `tests/Unit/`; jalankan `php artisan test` |
 | Di mana error 419 ditangani? | `bootstrap/app.php:43` |
 | Di mana peminjaman / pemindahan / pemusnahan diproses? | `BarangKeluarController::terapkanStok()` (baris 199), dipanggil saat `setujui()` |

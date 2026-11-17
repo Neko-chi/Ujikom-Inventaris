@@ -2,6 +2,7 @@
 //  - total jumlah dihitung otomatis (komponen <x-input-kondisi>)
 //  - form barang keluar: isian menyesuaikan jenis (Peminjaman / Pemindahan / Pemusnahan)
 //    dan menampilkan stok tersedia di lokasi asal.
+//  - form pemeriksaan kondisi: menampilkan stok tercatat dan membatasi jumlah sesuai kondisi di data.
 // Memakai event delegation agar tetap berfungsi di halaman yang dimuat Turbo dan di dalam popup.
 
 const KONDISI = ['Baik', 'Rusak Ringan', 'Rusak Berat'];
@@ -61,17 +62,23 @@ function tampilkanStok(form) {
     const stok = peta[pilihBarang.value]?.[idLokasi] ?? {};
     const satuan = pilihBarang.selectedOptions[0]?.dataset.satuan ?? '';
 
-    info.textContent = 'Tersedia di lokasi ini: ' + KONDISI.map((k) => `${stok[k] ?? 0} ${k}`).join(' · ') + ` (${satuan})`;
+    const awalan = form.matches('[data-form-pemeriksaan]') ? 'Tercatat di lokasi ini: ' : 'Tersedia di lokasi ini: ';
+    info.textContent = awalan + KONDISI.map((k) => `${stok[k] ?? 0} ${k}`).join(' · ') + ` (${satuan})`;
     info.classList.remove('hidden');
 
     // Batas input mengikuti stok yang tersedia
     form.querySelectorAll('[data-jumlah-kondisi]').forEach((input) => {
         input.max = stok[input.dataset.jumlahKondisi] ?? 0;
     });
+    const jumlahPemeriksaan = form.querySelector('[data-jumlah-pemeriksaan]');
+    if (jumlahPemeriksaan) {
+        jumlahPemeriksaan.max = stok[form.querySelector('[data-kondisi-asal]')?.value] ?? 0;
+    }
 }
 
 function aturSemuaFormKeluar() {
     document.querySelectorAll('[data-form-keluar]').forEach(aturFormKeluar);
+    document.querySelectorAll('[data-form-pemeriksaan]').forEach(tampilkanStok);
 }
 
 export function pasangFormKondisi() {
@@ -86,6 +93,10 @@ export function pasangFormKondisi() {
         const form = event.target.closest('[data-form-keluar]');
         if (form) {
             aturFormKeluar(form);
+        }
+        const formPemeriksaan = event.target.closest('[data-form-pemeriksaan]');
+        if (formPemeriksaan) {
+            tampilkanStok(formPemeriksaan);
         }
     });
 

@@ -94,6 +94,11 @@ class Barang extends Model
         return $this->hasMany(BarangKeluar::class, 'id_barang', 'id_barang');
     }
 
+    public function pemeriksaanKondisi(): HasMany
+    {
+        return $this->hasMany(PemeriksaanKondisi::class, 'id_barang', 'id_barang');
+    }
+
     /** Relasi 1:N stok per lokasi dan kondisi. */
     public function stokBarang(): HasMany
     {

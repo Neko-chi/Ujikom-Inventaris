@@ -33,7 +33,7 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 >
 > Aplikasi juga mendukung multimedia: gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet yang beranimasi dan menyesuaikan waktu pagi, siang, sore, malam, serta audio suasana dan lagu Bad Apple!! yang bisa diputar. Tampilannya monokrom hitam-putih ala Bad Apple!! dengan mode terang dan gelap.
 >
-> Database berisi 8 tabel, dan program diuji dengan **95 test PHPUnit** yang semuanya lulus."
+> Database berisi 8 tabel, dan program diuji dengan **96 test PHPUnit** yang semuanya lulus."
 
 ### Alur demo (± 5 menit)
 
@@ -47,7 +47,7 @@ Dokumen ini berisi naskah presentasi, alur demo, serta pertanyaan yang kemungkin
 8. Buka permintaan → lihat foto dan stok lokasi asal → koreksi rincian kondisi bila perlu → **Tolak** tanpa alasan (ditolak) → **Setujui** (stok berubah, nama Manager dan koreksi tercatat).
 9. Login **operator_siti** → tab **Sedang Dipinjam** → buka peminjaman bola basket → catat pengembalian (kondisi boleh berbeda) → status Dikembalikan.
 10. Login **admin_ohim** → menu Pengguna menampilkan 3 role; pengguna lain hanya bisa dihapus, tidak bisa diubah atau diganti password-nya; menu **Lokasi**; detail Kursi Siswa menampilkan stok per lokasi.
-11. Terminal → `php artisan test` → 95 test lulus.
+11. Terminal → `php artisan test` → 96 test lulus.
 
 ## B. Pertanyaan per Unit Kompetensi
 
@@ -344,7 +344,7 @@ Untuk menjelaskan alasan yang tidak terlihat dari kode, misalnya kenapa baris di
 
 ### B7. J.620100.025.02 — Melakukan Debugging
 
-**Inti unit:** menemukan, menganalisis, dan memperbaiki kesalahan program. Daftar lengkap 16 bug ada di dokumen 02 Bagian 9.
+**Inti unit:** menemukan, menganalisis, dan memperbaiki kesalahan program. Daftar lengkap 17 bug ada di dokumen 02 Bagian 9.
 
 | Bug | Jenis | Cara ditemukan | Perbaikan |
 |---|---|---|---|
@@ -383,7 +383,7 @@ Karena halaman error detail menampilkan kode, path file, dan konfigurasi yang da
 
 **Inti unit:** merancang dan menjalankan pengujian untuk memastikan program bekerja sesuai harapan.
 
-Bukti: **95 test (363 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
+Bukti: **96 test (365 assertion)** PHPUnit. Rincian per file ada di dokumen 02 Bagian 10.
 
 **1. Apa itu unit test?**
 Pengujian bagian terkecil program (satu fungsi) secara terpisah, misalnya `StokService::kurangi()` tanpa membuka halaman web.
@@ -472,6 +472,9 @@ Ditolak di server: `periksaRincian()` hanya mengizinkan Rusak Berat untuk Pemusn
 
 **4c. Bila stok diambil dari lokasi yang tidak punya barang itu?**
 Ditolak. Stok diperiksa per lokasi dan kondisi; stok di Gudang 2 tidak bisa dipakai untuk permintaan dari Gudang Utama. Dibuktikan oleh `test_stok_di_lokasi_lain_tidak_bisa_dipakai`.
+
+**4d. Kenapa pengguna yang sudah mencatat transaksi tidak bisa dihapus Admin?**
+Karena transaksinya menyimpan `id_user` pengguna itu sebagai *foreign key* (barang masuk, pengajuan / verifikasi barang keluar, pengembalian). Bila pengguna dihapus, riwayat kehilangan pencatatnya: tidak diketahui lagi siapa yang memasukkan atau menyetujui barang, padahal itulah jejak audit gudang. Database juga menolaknya karena aturan `ON DELETE RESTRICT`. Aplikasi memeriksanya lebih dulu dengan `User::punyaTransaksi()` di `UserController::destroy()`, sehingga Admin mendapat pesan jelas, bukan error. Pengguna yang belum pernah bertransaksi (misalnya salah buat akun) tetap bisa dihapus.
 
 **5. Password bisa dilihat di database?**
 Tidak, hanya hash bcrypt yang tersimpan.

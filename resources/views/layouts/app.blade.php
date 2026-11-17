@@ -50,6 +50,7 @@
             'Transaksi' => [
                 ['barang-masuk.index', 'barang-masuk.*', 'Barang Masuk', 'masuk', false, null],
                 ['barang-keluar.index', 'barang-keluar.*', 'Barang Keluar', 'keluar', false, $jumlahPending ?: null],
+                ['pemeriksaan-kondisi.index', 'pemeriksaan-kondisi.*', 'Pemeriksaan Kondisi', 'clipboard', false, $jumlahPendingKondisi ?: null],
             ],
             'Data Master' => [
                 ['barang.index', 'barang.*', 'Data Barang', 'cube', false, null],

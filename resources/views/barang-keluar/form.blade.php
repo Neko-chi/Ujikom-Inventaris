@@ -85,6 +85,12 @@
                 <x-input-kondisi :nilai="[]" label="Jumlah per Kondisi"
                                  :hanya="$jenisDipilih === \App\Models\BarangKeluar::PEMUSNAHAN ? ['Rusak Berat'] : null"
                                  petunjuk="Cek fisik barang: pisahkan jumlah yang Baik, Rusak Ringan, dan Rusak Berat." />
+                <p class="mt-2 flex gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    <x-icon name="info" class="size-4 shrink-0" />
+                    <span>Kondisi fisik berbeda dengan data (mis. di data Baik, ternyata rusak)? Ajukan
+                        <a href="{{ route('pemeriksaan-kondisi.index') }}" data-turbo-frame="_top" class="font-semibold underline">Pemeriksaan Kondisi</a>
+                        lebih dulu, lalu ajukan barang keluar setelah disetujui Manager.</span>
+                </p>
             </div>
 
             {{-- Khusus Pemindahan --}}

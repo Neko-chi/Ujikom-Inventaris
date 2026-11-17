@@ -7,6 +7,7 @@ use App\Http\Controllers\BarangMasukController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\LokasiController;
+use App\Http\Controllers\PemeriksaanKondisiController;
 use App\Http\Controllers\PengembalianController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\UserController;
@@ -45,6 +46,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/barang-keluar', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
         // Pengembalian barang pinjaman (boleh sebagian, kondisi saat kembali dicatat).
         Route::post('/barang-keluar/{barangKeluar}/pengembalian', [PengembalianController::class, 'store'])->name('pengembalian.store');
+        // Pemeriksaan kondisi: menyesuaikan kondisi di data dengan kondisi fisik barang.
+        Route::get('/pemeriksaan-kondisi/create', [PemeriksaanKondisiController::class, 'create'])->name('pemeriksaan-kondisi.create');
+        Route::post('/pemeriksaan-kondisi', [PemeriksaanKondisiController::class, 'store'])->name('pemeriksaan-kondisi.store');
     });
 
     // Admin: mengelola pengguna & data master, mengoreksi barang masuk.
@@ -59,10 +63,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('barang-masuk', BarangMasukController::class)->only(['edit', 'update', 'destroy']);
     });
 
-    // Manager: memverifikasi (acc / tolak) barang keluar. Selain itu Manager hanya dapat melihat.
+    // Manager: memverifikasi (acc / tolak) barang keluar dan pemeriksaan kondisi. Selain itu Manager hanya dapat melihat.
     Route::middleware('role:Manager')->group(function () {
         Route::patch('/barang-keluar/{barangKeluar}/setujui', [BarangKeluarController::class, 'setujui'])->name('barang-keluar.setujui');
         Route::patch('/barang-keluar/{barangKeluar}/tolak', [BarangKeluarController::class, 'tolak'])->name('barang-keluar.tolak');
+        Route::patch('/pemeriksaan-kondisi/{pemeriksaanKondisi}/setujui', [PemeriksaanKondisiController::class, 'setujui'])->name('pemeriksaan-kondisi.setujui');
+        Route::patch('/pemeriksaan-kondisi/{pemeriksaanKondisi}/tolak', [PemeriksaanKondisiController::class, 'tolak'])->name('pemeriksaan-kondisi.tolak');
     });
 
     // Dapat dilihat oleh semua role (Admin, Operator, Manager).
@@ -71,4 +77,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/barang-masuk', [BarangMasukController::class, 'index'])->name('barang-masuk.index');
     Route::get('/barang-keluar', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
     Route::get('/barang-keluar/{barangKeluar}', [BarangKeluarController::class, 'show'])->name('barang-keluar.show');
+    Route::get('/pemeriksaan-kondisi', [PemeriksaanKondisiController::class, 'index'])->name('pemeriksaan-kondisi.index');
+    Route::get('/pemeriksaan-kondisi/{pemeriksaanKondisi}', [PemeriksaanKondisiController::class, 'show'])->name('pemeriksaan-kondisi.show');
 });
