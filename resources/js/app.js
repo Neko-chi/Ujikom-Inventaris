@@ -1,5 +1,3 @@
-import './bootstrap';
-
 // Font dibundel bersama aplikasi agar tampilan tetap sama walau tanpa internet.
 import '@fontsource-variable/plus-jakarta-sans';
 
