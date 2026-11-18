@@ -63,7 +63,7 @@
             <h3 class="card-title flex items-center gap-2"><x-icon name="map-pin" class="size-5 text-slate-500" />Stok per Lokasi</h3>
             <span class="text-xs text-slate-500">Posisi barang saat ini</span>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Tabel stok per lokasi">
             <table class="table-data">
                 <thead>
                     <tr>
@@ -108,7 +108,7 @@
                 <h3 class="card-title flex items-center gap-2"><x-icon name="masuk" class="size-5 text-emerald-600" />Riwayat Barang Masuk</h3>
                 <span class="text-xs text-slate-500">{{ $barang->barangMasuk->count() }} transaksi</span>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Tabel riwayat barang masuk">
                 <table class="table-data">
                     <thead><tr><th>Tanggal</th><th class="text-right">Jumlah</th><th>Kondisi</th><th>Lokasi</th><th>Sumber</th></tr></thead>
                     <tbody>
@@ -133,7 +133,7 @@
                 <h3 class="card-title flex items-center gap-2"><x-icon name="keluar" class="size-5 text-brand-600" />Riwayat Barang Keluar</h3>
                 <span class="text-xs text-slate-500">{{ $barang->barangKeluar->count() }} transaksi</span>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Tabel riwayat barang keluar">
                 <table class="table-data">
                     <thead><tr><th>Tanggal</th><th>Jenis</th><th class="text-right">Jumlah</th><th>Tujuan</th><th>Status</th></tr></thead>
                     <tbody>

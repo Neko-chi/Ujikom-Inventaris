@@ -45,7 +45,7 @@
             </form>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Tabel barang keluar">
             <table class="table-data">
                 <thead>
                     <tr>
@@ -98,6 +98,9 @@
                                 <div class="flex justify-end">
                                     @if ($k->isPending() && auth()->user()->isManager())
                                         <a href="{{ route('barang-keluar.show', $k) }}" data-turbo-frame="modal" class="btn-primary btn-sm"><x-icon name="clipboard" />Verifikasi</a>
+                                    @elseif ($k->sisaPinjaman() > 0 && auth()->user()->isOperator())
+                                        {{-- Peminjaman yang belum lunas: Operator langsung ke form Catat Pengembalian --}}
+                                        <a href="{{ route('barang-keluar.show', $k) }}#catat-pengembalian" data-turbo-frame="modal" class="btn-primary btn-sm"><x-icon name="refresh" />Kembalikan</a>
                                     @else
                                         <a href="{{ route('barang-keluar.show', $k) }}" data-turbo-frame="modal" class="btn-icon" title="Detail"><x-icon name="eye" /></a>
                                     @endif

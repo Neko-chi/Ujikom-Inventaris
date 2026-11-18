@@ -4,7 +4,7 @@ Aplikasi web inventaris gudang sekolah (Laravel 12) untuk Uji Kompetensi skema P
 
 Tiga role: **Admin** (pengelola sistem), **Operator** (petugas gudang), **Manager** (pemberi persetujuan barang keluar).
 
-Fitur inventaris: stok dicatat **per lokasi** (gudang / ruangan) dan **per kondisi** (Baik, Rusak Ringan, Rusak Berat); barang keluar berupa **Peminjaman** (dengan pengembalian, boleh bertahap), **Pemindahan** ke ruangan, atau **Pemusnahan** barang rusak berat; Manager memeriksa dan dapat mengoreksi rincian kondisi sebelum menyetujui. Multimedia: unggah gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet dengan animasi dan suara suasana sesuai waktu (pagi, siang, sore, malam), musik Bad Apple!! (MP3), serta tema monokrom dengan mode terang / gelap. Menu dibuka tanpa memuat ulang halaman (Turbo), form tambah / ubah / detail tampil sebagai popup.
+Fitur inventaris: stok dicatat **per lokasi** (gudang / ruangan) dan **per kondisi** (Baik, Rusak Ringan, Rusak Berat); barang keluar berupa **Peminjaman** (dengan pengembalian, boleh bertahap), **Pemindahan** ke ruangan, atau **Pemusnahan** barang rusak berat; Manager memeriksa dan dapat mengoreksi rincian kondisi sebelum menyetujui; bila kondisi fisik berbeda dengan data, Operator mengajukan **Pemeriksaan Kondisi** yang disetujui Manager (total stok tetap). Multimedia: unggah gambar (foto profil, gambar barang, foto bukti transaksi), halaman login bergaya siluet dengan animasi dan suara suasana sesuai waktu (pagi, siang, sore, malam), musik Bad Apple!! (MP3), serta tema monokrom dengan mode terang / gelap. Menu dibuka tanpa memuat ulang halaman (Turbo), form tambah / ubah / detail tampil sebagai popup.
 
 ## Dokumen
 
@@ -59,7 +59,7 @@ Buka `http://localhost:8000`. Akun login:
 php artisan test
 ```
 
-Hasil: 96 test lulus (365 assertion).
+Hasil: 108 test lulus (433 assertion).
 
 ## Lisensi
 

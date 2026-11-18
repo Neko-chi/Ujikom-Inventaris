@@ -48,17 +48,65 @@ function aturFormKeluar(form) {
     }
 }
 
+// Pilihan lokasi menampilkan stok barang yang dipilih di tiap lokasi, sehingga Operator
+// tidak perlu menebak letak barangnya. Lokasi tanpa stok barang itu tidak dapat dipilih.
+function perbaruiPilihanLokasi(form, peta) {
+    const pilihBarang = form.querySelector('[data-pilih-barang]');
+    const pilihLokasi = form.querySelector('[data-pilih-lokasi-asal]');
+    if (!pilihBarang || !pilihLokasi) {
+        return;
+    }
+
+    const satuan = pilihBarang.selectedOptions[0]?.dataset.satuan ?? '';
+    const stokBarang = peta[pilihBarang.value] ?? {};
+    const adaStok = [];
+
+    [...pilihLokasi.options].forEach((opsi) => {
+        if (!opsi.value) {
+            opsi.textContent = pilihBarang.value ? 'Pilih lokasi' : 'Pilih barang terlebih dahulu';
+            return;
+        }
+        opsi.dataset.label ??= opsi.textContent.trim();
+        if (!pilihBarang.value) {
+            opsi.textContent = opsi.dataset.label;
+            opsi.disabled = false;
+            return;
+        }
+
+        const stok = stokBarang[opsi.value] ?? {};
+        const total = KONDISI.reduce((jumlah, k) => jumlah + (stok[k] ?? 0), 0);
+        const rincian = KONDISI.filter((k) => stok[k]).map((k) => `${stok[k]} ${k}`).join(', ');
+        opsi.textContent = total > 0
+            ? `${opsi.dataset.label} — stok ${total} ${satuan} (${rincian})`
+            : `${opsi.dataset.label} — tidak ada stok`;
+        opsi.disabled = total === 0;
+        if (total > 0) {
+            adaStok.push(opsi);
+        }
+    });
+
+    // Lokasi terpilih tidak punya stok barang ini: kosongkan; bila hanya ada satu lokasi, pilih otomatis
+    if (pilihLokasi.selectedOptions[0]?.disabled) {
+        pilihLokasi.value = '';
+    }
+    if (!pilihLokasi.value && adaStok.length === 1) {
+        pilihLokasi.value = adaStok[0].value;
+    }
+}
+
 // Info stok per kondisi untuk barang + lokasi asal yang dipilih
 function tampilkanStok(form) {
     const info = form.querySelector('[data-info-stok]');
     const pilihBarang = form.querySelector('[data-pilih-barang]');
+    const peta = JSON.parse(form.querySelector('[data-peta-stok]')?.textContent || '{}');
+    perbaruiPilihanLokasi(form, peta);
+
     const idLokasi = form.querySelector('[data-pilih-lokasi-asal]')?.value;
     if (!info || !pilihBarang?.value || !idLokasi) {
         info?.classList.add('hidden');
         return;
     }
 
-    const peta = JSON.parse(form.querySelector('[data-peta-stok]')?.textContent || '{}');
     const stok = peta[pilihBarang.value]?.[idLokasi] ?? {};
     const satuan = pilihBarang.selectedOptions[0]?.dataset.satuan ?? '';
 

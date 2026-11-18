@@ -16,7 +16,7 @@ Dokumen ini berisi rancangan basis data aplikasi Inventaris Gudang Sekolah: Enti
 |---|---|---|---|
 | (diisi peserta) | Renaissance Ricarda Sugiarto Putra | Inventaris Gudang Sekolah | Entity Relationship Diagram |
 
-Nama Database: **gudang_sekolah** · Jumlah Tabel: **8** (`user`, `kategori`, `barang`, `lokasi`, `stok_barang`, `barang_masuk`, `barang_keluar`, `pengembalian`)
+Nama Database: **gudang_sekolah** · Jumlah Tabel: **9** (`user`, `kategori`, `barang`, `lokasi`, `stok_barang`, `barang_masuk`, `barang_keluar`, `pengembalian`, `pemeriksaan_kondisi`)
 
 ![Gambar 1. Entity Relationship Diagram](gambar/erd.png)
 
@@ -41,6 +41,10 @@ Penjelasan relasi pada ERD:
 | 11 | lokasi **menerima** barang masuk | 1 : N | Barang masuk disimpan di satu lokasi (kolom `barang_masuk.id_lokasi`). |
 | 12 | lokasi menjadi **asal / tujuan** barang keluar | 1 : N | Barang keluar diambil dari lokasi asal; pemindahan memiliki lokasi tujuan (kolom `id_lokasi_asal`, `id_lokasi_tujuan`). |
 | 13 | lokasi **menampung** pengembalian | 1 : N | Barang yang dikembalikan disimpan ke satu lokasi (kolom `pengembalian.id_lokasi`). |
+| 14 | pengguna **memeriksa** (mengajukan) pemeriksaan kondisi | 1 : N | Satu Operator dapat mengajukan banyak pemeriksaan kondisi (kolom `pemeriksaan_kondisi.id_user`). |
+| 15 | pengguna **memverifikasi** pemeriksaan kondisi | 1 : N | Satu Manager dapat memverifikasi banyak pemeriksaan kondisi (kolom `pemeriksaan_kondisi.id_verifikator`). |
+| 16 | barang **diperiksa** lewat pemeriksaan kondisi | 1 : N | Kondisi satu barang dapat diperiksa berkali-kali (kolom `pemeriksaan_kondisi.id_barang`). |
+| 17 | lokasi menjadi **tempat periksa** | 1 : N | Pemeriksaan dilakukan pada stok di satu lokasi (kolom `pemeriksaan_kondisi.id_lokasi`). |
 
 <!-- halaman-baru -->
 
@@ -161,6 +165,27 @@ Kombinasi `id_barang` + `id_lokasi` + `kondisi` bersifat Unique: satu barang han
 | catatan | varchar | 255 | Catatan kondisi, boleh kosong |
 | foto | varchar | 255 | Foto bukti pengembalian, boleh kosong |
 
+### 2.9 Tabel `pemeriksaan_kondisi`
+
+Dipakai bila kondisi barang di data berbeda dengan kondisi fisiknya (contoh di data 20 meja Baik, ternyata 10 Rusak Ringan). Setelah disetujui Manager, jumlah pindah dari `kondisi_asal` ke `kondisi_baru` di lokasi yang sama; total stok tidak berubah.
+
+| Nama Field | Tipe Data | Panjang | Keterangan |
+|---|---|---|---|
+| id_pemeriksaan | int | 11 | Primary Key, auto increment |
+| id_barang | int | 11 | Foreign Key → barang.id_barang |
+| id_lokasi | int | 11 | Foreign Key → lokasi.id_lokasi (tempat barang diperiksa) |
+| id_user | int | 11 | Foreign Key → user.id_user (Operator pengaju) |
+| tanggal | date | | Tanggal pemeriksaan |
+| kondisi_asal | varchar | 20 | Kondisi yang tercatat di data (Baik / Rusak Ringan / Rusak Berat) |
+| kondisi_baru | varchar | 20 | Kondisi fisik sebenarnya, harus berbeda dari `kondisi_asal` |
+| jumlah | int | 11 | Minimal 1, tidak boleh melebihi stok `kondisi_asal` di lokasi tersebut |
+| alasan | varchar | 255 | Temuan / alasan perubahan kondisi, wajib |
+| foto | varchar | 255 | Lokasi file foto bukti kondisi fisik (wajib di aplikasi) |
+| verifikasi | varchar | 20 | Pending / Disetujui / Ditolak, default Pending |
+| id_verifikator | int | 11 | Foreign Key → user.id_user (Manager), boleh kosong |
+| tanggal_verifikasi | date | | Boleh kosong selama Pending |
+| catatan_verifikasi | varchar | 255 | Catatan Manager, wajib bila Ditolak |
+
 <!-- landscape -->
 
 ## 3. Database Relation
@@ -208,8 +233,8 @@ Kategori baru di luar daftar ini memakai huruf awal dua kata pertama (contoh "Al
 | Data | Keterangan |
 |---|---|
 | Admin | Pengelola sistem: menambah / menghapus pengguna (tidak dapat mengubah data atau password pengguna lain), mengelola kategori, lokasi, dan data barang, serta mengoreksi data barang masuk. |
-| Operator | Petugas gudang: mendaftarkan barang baru, mencatat barang masuk, mengajukan barang keluar, dan mencatat pengembalian pinjaman. |
-| Manager | Pengawas: memeriksa rincian kondisi lalu menyetujui atau menolak barang keluar, serta melihat seluruh data, tanpa menambah atau mengeluarkan barang. |
+| Operator | Petugas gudang: mendaftarkan barang baru, mencatat barang masuk, mengajukan barang keluar dan pemeriksaan kondisi, serta mencatat pengembalian pinjaman. |
+| Manager | Pengawas: memeriksa lalu menyetujui atau menolak barang keluar dan pemeriksaan kondisi, serta melihat seluruh data, tanpa menambah atau mengeluarkan barang. |
 
 ### 4.4 Tabel `lokasi` — Field `jenis`
 
@@ -218,7 +243,7 @@ Kategori baru di luar daftar ini memakai huruf awal dua kata pertama (contoh "Al
 | Gudang | Tempat menyimpan barang (Gudang Utama, Gudang 2, Gudang Olahraga, Ruang Sarpras) |
 | Ruangan | Tempat barang dipakai dan tujuan pemindahan (Lab TKJ 3, Lab JB 3, kelas) |
 
-### 4.5 Field Kondisi (`stok_barang.kondisi` dan kolom `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat` pada `barang_masuk`, `barang_keluar`, `pengembalian`)
+### 4.5 Field Kondisi (`stok_barang.kondisi`; kolom `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat` pada `barang_masuk`, `barang_keluar`, `pengembalian`; serta `pemeriksaan_kondisi.kondisi_asal` dan `kondisi_baru`)
 
 | Data | Keterangan |
 |---|---|
@@ -236,15 +261,24 @@ Satu transaksi dapat berisi beberapa kondisi sekaligus. Contoh: 20 barang keluar
 | Pemindahan | Barang dipindah ke ruangan lain (contoh Lab TKJ 3). Stok di lokasi asal berkurang dan bertambah di lokasi tujuan, sehingga total stok tetap. |
 | Pemusnahan | Barang Rusak Berat dimusnahkan. Stok berkurang permanen; hanya kondisi Rusak Berat yang boleh dimusnahkan. |
 
-### 4.7 Tabel `barang_keluar` — Field `verifikasi`
+### 4.7 Tabel `barang_keluar` dan `pemeriksaan_kondisi` — Field `verifikasi`
 
 | Data | Keterangan |
 |---|---|
-| Pending | Permintaan masih menunggu verifikasi Manager; stok belum berubah |
-| Disetujui | Disetujui Manager (rincian kondisi boleh dikoreksi lebih dulu); stok diperbarui sesuai jenis keluar |
+| Pending | Pengajuan masih menunggu verifikasi Manager; stok belum berubah |
+| Disetujui | Disetujui Manager; stok diperbarui sesuai jenis keluar, atau jumlah pindah dari `kondisi_asal` ke `kondisi_baru` untuk pemeriksaan kondisi. Rincian barang keluar boleh dikoreksi Manager lebih dulu. |
 | Ditolak | Ditolak Manager dengan alasan; stok tidak berubah |
 
-### 4.8 Status Peminjaman (dihitung otomatis dari `barang_keluar` dan `pengembalian`, tidak disimpan sebagai kolom)
+### 4.8 Tabel `pemeriksaan_kondisi` — Field `kondisi_asal` dan `kondisi_baru`
+
+| Data | Keterangan |
+|---|---|
+| kondisi_asal | Kondisi yang tercatat di data, contoh Baik |
+| kondisi_baru | Kondisi fisik sebenarnya, harus berbeda dari `kondisi_asal`, contoh Rusak Ringan |
+
+Contoh: 10 Meja Guru di Gudang Utama tercatat Baik, ternyata Rusak Ringan. Setelah disetujui, stok Baik berkurang 10 dan stok Rusak Ringan bertambah 10 di Gudang Utama; total stok Meja Guru tetap. Setelah itu barang dapat dikeluarkan sesuai kondisi sebenarnya, termasuk dimusnahkan bila Rusak Berat.
+
+### 4.9 Status Peminjaman (dihitung otomatis dari `barang_keluar` dan `pengembalian`, tidak disimpan sebagai kolom)
 
 | Data | Keterangan |
 |---|---|
@@ -253,13 +287,13 @@ Satu transaksi dapat berisi beberapa kondisi sekaligus. Contoh: 20 barang keluar
 | Dikembalikan | Seluruh barang sudah dikembalikan |
 | Terlambat | Lewat `tanggal_kembali` dan belum dikembalikan seluruhnya |
 
-### 4.9 Field Gambar (`user.foto`, `barang.gambar`, `barang_masuk.foto`, `barang_keluar.foto`, `pengembalian.foto`)
+### 4.10 Field Gambar (`user.foto`, `barang.gambar`, `barang_masuk.foto`, `barang_keluar.foto`, `pengembalian.foto`, `pemeriksaan_kondisi.foto`)
 
 | Data | Keterangan |
 |---|---|
 | Lokasi file, contoh `barang-keluar/Xy12Ab.jpg` | Database hanya menyimpan lokasi file, bukan isi gambar. File disimpan di folder penyimpanan (lokal) atau Supabase Storage (online). |
 | Format yang diterima | JPG, JPEG, PNG, WEBP dengan ukuran maksimal 2 MB |
-| Kosong (NULL) | Belum ada gambar. Foto barang keluar wajib diisi saat pengajuan baru melalui aplikasi. |
+| Kosong (NULL) | Belum ada gambar. Foto barang keluar dan pemeriksaan kondisi wajib diisi saat pengajuan baru melalui aplikasi. |
 
 <!-- landscape -->
 
@@ -370,6 +404,14 @@ Semua baris memakai `id_user` = 3 (Operator) dan `foto` kosong. Kolom "jumlah (B
 
 Peminjaman nomor 3 (4 bola basket) baru kembali 3, sehingga statusnya **Dikembalikan Sebagian** dan 1 bola masih dipinjam. Satu bola kembali dalam kondisi Rusak Ringan, sehingga stok Rusak Ringan bola basket di Gudang Olahraga menjadi 3.
 
+### 5.9 Tabel `pemeriksaan_kondisi`
+
+| id_pemeriksaan | id_barang | id_lokasi | id_user | tanggal | kondisi_asal | kondisi_baru | jumlah | alasan | foto | verifikasi | id_verifikator | tanggal_verifikasi | catatan_verifikasi |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 2 (FR-001) | 1 | 3 | 11-10-2026 | Baik | Rusak Ringan | 1 | Saat dicek, satu meja kakinya goyang dan permukaannya tergores | - | Pending | - | - | - |
+
+Pemeriksaan nomor 1 masih **Pending**, sehingga stok Meja Guru belum berubah (5 Baik, 2 Rusak Ringan). Bila Manager menyetujui, stok menjadi 4 Baik dan 3 Rusak Ringan; total tetap 7.
+
 ![Gambar 4. Data Sampel (seluruh tabel)](gambar/sampel.png)
 
 <!-- portrait -->
@@ -384,7 +426,7 @@ Peminjaman nomor 3 (4 bola basket) baru kembali 3, sehingga statusnya **Dikembal
 | 4 | `role` VARCHAR(7) | ENUM('Admin','Operator','Manager') | Nilai role terkunci sesuai kamus data. |
 | 5 | Verifikasi tanpa pencatat | Tambah `id_verifikator`, `tanggal_verifikasi`, `catatan_verifikasi` | Persetujuan Manager tercatat dan dapat diaudit. |
 | 6 | Tidak ada data peminta | Tambah `pemohon` | Mengetahui siapa yang meminta barang. |
-| 7 | Tidak ada gambar | Tambah `user.foto`, `barang.gambar`, `barang_masuk.foto`, `barang_keluar.foto`, `pengembalian.foto` | Fitur multimedia (unggah gambar). |
+| 7 | Tidak ada gambar | Tambah `user.foto`, `barang.gambar`, `barang_masuk.foto`, `barang_keluar.foto`, `pengembalian.foto`, `pemeriksaan_kondisi.foto` | Fitur multimedia (unggah gambar). |
 | 8 | `username` tanpa batasan | UNIQUE | Username dipakai untuk login. |
 | 9 | Nama database "Gudang Sekolah" | `gudang_sekolah` | Nama database sebaiknya tanpa spasi. |
 | 10 | Data sampel merujuk barang yang tidak ada (EK-002, AO-003, KN-005, EK-010, AO-007, FR-008) | Keenam barang ditambahkan | Foreign key harus valid. |
@@ -393,3 +435,4 @@ Peminjaman nomor 3 (4 bola basket) baru kembali 3, sehingga statusnya **Dikembal
 | 13 | Barang keluar hanya satu jenis, tanpa pengembalian | Kolom `jenis_keluar` (Peminjaman / Pemindahan / Pemusnahan) dan tabel `pengembalian` | Saran pembina: barang gudang sekolah sering dipinjam; data pinjaman tidak dihapus, stok kembali saat dikembalikan. |
 | 14 | `status_barang` satu nilai per transaksi | Kolom `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat`; kolom `status_barang` dihapus | Saran pembina: satu transaksi bisa berisi kondisi campuran (contoh 5 Baik, 10 Rusak Ringan, 5 Rusak Berat), Manager memeriksa dan dapat mengoreksi rinciannya. |
 | 15 | `barang.lokasi` teks bebas, satu lokasi per barang | Tabel `lokasi` (data master) dan `stok_barang` (stok per lokasi dan kondisi) | Saran pembina: barang yang sama bisa berada di beberapa tempat (Gudang Utama, Gudang 2, ruang lab). |
+| 16 | Kondisi barang hanya ditentukan saat barang masuk | Tabel `pemeriksaan_kondisi` (diajukan Operator, disetujui Manager) | Kondisi fisik bisa berubah selama disimpan. Tanpa tabel ini, barang yang di data Baik tetapi fisiknya rusak tidak dapat dikeluarkan sesuai kondisi sebenarnya atau dimusnahkan. Kondisi tetap tidak dapat diedit langsung agar setiap perubahan tercatat (siapa, kapan, alasan, foto). |

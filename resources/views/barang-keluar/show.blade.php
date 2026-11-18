@@ -184,7 +184,7 @@
                 </p>
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Tabel riwayat pengembalian">
                 <table class="table-data">
                     <thead><tr><th>Tanggal</th><th class="text-right">Jumlah</th><th>Kondisi saat kembali</th><th>Disimpan di</th><th>Catatan</th><th>Dicatat oleh</th></tr></thead>
                     <tbody>
@@ -205,7 +205,7 @@
             </div>
 
             @if ($sisa > 0 && auth()->user()->isOperator())
-                <form action="{{ route('pengembalian.store', $k) }}" method="POST" enctype="multipart/form-data" class="grid gap-5 border-t border-slate-100 p-5 sm:grid-cols-2">
+                <form id="catat-pengembalian" action="{{ route('pengembalian.store', $k) }}" method="POST" enctype="multipart/form-data" class="grid gap-5 border-t border-slate-100 p-5 sm:grid-cols-2">
                     @csrf
                     <p class="sm:col-span-2 text-sm font-semibold text-slate-900">Catat Pengembalian</p>
                     <div>

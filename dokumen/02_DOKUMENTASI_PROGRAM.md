@@ -10,7 +10,7 @@
 | Penyimpanan gambar | Folder `storage/app/public` (lokal); Supabase Storage (online) |
 | Tampilan | Blade + Tailwind CSS 4.3.3 (dibuild dengan Vite 7.3.6) dan Hotwire Turbo 8, responsif untuk komputer dan HP |
 | Editor | Antigravity IDE 2.5.5 |
-| Pengujian | PHPUnit 11.5.56 — 96 test, 365 assertion, semua lulus |
+| Pengujian | PHPUnit 11.5.56 — 108 test, 433 assertion, semua lulus |
 | Dokumen terkait | 01 Dokumen Rancangan, 03 Persiapan Asesor, 04 Daftar Akun, 05 Tutorial Deploy |
 
 <!-- daftar-isi -->
@@ -19,7 +19,7 @@
 
 ## 1. Deskripsi Program
 
-Inventaris Gudang Sekolah adalah aplikasi web untuk mencatat barang di gudang sekolah beserta lokasi dan kondisinya, mencatat barang yang masuk, dan mengelola barang keluar (peminjaman, pemindahan ke ruangan, pemusnahan) melalui persetujuan, termasuk pengembalian barang pinjaman. Setiap barang, transaksi, dan pengguna dapat dilengkapi gambar (multimedia).
+Inventaris Gudang Sekolah adalah aplikasi web untuk mencatat barang di gudang sekolah beserta lokasi dan kondisinya, mencatat barang yang masuk, dan mengelola barang keluar (peminjaman, pemindahan ke ruangan, pemusnahan) melalui persetujuan, termasuk pengembalian barang pinjaman dan penyesuaian kondisi barang dengan kondisi fisiknya (pemeriksaan kondisi). Setiap barang, transaksi, dan pengguna dapat dilengkapi gambar (multimedia).
 
 Masalah yang diselesaikan:
 
@@ -28,16 +28,17 @@ Masalah yang diselesaikan:
 - Tidak ada riwayat siapa yang mencatat dan siapa yang menyetujui.
 - Barang pinjaman tidak tercatat kapan kembali dan dalam kondisi apa.
 - Tidak diketahui barang berada di gudang mana atau sudah dipindah ke ruangan mana.
+- Kondisi barang di catatan bisa berbeda dengan kondisi fisiknya (misalnya rusak selama disimpan).
 
 Aplikasi menerapkan **pemisahan tugas (separation of duties)** dengan tiga role:
 
 | Role | Peran | Tugas utama |
 |---|---|---|
 | Admin | Pengelola sistem | Mengelola pengguna, kategori, lokasi, dan data barang; mengoreksi data barang masuk |
-| Operator | Petugas gudang | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar (dengan foto bukti), mencatat pengembalian pinjaman |
-| Manager | Pengawas | Memeriksa rincian kondisi, menyetujui / menolak barang keluar, dan melihat seluruh data; tidak dapat menambah atau mengeluarkan barang |
+| Operator | Petugas gudang | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar dan pemeriksaan kondisi (dengan foto bukti), mencatat pengembalian pinjaman |
+| Manager | Pengawas | Memeriksa lalu menyetujui / menolak barang keluar dan pemeriksaan kondisi, dan melihat seluruh data; tidak dapat menambah atau mengeluarkan barang |
 
-Aturan utama: **stok bertambah saat barang masuk dicatat**, dan **stok baru berubah setelah Manager menyetujui** permintaan barang keluar. Stok dicatat **per lokasi dan per kondisi** (Baik, Rusak Ringan, Rusak Berat). Setiap verifikasi mencatat Manager yang memverifikasi, tanggal, dan catatannya.
+Aturan utama: **stok bertambah saat barang masuk dicatat**, dan **stok baru berubah setelah Manager menyetujui** permintaan barang keluar maupun pemeriksaan kondisi. Stok dicatat **per lokasi dan per kondisi** (Baik, Rusak Ringan, Rusak Berat). Setiap verifikasi mencatat Manager yang memverifikasi, tanggal, dan catatannya.
 
 ### 1.1 Daftar Fitur
 
@@ -51,13 +52,14 @@ Aturan utama: **stok bertambah saat barang masuk dicatat**, dan **stok baru beru
 | 6 | Data barang | Daftar, cari, filter kategori dan lokasi, detail riwayat, stok per lokasi dan kondisi, tambah dengan kode otomatis, gambar barang |
 | 7 | Lokasi | Data master tempat barang (Gudang / Ruangan): tambah, ubah, hapus (Admin) |
 | 8 | Barang masuk | Catat penerimaan ke lokasi tertentu dengan rincian kondisi (Baik / Rusak Ringan / Rusak Berat), foto bukti opsional, filter tanggal, koreksi oleh Admin |
-| 9 | Barang keluar | Tiga jenis: **Peminjaman**, **Pemindahan** ke ruangan, **Pemusnahan** barang Rusak Berat; rincian kondisi, foto bukti wajib (Pending), Manager memeriksa dan boleh mengoreksi rincian sebelum Setujui / Tolak, tab filter status dan "Sedang Dipinjam" |
-| 10 | Pengembalian | Barang pinjaman dikembalikan (boleh bertahap) dengan kondisi saat kembali; status Dipinjam / Dikembalikan Sebagian / Dikembalikan / Terlambat |
-| 11 | Cetak | Daftar barang, barang masuk, dan barang keluar dapat dicetak |
-| 12 | Tema monokrom & mode terang / gelap | Tampilan hitam-putih ala video Bad Apple!!; tombol bulan/matahari di topbar dan login; tema baru muncul dengan efek lingkaran membesar; tema awal mengikuti jam (malam = gelap) |
-| 13 | Musik Bad Apple!! | Tombol not musik di topbar dan login untuk memutar / menjeda lagu Bad Apple!! (MP3), posisi lagu berlanjut saat pindah halaman |
-| 14 | Tanpa pindah halaman | Menu dibuka tanpa memuat ulang halaman (Turbo); form tambah, ubah, dan detail tampil sebagai popup |
-| 15 | Sidebar bisa ditutup | Tombol burger menutup / membuka sidebar; posisinya diingat |
+| 9 | Barang keluar | Tiga jenis: **Peminjaman**, **Pemindahan** ke ruangan, **Pemusnahan** barang Rusak Berat; pilihan lokasi asal menampilkan stok barang di tiap lokasi (lokasi tanpa stok tidak dapat dipilih); rincian kondisi, foto bukti wajib (Pending), Manager memeriksa dan boleh mengoreksi rincian sebelum Setujui / Tolak, tab filter status dan "Sedang Dipinjam" |
+| 10 | Pengembalian | Tombol **Kembalikan** di daftar barang keluar langsung membuka form pengembalian; barang pinjaman dikembalikan (boleh bertahap) dengan kondisi saat kembali; status Dipinjam / Dikembalikan Sebagian / Dikembalikan / Terlambat |
+| 11 | Pemeriksaan kondisi | Operator mencatat bila kondisi fisik berbeda dengan data (contoh 10 meja di data Baik, ternyata Rusak Ringan) beserta alasan dan foto; Manager menyetujui / menolak; jumlah pindah antar kondisi di lokasi yang sama, total stok tetap |
+| 12 | Cetak | Daftar barang, barang masuk, dan barang keluar dapat dicetak |
+| 13 | Tema monokrom & mode terang / gelap | Tampilan hitam-putih ala video Bad Apple!!; tombol bulan/matahari di topbar dan login; tema baru muncul dengan efek lingkaran membesar; tema awal mengikuti jam (malam = gelap) |
+| 14 | Musik Bad Apple!! | Tombol not musik di topbar dan login untuk memutar / menjeda lagu Bad Apple!! (MP3), posisi lagu berlanjut saat pindah halaman |
+| 15 | Tanpa pindah halaman | Menu dibuka tanpa memuat ulang halaman (Turbo); form tambah, ubah, dan detail tampil sebagai popup |
+| 16 | Sidebar bisa ditutup | Tombol burger menutup / membuka sidebar; posisinya diingat |
 
 ## 2. Cara Menjalankan Program
 
@@ -157,7 +159,9 @@ PHP **8.2** atau lebih baru (sesuai `composer.json`) dengan ekstensi `gd`, `file
 | 10 | Ajukan barang keluar (pinjam / pindah / musnahkan) + foto wajib | Tidak | Ya | Tidak |
 | 11 | Verifikasi barang keluar (periksa / koreksi rincian kondisi, Setujui / Tolak) | Tidak | Tidak | Ya |
 | 12 | Catat pengembalian barang pinjaman | Tidak | Ya | Tidak |
-| 13 | Lihat barang masuk / keluar / pengembalian beserta foto, cetak | Ya | Ya | Ya |
+| 13 | Ajukan pemeriksaan kondisi + foto wajib | Tidak | Ya | Tidak |
+| 14 | Verifikasi pemeriksaan kondisi (Setujui / Tolak) | Tidak | Tidak | Ya |
+| 15 | Lihat barang masuk / keluar / pengembalian / pemeriksaan kondisi beserta foto, cetak | Ya | Ya | Ya |
 
 Alasan pembagian:
 
@@ -169,7 +173,7 @@ Alasan pembagian:
 ### 3.2 Aturan Bisnis dan Validasi
 
 - Kode barang dibuat otomatis berpola `PREFIX-NOMOR` (AT, FR, KN, AO, EK); nomor melanjutkan nomor terbesar pada prefix yang sama.
-- Stok awal hanya diisi saat barang dibuat (lokasi + rincian kondisi); selanjutnya stok hanya berubah lewat barang masuk, barang keluar, dan pengembalian.
+- Stok awal hanya diisi saat barang dibuat (lokasi + rincian kondisi); selanjutnya stok hanya berubah lewat barang masuk, barang keluar, pengembalian, dan pemeriksaan kondisi.
 - Stok disimpan di tabel `stok_barang` per barang + lokasi + kondisi; kolom `barang.stok` adalah totalnya.
 - Kondisi barang hanya: Baik, Rusak Ringan, Rusak Berat. Setiap transaksi diisi rinciannya, contoh 20 barang = 5 Baik, 10 Rusak Ringan, 5 Rusak Berat; total minimal 1.
 - Verifikasi hanya: Pending, Disetujui, Ditolak. Jenis barang keluar hanya: Peminjaman, Pemindahan, Pemusnahan.
@@ -179,11 +183,12 @@ Alasan pembagian:
 - **Pemusnahan** hanya untuk barang Rusak Berat; stok berkurang permanen.
 - Manager boleh mengoreksi rincian kondisi sebelum menyetujui (contoh Operator menulis 10 Baik, ternyata 7 Baik dan 3 Rusak Ringan). Koreksi dicatat otomatis di catatan verifikasi.
 - Pengembalian boleh bertahap; jumlah total pengembalian tidak boleh melebihi sisa pinjaman. Kondisi saat kembali boleh berbeda (misalnya rusak saat dipinjam) dan lokasi penyimpanan boleh dipilih.
-- Lokasi yang masih menyimpan stok atau sudah dipakai di transaksi tidak dapat dihapus.
-- Penolakan wajib disertai alasan. Permintaan yang sudah diverifikasi tidak dapat diverifikasi ulang.
-- Pengajuan barang keluar tidak dapat diubah / dihapus (jejak audit); pengajuan keliru cukup ditolak Manager.
+- **Pemeriksaan kondisi**: kondisi sebenarnya harus berbeda dari kondisi di data; jumlah tidak boleh melebihi stok kondisi di data pada lokasi itu (dicek ulang saat disetujui); alasan dan foto bukti wajib. Setelah disetujui, jumlah pindah antar kondisi di lokasi yang sama sehingga total stok tetap. Kondisi stok tidak dapat diedit langsung; setiap perubahan tercatat sebagai pengajuan.
+- Lokasi yang masih menyimpan stok atau sudah dipakai di transaksi / pemeriksaan tidak dapat dihapus.
+- Penolakan wajib disertai alasan. Pengajuan yang sudah diverifikasi tidak dapat diverifikasi ulang.
+- Pengajuan barang keluar dan pemeriksaan kondisi tidak dapat diubah / dihapus (jejak audit); pengajuan keliru cukup ditolak Manager.
 - Gambar hanya JPG, PNG, atau WEBP dengan ukuran maksimal 2 MB. File lama dihapus saat gambar diganti atau datanya dihapus.
-- Kategori yang masih dipakai, barang yang punya transaksi, dan pengguna yang punya transaksi tidak dapat dihapus.
+- Kategori yang masih dipakai, barang yang punya transaksi / pemeriksaan, dan pengguna yang punya transaksi / pemeriksaan (sebagai pengaju maupun verifikator) tidak dapat dihapus.
 - Admin hanya dapat **menambah** dan **menghapus** pengguna. Admin tidak dapat mengubah data maupun password pengguna lain (route ubah tidak ada, sehingga permintaan ubah ditolak server dengan 404 / 405).
 - Setiap pengguna mengubah nama, foto, dan password-nya sendiri lewat Profil; ganti password wajib memasukkan password lama yang benar. Username dan role tidak dapat diubah setelah akun dibuat.
 - Admin tidak dapat menghapus akunnya sendiri.
@@ -198,17 +203,26 @@ Alasan pembagian:
 4. Manager memeriksa barang. Bila rincian kondisi tidak sesuai, Manager mengubah angkanya di panel verifikasi.
 5. **Setujui**: rincian dicek terhadap stok, lalu stok diperbarui sesuai jenis (Peminjaman / Pemusnahan: stok lokasi asal berkurang; Pemindahan: stok pindah ke lokasi tujuan), status menjadi Disetujui, Manager dan tanggal verifikasi dicatat — semuanya dalam satu transaksi database.
 6. **Tolak**: alasan wajib diisi; status menjadi Ditolak; stok tidak berubah.
-7. Untuk Peminjaman, saat barang kembali **Operator** membuka detail peminjaman lalu mengisi form Pengembalian (tanggal, lokasi penyimpanan, rincian kondisi saat kembali). Stok bertambah sesuai kondisi; status berubah menjadi Dikembalikan Sebagian atau Dikembalikan.
+7. Untuk Peminjaman, saat barang kembali **Operator** membuka tab **Sedang Dipinjam** lalu menekan tombol **Kembalikan** (atau membuka detail peminjaman) dan mengisi form Pengembalian (tanggal, lokasi penyimpanan, rincian kondisi saat kembali). Stok bertambah sesuai kondisi; status berubah menjadi Dikembalikan Sebagian atau Dikembalikan, dan tombol Kembalikan hilang setelah semua barang kembali.
 
-### 3.4 Batasan Sistem
+### 3.4 Alur Pemeriksaan Kondisi
+
+Dipakai bila kondisi barang di data tidak sesuai dengan kondisi fisiknya. Contoh: Operator akan mengeluarkan 20 Meja Guru yang di data semuanya Baik, ternyata 10 di antaranya Rusak Ringan; atau barang yang di data Baik ternyata Rusak Berat sehingga perlu dimusnahkan.
+
+1. **Operator** membuka menu **Pemeriksaan Kondisi** → **Ajukan Pemeriksaan**: memilih barang, lokasi (form menampilkan stok tercatat per kondisi di lokasi itu), kondisi di data, kondisi sebenarnya, jumlah, alasan / temuan, dan foto bukti. Status **Pending**; stok belum berubah.
+2. **Manager** membuka pengajuan (tab Pending), melihat foto dan stok kondisi asal saat ini, lalu **Setujui** atau **Tolak** (alasan wajib).
+3. Setelah disetujui, `StokService::ubahKondisi()` mengurangi stok kondisi asal dan menambah stok kondisi baru di lokasi yang sama. Total stok tetap. Contoh: 20 Baik menjadi 10 Baik + 10 Rusak Ringan.
+4. Operator kemudian mengajukan barang keluar sesuai kondisi sebenarnya (contoh 10 Baik + 10 Rusak Ringan, atau Pemusnahan untuk yang Rusak Berat). Form barang keluar menampilkan pengingat untuk mengajukan Pemeriksaan Kondisi bila kondisi fisik berbeda.
+
+### 3.5 Batasan Sistem
 
 - Kondisi barang dicatat sebagai jumlah per kondisi, bukan per unit (tidak ada nomor seri per unit).
-- Perbaikan barang Rusak Ringan menjadi Baik belum memiliki menu khusus.
-- Data sampel barang keluar belum memiliki foto karena dibuat sebelum foto diwajibkan.
+- Satu pemeriksaan kondisi hanya memindahkan satu pasang kondisi (contoh Baik → Rusak Ringan). Bila ada dua perubahan (Baik → Rusak Ringan dan Baik → Rusak Berat), diajukan dua kali.
+- Data sampel barang keluar dan pemeriksaan kondisi belum memiliki foto karena dibuat langsung oleh seeder; pengajuan baru lewat aplikasi wajib berfoto.
 
 ## 4. Database
 
-Database `gudang_sekolah` berisi **8 tabel**: `user`, `kategori`, `barang`, `lokasi`, `stok_barang`, `barang_masuk`, `barang_keluar`, `pengembalian` (ditambah tabel `migrations` otomatis dari Laravel). Sesi dan cache disimpan di file / cookie, bukan tabel, agar database hanya berisi tabel sesuai rancangan. ERD, desain tabel, relasi, kamus data, dan data sampel lengkap ada di dokumen **01 Dokumen Rancangan**.
+Database `gudang_sekolah` berisi **9 tabel**: `user`, `kategori`, `barang`, `lokasi`, `stok_barang`, `barang_masuk`, `barang_keluar`, `pengembalian`, `pemeriksaan_kondisi` (ditambah tabel `migrations` otomatis dari Laravel). Sesi dan cache disimpan di file / cookie, bukan tabel, agar database hanya berisi tabel sesuai rancangan. ERD, desain tabel, relasi, kamus data, dan data sampel lengkap ada di dokumen **01 Dokumen Rancangan**.
 
 Relasi:
 
@@ -220,6 +234,7 @@ Relasi:
 - `barang` 1 : N `stok_barang` dan `lokasi` 1 : N `stok_barang` (stok per lokasi dan kondisi)
 - `lokasi` 1 : N `barang_masuk` (`id_lokasi`), `barang_keluar` (`id_lokasi_asal`, `id_lokasi_tujuan`), `pengembalian` (`id_lokasi`)
 - `barang_keluar` 1 : N `pengembalian` (kolom `id_keluar`); `user` 1 : N `pengembalian` (Operator pencatat)
+- `barang` dan `lokasi` 1 : N `pemeriksaan_kondisi` (kolom `id_barang`, `id_lokasi`); `user` 1 : N `pemeriksaan_kondisi` sebagai pengaju (`id_user`) dan verifikator (`id_verifikator`)
 
 Migration (urutan pembuatan struktur database):
 
@@ -233,6 +248,7 @@ Migration (urutan pembuatan struktur database):
 | `2026_09_25_000006_enable_row_level_security` | Khusus PostgreSQL / Supabase: mengaktifkan Row Level Security agar tabel tidak terbaca lewat API publik Supabase |
 | `2026_10_08_000001_tambah_role_manager_dan_foto` | Menambah role Manager dan kolom foto / gambar tanpa menghapus data lama |
 | `2026_10_21_000001_tambah_lokasi_kondisi_peminjaman` | Membuat tabel `lokasi`, `stok_barang`, `pengembalian`; menambah jenis keluar, lokasi, dan rincian kondisi; memindahkan data lama (teks lokasi → data master lokasi, stok → stok per lokasi dan kondisi, barang keluar lama → Pemindahan) lalu menghapus kolom `lokasi` dan `status_barang` |
+| `2026_11_17_000001_create_pemeriksaan_kondisi_table` | Membuat tabel `pemeriksaan_kondisi` + FK ke barang, lokasi, user (pengaju), dan user (verifikator); di PostgreSQL langsung mengaktifkan Row Level Security |
 
 Gambar tidak disimpan di dalam database; kolom `foto` / `gambar` hanya berisi lokasi file. Database tetap kecil dan cepat.
 
@@ -244,36 +260,37 @@ Browser → `routes/web.php` → Middleware (`auth`, `role`) → Form Request (v
 
 | Lokasi | Isi |
 |---|---|
-| `routes/web.php` | Daftar URL (46 route) dan pembagian hak akses per role |
+| `routes/web.php` | Daftar URL (52 route) dan pembagian hak akses per role |
 | `app/Http/Middleware/CekRole.php` | Membatasi halaman berdasarkan role |
-| `app/Http/Controllers/` | AuthController, DashboardController, ProfilController, UserController, KategoriController, LokasiController, BarangController, BarangMasukController, BarangKeluarController, PengembalianController |
-| `app/Http/Requests/` | Aturan validasi: ProfilRequest, UserRequest, KategoriRequest, LokasiRequest, BarangRequest, BarangMasukRequest, BarangKeluarRequest, PengembalianRequest |
-| `app/Models/` | Model Eloquent: User, Kategori, Lokasi, Barang, StokBarang, BarangMasuk, BarangKeluar, Pengembalian |
+| `app/Http/Controllers/` | AuthController, DashboardController, ProfilController, UserController, KategoriController, LokasiController, BarangController, BarangMasukController, BarangKeluarController, PengembalianController, PemeriksaanKondisiController |
+| `app/Http/Requests/` | Aturan validasi: ProfilRequest, UserRequest, KategoriRequest, LokasiRequest, BarangRequest, BarangMasukRequest, BarangKeluarRequest, PengembalianRequest, PemeriksaanKondisiRequest |
+| `app/Models/` | Model Eloquent: User, Kategori, Lokasi, Barang, StokBarang, BarangMasuk, BarangKeluar, Pengembalian, PemeriksaanKondisi |
 | `app/Models/Concerns/PunyaRincianKondisi.php` | Trait bersama untuk rincian kondisi (`rincian()`, `ringkasKondisi()`, `isiRincian()`) yang dipakai BarangMasuk, BarangKeluar, Pengembalian |
 | `app/Services/StokService.php` | Satu-satunya tempat yang mengubah stok (per barang, lokasi, kondisi) |
 | `app/Services/GambarService.php` | Satu-satunya tempat yang menyimpan, mengganti, menghapus, dan membuat alamat gambar |
 | `app/Support/Suasana.php` | Penentu suasana pagi / siang / sore / malam: salam dashboard, animasi dan audio login |
 | `app/Exceptions/StokTidakCukupException.php` | Error khusus saat stok tidak mencukupi |
-| `app/Providers/AppServiceProvider.php` | Pagination berbahasa Indonesia, jumlah Pending untuk menu, paksa https di produksi |
+| `app/Providers/AppServiceProvider.php` | Pagination berbahasa Indonesia, jumlah Pending barang keluar dan pemeriksaan kondisi untuk menu, paksa https di produksi |
 | `bootstrap/app.php` | Alias middleware `role`, proxy tepercaya, penanganan error 419 |
 | `config/filesystems.php` | Lokasi penyimpanan gambar (`UPLOAD_DISK`: `public` atau `s3`) |
 | `database/migrations/`, `database/seeders/`, `database/factories/` | Struktur tabel, data sampel, data palsu untuk pengujian |
-| `resources/views/` | Halaman Blade: layout, login, dashboard, profil, user, kategori, lokasi, barang, barang-masuk, barang-keluar |
+| `resources/views/` | Halaman Blade: layout, login, dashboard, profil, user, kategori, lokasi, barang, barang-masuk, barang-keluar, pemeriksaan-kondisi |
 | `resources/views/components/` | Komponen: `icon`, `badge`, `empty`, `error`, `avatar`, `unggah-gambar`, `tombol-tema`, `input-kondisi` (3 kotak jumlah per kondisi + total), `rincian-kondisi` (label berwarna per kondisi) |
 | `resources/views/partials/` | `flash` (pesan notifikasi), `pagination`, dan `tema-awal` (skrip mode gelap) |
 | `resources/css/app.css` | Gaya tampilan, animasi halaman login, dan warna mode gelap |
-| `resources/js/` | `app.js` (menu HP, notifikasi, lihat password, pratinjau gambar), `tema.js` (mode gelap), `suasana.js` (salam, jam, dan audio login), `musik.js` (musik Bad Apple!!), `popup.js` (popup dan panel), `form-kondisi.js` (total kondisi otomatis dan form barang keluar sesuai jenis) |
+| `resources/js/` | `app.js` (menu HP, notifikasi, lihat password, pratinjau gambar), `tema.js` (mode gelap), `suasana.js` (salam, jam, dan audio login), `musik.js` (musik Bad Apple!!), `popup.js` (popup dan panel), `form-kondisi.js` (total kondisi otomatis, form barang keluar sesuai jenis, stok per lokasi di pilihan lokasi) |
 | `public/images/siluet.png` | Gambar siluet halaman login (PNG transparan) |
 | `public/audio/` | Suara suasana (`pagi.wav`, `siang.wav`, `sore.wav`, `malam.wav`) dan lagu `bad-apple.mp3` |
-| `tests/Unit`, `tests/Feature` | 96 test PHPUnit |
+| `tests/Unit`, `tests/Feature` | 108 test PHPUnit |
 | `vercel.json`, `api/index.php` | Konfigurasi hosting Vercel |
 
 ## 6. Desain Antarmuka
 
 - **Konsisten**: tombol, kartu, input, dan tabel memakai kelas yang sama dari `resources/css/app.css`.
 - **Tanpa internet**: font *Plus Jakarta Sans* dibundel lewat Vite; ikon berupa SVG di dalam kode (komponen `<x-icon>`).
-- **Responsif**: di HP, menu samping menjadi menu geser; tabel dapat digeser ke samping.
-- **Sesuai role**: menu, tombol, dan aksi cepat hanya tampil bila role berhak; jumlah permintaan Pending tampil di menu.
+- **Responsif**: di HP, menu samping menjadi menu geser; tabel dapat digeser ke samping, juga dengan keyboard (pembungkus tabel diberi `tabindex="0"`, `role="region"`, dan label).
+- **Sesuai role**: menu, tombol, dan aksi cepat hanya tampil bila role berhak; jumlah Pending barang keluar dan pemeriksaan kondisi tampil di menu.
+- **Aksesibel**: popup memakai `<dialog>` dengan `aria-labelledby` (judul popup dibacakan pembaca layar) dan `closedby="any"` (tutup dengan Esc atau klik di luar; cadangan JavaScript untuk Safari); halaman di belakang popup tidak ikut tergulir. Diperiksa dengan panduan *modern-web-guidance* dari Google Chrome.
 - **Multimedia**: foto profil di menu samping, topbar, dan daftar pengguna; gambar barang di daftar dan detail; foto bukti di daftar dan detail transaksi; pratinjau sebelum unggah.
 - **Siap cetak**: tombol Cetak menyembunyikan menu, filter, dan tombol aksi; saat dicetak selalu memakai mode terang.
 - **Mode terang / gelap**: seluruh warna memakai variabel CSS yang ditukar nilainya saat `<html class="dark">` (`resources/css/app.css` bagian MODE GELAP).
@@ -314,28 +331,35 @@ Hanya Manager yang dapat mengaksesnya. Di dalam transaksi, `kunciPermintaanPendi
 
 Pada `setujui()`, bila Manager mengubah rincian kondisi, rincian baru diperiksa dengan `BarangKeluarRequest::periksaRincian()` (aturan yang sama dengan saat pengajuan), lalu catatan "Rincian dikoreksi Manager dari (...) menjadi (...)" ditambahkan otomatis. `terapkanStok()` memperbarui stok sesuai jenis: Peminjaman dan Pemusnahan mengurangi stok lokasi asal; Pemindahan mengurangi stok lokasi asal dan menambah stok lokasi tujuan. `simpanVerifikasi()` mengisi status, `id_verifikator`, `tanggal_verifikasi`, dan catatan. Pada `tolak()`, catatan wajib diisi.
 
-### 7.6 Pengembalian — `PengembalianController::store()`
+### 7.6 Pemeriksaan Kondisi — `PemeriksaanKondisiController`
+
+1. `PemeriksaanKondisiRequest` memeriksa: `kondisi_baru` harus `different:kondisi_asal`, alasan dan foto wajib, dan di method `after()` jumlah tidak boleh melebihi `StokService::tersedia()` untuk kondisi asal di lokasi itu.
+2. `store()` menyimpan foto (`GambarService::simpan()`, folder `pemeriksaan-kondisi`) lalu data dengan status Pending; bila penyimpanan data gagal, foto dihapus lagi.
+3. `setujui()` berjalan di dalam `DB::transaction()`: `kunciPending()` mengunci baris dan memastikan statusnya masih Pending, lalu `StokService::ubahKondisi()` memanggil `kurangi()` untuk kondisi asal dan `tambah()` untuk kondisi baru di lokasi yang sama. Bila stok kondisi asal sudah tidak cukup, `StokTidakCukupException` membatalkan semuanya dan Manager mendapat pesan gagal.
+4. `tolak()` wajib mengisi catatan; stok tidak berubah.
+
+### 7.7 Pengembalian — `PengembalianController::store()`
 
 1. `PengembalianRequest` memeriksa tanggal, lokasi, rincian kondisi saat kembali, dan memastikan total tidak melebihi `sisaPinjaman()`.
 2. Di dalam transaksi, baris peminjaman dikunci lalu sisa pinjaman dicek ulang (mencegah dua pengembalian bersamaan melebihi jumlah pinjaman).
 3. Data `pengembalian` disimpan, lalu `StokService::tambahRincian()` menambah stok ke lokasi yang dipilih sesuai kondisi saat kembali.
 4. Status dihitung oleh `BarangKeluar::statusPinjam()` dari jumlah pinjaman dikurangi jumlah yang sudah kembali: Dipinjam, Dikembalikan Sebagian, atau Dikembalikan. `terlambat()` bernilai benar bila lewat `tanggal_kembali` dan belum kembali seluruhnya.
 
-### 7.7 Validasi — Form Request
+### 7.8 Validasi — Form Request
 
 Contoh `BarangKeluarRequest`: `required`, `integer`, `min:1`, `exists:barang,id_barang`, `Rule::in(BarangKeluar::JENIS)`, `required_if:jenis_keluar,Peminjaman` (tanggal kembali), `different:id_lokasi_asal` (lokasi tujuan), aturan foto (`required`, `image`, `mimes:jpg,jpeg,png,webp`, `max:2048`), dan pengecekan rincian kondisi terhadap stok lokasi asal di method `after()` (memanggil `periksaRincian()`; Pemusnahan hanya boleh Rusak Berat). `ProfilRequest` memakai `current_password` untuk memastikan password lama benar. Pesan error tampil di bawah input lewat komponen `<x-error>`.
 
-### 7.8 Unggah Gambar — `GambarService`
+### 7.9 Unggah Gambar — `GambarService`
 
 1. Form memakai `enctype="multipart/form-data"`; komponen `<x-unggah-gambar>` menampilkan pratinjau dengan JavaScript.
 2. Form Request memeriksa jenis isi dan ukuran file (`GambarService::ATURAN`).
-3. `simpan()` menyimpan file dengan nama acak ke folder sesuai jenisnya (`profil`, `barang`, `barang-masuk`, `barang-keluar`) dan mengembalikan lokasinya untuk disimpan di database.
+3. `simpan()` menyimpan file dengan nama acak ke folder sesuai jenisnya (`profil`, `barang`, `barang-masuk`, `barang-keluar`, `pengembalian`, `pemeriksaan-kondisi`) dan mengembalikan lokasinya untuk disimpan di database.
 4. Model menyediakan alamat gambar: `$user->foto_url`, `$barang->gambar_url`, `$transaksi->foto_url`.
 5. `ganti()` menghapus file lama setelah file baru tersimpan. Pada barang masuk, bila transaksi database gagal, file baru dihapus kembali.
 6. Lokasi penyimpanan diatur `UPLOAD_DISK`: `public` (lokal) atau `s3` (Supabase Storage), tanpa mengubah kode.
 7. Bila penyimpanan gagal (kunci salah, bucket tidak ada, koneksi putus), `simpan()` melempar `GambarGagalDisimpanException`. `bootstrap/app.php` mengembalikan pengguna ke form dengan pesan jelas, dan penyebab aslinya dicatat ke log dalam satu baris pendek berawalan "Gambar gagal disimpan:" (di Vercel: menu Logs, cari kata itu).
 
-### 7.9 Suasana Login dan Audio — `App\Support\Suasana`
+### 7.10 Suasana Login dan Audio — `App\Support\Suasana`
 
 1. `Suasana::DAFTAR` menyimpan data tiap waktu: jam mulai, salam, kalimat, dan file audio (`public/audio/*.wav`).
 2. `Suasana::dariJam()` menentukan waktu: pagi 04.00-10.59, siang 11.00-14.59, sore 15.00-17.59, malam 18.00-03.59. Fungsi yang sama dipakai untuk salam di dashboard.
@@ -343,7 +367,7 @@ Contoh `BarangKeluarRequest`: `required`, `integer`, `min:1`, `exists:barang,id_
 4. JavaScript memperbarui jam setiap detik dan mengganti atribut `data-waktu`; CSS mengubah warna cahaya apel berdasarkan atribut tersebut.
 5. Tombol "Putar suara" memutar elemen `<audio loop>` dengan volume naik perlahan. Suara dibuat sendiri secara sintetis sehingga bebas hak cipta.
 
-### 7.10 Mode Terang / Gelap — `resources/js/tema.js`
+### 7.11 Mode Terang / Gelap — `resources/js/tema.js`
 
 1. `partials/tema-awal.blade.php` dijalankan paling awal di `<head>` agar halaman tidak berkedip putih.
 2. `gantiTema()` menukar class `dark` di `<html>` dan menyimpan pilihan di `sessionStorage`. Bila belum memilih, tema mengikuti jam: malam (18.00-03.59) gelap, selain itu terang. Bila browser mendukung View Transitions API, tema baru muncul sebagai lingkaran yang membesar dari tombol.
@@ -351,23 +375,25 @@ Contoh `BarangKeluarRequest`: `required`, `integer`, `min:1`, `exists:barang,id_
 
 4. Warna utama (`brand`) dibuat hitam dan abu-abu (`slate`) dibuat netral sehingga seluruh aplikasi bergaya monokrom.
 
-### 7.11 Musik Bad Apple!! — `resources/js/musik.js`
+### 7.12 Musik Bad Apple!! — `resources/js/musik.js`
 
 1. File lagu `public/audio/bad-apple.mp3` diputar oleh elemen `<audio loop preload="none">` di `partials/pemutar-musik.blade.php`.
 2. Tombol not musik memanggil `play()` / `pause()`; ikon berubah sesuai status.
 3. Posisi lagu disimpan di `sessionStorage` saat meninggalkan halaman, sehingga di halaman berikutnya lagu dilanjutkan dari detik terakhir.
 4. Memutar musik menjeda suara suasana di halaman login, dan sebaliknya.
 
-### 7.12 Tanpa Pindah Halaman dan Popup — Turbo
+### 7.13 Tanpa Pindah Halaman dan Popup — Turbo
 
 1. **Turbo Drive** (`resources/js/app.js`) mengambil halaman tujuan di belakang layar lalu mengganti isi `<body>`; halaman tidak dimuat ulang, sehingga lebih cepat dan musik tidak terputus.
 2. Tombol Tambah / Ubah / Detail diberi `data-turbo-frame="modal"`. Turbo mengirim header `Turbo-Frame: modal`; layout (`layouts/app.blade.php`) lalu hanya mengirim isi halaman di dalam `<turbo-frame id="modal">` yang ditampilkan dalam `<dialog>`.
 3. Halaman yang boleh menjadi popup ditandai `@section('popup', true)`. Tanpa Turbo, halaman yang sama tetap tampil utuh, sehingga route, controller, dan test tidak berubah.
-4. Form barang keluar memakai `resources/js/form-kondisi.js`: kotak lokasi tujuan atau tanggal kembali hanya muncul sesuai jenis, kotak Baik / Rusak Ringan terkunci untuk Pemusnahan, stok per kondisi di lokasi asal ditampilkan dan dipakai sebagai batas maksimum, dan total dihitung otomatis.
+4. Form barang keluar memakai `resources/js/form-kondisi.js`: kotak lokasi tujuan atau tanggal kembali hanya muncul sesuai jenis, kotak Baik / Rusak Ringan terkunci untuk Pemusnahan, stok per kondisi di lokasi asal ditampilkan dan dipakai sebagai batas maksimum, dan total dihitung otomatis. `perbaruiPilihanLokasi()` menulis stok barang terpilih di setiap pilihan lokasi (contoh "Gudang 2 (Gudang) — stok 10 buah (3 Baik, 7 Rusak Ringan)"), mengunci lokasi tanpa stok, dan memilih otomatis bila barang hanya ada di satu lokasi. Form pemeriksaan kondisi memakai fungsi yang sama.
 5. Validasi gagal → form tampil lagi di popup dengan pesan error. Simpan berhasil → popup ditutup dan halaman daftar tampil dengan pesan sukses (`turbo:frame-missing` di `resources/js/popup.js`).
 6. Profil dibuka di panel kanan (`data-turbo-frame="laci"`); setelah disimpan kembali ke halaman asal.
+7. Tautan popup boleh menunjuk bagian tertentu, contoh tombol Kembalikan → `#catat-pengembalian`. Turbo membuang `#bagian` dari alamat frame, sehingga `popup.js` mengingatnya dari tautan yang diklik lalu menggulir ke bagian itu setelah popup terbuka.
+8. Isi popup dikosongkan dengan `replaceChildren()` saat ditutup.
 
-### 7.13 Penanganan Error 419 — `bootstrap/app.php`
+### 7.14 Penanganan Error 419 — `bootstrap/app.php`
 
 Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, biasanya karena halaman dibiarkan terbuka lebih dari 120 menit. Pengguna dikembalikan ke halaman sebelumnya dengan pesan "Halaman sudah terlalu lama dibuka..." dan isian tetap terisi (kecuali password dan file).
 
@@ -409,6 +435,8 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 | 15 | `GambarService::simpan()` di website online | Bila Supabase Storage menolak, `putFile()` mengembalikan `false` tanpa pesan, lalu `false` ikut disimpan ke kolom foto | Unggah foto profil / gambar barang menampilkan "500 Server Error" | Kegagalan diubah menjadi `GambarGagalDisimpanException`: penyebab asli dicatat di log, pengguna kembali ke form dengan pesan jelas, data tidak tersimpan setengah jadi |
 | 16 | Rancangan barang keluar (masukan pembina) | Semua barang keluar dianggap hilang dari stok; satu transaksi hanya satu kondisi; lokasi berupa teks bebas | Barang pinjaman / pindah ruangan tidak terlacak; kondisi campuran tidak dapat dicatat | Ditambah jenis keluar, tabel `pengembalian`, rincian kondisi per transaksi, data master `lokasi`, dan `stok_barang`; migration memindahkan data lama tanpa kehilangan data |
 | 17 | `User::punyaTransaksi()` | Pengecekan transaksi belum memasukkan tabel `pengembalian` yang baru | Menghapus Operator yang hanya pernah mencatat pengembalian ditolak foreign key dan menampilkan error 500 | Ditambah relasi `User::pengembalian()` dan dicek di `punyaTransaksi()`; dibuktikan test baru |
+| 18 | Rancangan kondisi barang (ditemukan saat uji coba) | Kondisi hanya ditentukan saat barang masuk dan tidak dapat disesuaikan | Mengeluarkan 20 meja (di data Baik) yang ternyata 10 Rusak Ringan ditolak "melebihi stok Rusak Ringan"; barang di data Baik yang fisiknya Rusak Berat tidak dapat dimusnahkan | Ditambah fitur Pemeriksaan Kondisi (tabel `pemeriksaan_kondisi`, disetujui Manager); dibuktikan 11 test termasuk kedua kasus tersebut |
+| 19 | Tombol Kembalikan (`popup.js`) | Alamat `.../3#catat-pengembalian` kehilangan `#bagian` karena Turbo membuangnya dari alamat frame | Popup terbuka di bagian atas, bukan di form pengembalian | Bagian tujuan diingat dari tautan yang diklik, lalu digulir setelah frame dimuat; diuji di browser |
 
 ### 9.2 Teknik Debugging
 
@@ -424,7 +452,7 @@ Error 419 terjadi bila token CSRF di formulir sudah tidak cocok dengan sesi, bia
 
 Pengujian memakai **PHPUnit** dengan database SQLite di memori (`phpunit.xml`), sehingga data asli tidak terganggu. Setiap test memakai `RefreshDatabase`. File unggahan disimpan di penyimpanan palsu (`Storage::fake()`), dan gambar uji dibuat dengan `UploadedFile::fake()->image()`.
 
-Perintah: `php artisan test` — hasil terakhir **96 passed (365 assertions)**.
+Perintah: `php artisan test` — hasil terakhir **108 passed (433 assertions)**.
 
 | File | Jenis | Jumlah | Yang diuji |
 |---|---|---|---|
@@ -437,7 +465,8 @@ Perintah: `php artisan test` — hasil terakhir **96 passed (365 assertions)**.
 | `tests/Feature/ProfilTest.php` | Fitur | 5 | Ubah profil, unggah / ganti / hapus foto, ganti password |
 | `tests/Feature/KategoriBarangTest.php` | Fitur | 9 | CRUD kategori & barang, stok awal per lokasi dan kondisi, validasi, pencarian, gambar barang |
 | `tests/Feature/LokasiTest.php` | Fitur | 5 | Tambah / ubah lokasi oleh Admin, nama unik dan jenis valid, lokasi berisi barang tidak dapat dihapus, filter barang per lokasi, hanya Admin yang mengelola |
-| `tests/Feature/TransaksiBarangTest.php` | Fitur | 27 | Barang masuk dengan rincian kondisi dan lokasi, peminjaman, pemindahan, pemusnahan (hanya Rusak Berat), koreksi rincian oleh Manager, pengembalian (bertahap, kondisi berubah, tidak melebihi sisa), verifikasi, foto bukti |
+| `tests/Feature/TransaksiBarangTest.php` | Fitur | 28 | Barang masuk dengan rincian kondisi dan lokasi, peminjaman, pemindahan, pemusnahan (hanya Rusak Berat), koreksi rincian oleh Manager, pengembalian (bertahap, kondisi berubah, tidak melebihi sisa), tombol Kembalikan hanya untuk Operator pada pinjaman belum lunas, verifikasi, foto bukti |
+| `tests/Feature/PemeriksaanKondisiTest.php` | Fitur | 11 | Pengajuan Pending dan stok tetap, foto / alasan wajib dan kondisi harus berbeda, jumlah tidak melebihi stok kondisi asal, disetujui memindahkan jumlah antar kondisi dengan total tetap, ditolak wajib alasan, gagal bila stok sudah berkurang, tidak dapat diverifikasi ulang, hak akses, kasus 10 Baik + 10 Rusak Ringan dan pemusnahan barang yang di data Baik, pengguna / lokasi / barang yang punya pemeriksaan tidak dapat dihapus |
 | `tests/Feature/SesiKedaluwarsaTest.php` | Fitur | 3 | Penanganan error 419 |
 | `tests/Feature/GambarGagalTest.php` | Fitur | 5 | Penyimpanan gambar gagal (profil, barang, barang keluar): kembali ke form dengan pesan, bukan error 500, data tidak tersimpan; penyebab dicatat dalam satu baris log pendek, pesan di layar tanpa detail teknis |
 | `tests/Feature/PopupTest.php` | Fitur | 5 | Halaman dikirim sebagai isi popup / panel kanan, halaman daftar tetap utuh, simpan profil kembali ke halaman asal dan menolak alamat situs lain |
@@ -453,6 +482,7 @@ Contoh test case:
 | Pemusnahan barang Baik | Ajukan pemusnahan 2 Baik | Error validasi, hanya Rusak Berat | Lulus |
 | Pengembalian | Kembalikan sebagian pinjaman dengan kondisi berbeda | Dikembalikan Sebagian, stok bertambah sesuai kondisi saat kembali | Lulus |
 | Pengembalian berlebih | Kembalikan melebihi sisa pinjaman | Error validasi, stok tetap | Lulus |
+| Kondisi fisik berbeda | Di data 20 meja Baik; ajukan keluar 10 Baik + 10 Rusak Ringan → ditolak; ajukan pemeriksaan 10 Baik → Rusak Ringan, Manager setujui, ajukan lagi | Pengajuan kedua diterima; total stok tetap 20 | Lulus |
 | Foto wajib | Ajukan barang keluar tanpa foto | Error validasi foto, data tidak tersimpan | Lulus |
 | File tidak sah | Unggah PDF / gambar 3 MB | Error validasi, data tidak tersimpan | Lulus |
 | Tolak tanpa alasan | Manager menolak tanpa catatan | Error validasi, status tetap Pending | Lulus |
@@ -471,8 +501,8 @@ Contoh test case:
 | 4 | J.620100.016.01 | Menulis Kode dengan Prinsip sesuai Guidelines dan Best Practices | PSR-12 (Laravel Pint), MVC, Form Request, service class, pemisahan tugas, keamanan (Bagian 8), transaksi database |
 | 5 | J.620100.017.02 | Mengimplementasikan Pemrograman Terstruktur | Percabangan `if/elseif/else` dan `match`, perulangan `foreach` / `@forelse`, fungsi dengan parameter dan nilai kembali, prosedur `void`, `try...catch` |
 | 6 | J.620100.023.02 | Membuat Dokumen Kode Program | PHPDoc di class dan method, komentar Blade, dokumen 01–05 |
-| 7 | J.620100.025.02 | Melakukan Debugging | 17 bug beserta perbaikannya dan teknik debugging (Bagian 9) |
-| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 96 test PHPUnit unit dan fitur (Bagian 10) |
+| 7 | J.620100.025.02 | Melakukan Debugging | 19 bug beserta perbaikannya dan teknik debugging (Bagian 9) |
+| 8 | J.620100.033.02 | Melaksanakan Pengujian Unit Program | 108 test PHPUnit unit dan fitur (Bagian 10) |
 
 ## 12. Skenario Demo
 
@@ -482,9 +512,9 @@ Contoh test case:
 4. **Barang Masuk**: catat 10 unit ke Gudang Utama = 8 Baik + 2 Rusak Ringan (boleh dengan foto nota); stok per kondisi bertambah.
 5. **Barang Keluar**: ajukan Peminjaman tanpa foto (ditolak), lalu dengan foto (Pending, stok tetap). Tunjukkan form berubah saat jenis diganti Pemindahan / Pemusnahan.
 6. Login **manager_marco**: tidak ada tombol tambah barang; buka permintaan, lihat foto dan stok lokasi asal, koreksi rincian kondisi, coba Tolak tanpa alasan (ditolak), lalu Setujui (stok berkurang).
-7. Login **operator_siti** lagi: tab **Sedang Dipinjam** → buka peminjaman bola basket → catat pengembalian 1 bola Rusak Ringan → status Dikembalikan.
+7. Login **operator_siti** lagi: tab **Sedang Dipinjam** → tombol **Kembalikan** pada peminjaman bola basket → catat pengembalian 1 bola Rusak Ringan → status Dikembalikan. Lalu **Pemeriksaan Kondisi** → ajukan 2 Meja Guru di Gudang Utama Baik → Rusak Ringan dengan foto; login **manager_marco** → Setujui → detail Meja Guru menunjukkan stok per kondisi berubah, total tetap 7.
 8. Login **admin_ohim**: menu Pengguna menampilkan tiga role; pengguna lain hanya bisa dihapus (tidak ada tombol ubah / ganti password); menu **Lokasi** menampilkan jumlah stok per lokasi; koreksi barang masuk.
 9. Detail barang Kursi Siswa: tabel **Stok per Lokasi** (Gudang Utama, Gudang 2) per kondisi. Tombol **Cetak** pada daftar barang.
-10. Terminal: `php artisan test` → 96 test lulus.
+10. Terminal: `php artisan test` → 108 test lulus.
 
 Mengembalikan data ke kondisi awal sebelum demo: `php artisan migrate:fresh --seed`.

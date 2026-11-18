@@ -403,6 +403,24 @@ class TransaksiBarangTest extends TestCase
         $this->assertSame(6, $barang->fresh()->stok);
     }
 
+    public function test_tombol_kembalikan_hanya_tampil_untuk_operator_pada_pinjaman_yang_belum_lunas(): void
+    {
+        $barang = $this->buatBarang(['stok' => 10]);
+        $keluar = $this->buatPermintaanKeluar($barang, $this->kondisi(4));
+        $tautan = route('barang-keluar.show', $keluar).'#catat-pengembalian';
+
+        // Masih Pending: belum ada yang perlu dikembalikan
+        $this->actingAs($this->operator)->get('/barang-keluar')->assertDontSee($tautan, false);
+
+        $this->actingAs($this->manager)->patch(route('barang-keluar.setujui', $keluar));
+        $this->actingAs($this->operator)->get('/barang-keluar?verifikasi=Dipinjam')->assertSee($tautan, false);
+        $this->actingAs($this->manager)->get('/barang-keluar?verifikasi=Dipinjam')->assertDontSee($tautan, false);
+
+        // Sudah dikembalikan semua: tombol hilang
+        $this->actingAs($this->operator)->post(route('pengembalian.store', $keluar), ['tanggal' => '2026-10-10', 'id_lokasi' => $this->lokasi()->id_lokasi] + $this->kondisi(4));
+        $this->get('/barang-keluar')->assertDontSee($tautan, false);
+    }
+
     public function test_pengembalian_hanya_untuk_peminjaman_yang_disetujui(): void
     {
         $barang = $this->buatBarang(['stok' => 10]);

@@ -28,7 +28,7 @@
             @endif
         </form>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Tabel barang masuk">
             <table class="table-data">
                 <thead>
                     <tr>

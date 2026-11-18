@@ -4,6 +4,9 @@
 
 const DIALOG = { modal: 'dialog-modal', laci: 'dialog-laci' };
 
+// Bagian (#id) yang dituju tautan popup terakhir, contoh "#catat-pengembalian"
+let bagianTujuan = null;
+
 function dialogDari(frame) {
     return frame ? document.getElementById(DIALOG[frame.id]) : null;
 }
@@ -11,9 +14,8 @@ function dialogDari(frame) {
 function kosongkan(dialog) {
     const frame = dialog.querySelector('turbo-frame');
     frame?.removeAttribute('src');
-    if (frame) {
-        frame.innerHTML = '';
-    }
+    // replaceChildren(): mengosongkan isi tanpa menjalankan parser HTML
+    frame?.replaceChildren();
 }
 
 export function tutupSemuaPopup() {
@@ -61,7 +63,20 @@ export function pasangPopup() {
         if (dialog && !dialog.open) {
             dialog.showModal();
         }
+        // Tautan dengan #bagian (mis. tombol "Kembalikan" -> #catat-pengembalian): gulir ke bagian itu
+        if (dialog && bagianTujuan) {
+            event.target.querySelector(bagianTujuan)?.scrollIntoView({ block: 'start' });
+        }
+        bagianTujuan = null;
     });
+
+    // Turbo membuang #bagian dari alamat frame, jadi diingat dari tautan yang diklik
+    document.addEventListener('click', (event) => {
+        const tautan = event.target.closest('a[data-turbo-frame]');
+        if (tautan && DIALOG[tautan.dataset.turboFrame]) {
+            bagianTujuan = new URL(tautan.href, window.location.href).hash || null;
+        }
+    }, true);
 
     // Setelah form berhasil disimpan, server mengarahkan ke halaman daftar yang tidak punya
     // isi popup. Tutup popup lalu tampilkan halaman itu (beserta pesan suksesnya).
@@ -83,9 +98,15 @@ export function pasangPopup() {
             dialog.close();
             return;
         }
-        // Klik di area gelap di luar kotak popup juga menutup popup
-        if (event.target.matches('dialog.popup')) {
-            event.target.close();
+        // Klik di area gelap di luar kotak popup menutup popup. Browser yang mendukung
+        // closedby="any" (lihat layout) melakukannya sendiri; ini cadangan untuk Safari.
+        if (!('closedBy' in HTMLDialogElement.prototype) && event.target.matches('dialog.popup')) {
+            const kotak = event.target.getBoundingClientRect();
+            const diDalamKotak = kotak.top <= event.clientY && event.clientY <= kotak.bottom
+                && kotak.left <= event.clientX && event.clientX <= kotak.right;
+            if (!diDalamKotak) {
+                event.target.close();
+            }
         }
     });
 

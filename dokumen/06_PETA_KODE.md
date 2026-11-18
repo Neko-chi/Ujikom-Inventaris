@@ -24,28 +24,28 @@ Setiap kali tombol diklik atau form dikirim, kode dijalankan berurutan seperti i
 | 6 | Model | `app/Models/*.php` | Mewakili tabel database (Eloquent ORM) |
 | 7 | View | `resources/views/**/*.blade.php` | Tampilan HTML yang dikirim ke browser |
 
-Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45) → middleware `auth` + `role:Operator` → `BarangKeluarRequest` memeriksa isian dan stok per kondisi di lokasi asal → `BarangKeluarController@store` menyimpan foto lewat `GambarService::simpan()` lalu `BarangKeluar::create()` → kembali ke daftar dengan pesan sukses.
+Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:46) → middleware `auth` + `role:Operator` → `BarangKeluarRequest` memeriksa isian dan stok per kondisi di lokasi asal → `BarangKeluarController@store` menyimpan foto lewat `GambarService::simpan()` lalu `BarangKeluar::create()` → kembali ke daftar dengan pesan sukses.
 
 ## 2. Peta Folder
 
 | Folder / File | Isi |
 |---|---|
-| `routes/web.php` | Semua URL aplikasi (46 route) dan pembagian hak akses per role |
-| `app/Http/Controllers/` | 10 controller: Auth, Dashboard, Profil, User, Kategori, Lokasi, Barang, BarangMasuk, BarangKeluar, Pengembalian |
-| `app/Http/Requests/` | 8 class validasi form |
+| `routes/web.php` | Semua URL aplikasi (52 route) dan pembagian hak akses per role |
+| `app/Http/Controllers/` | 11 controller: Auth, Dashboard, Profil, User, Kategori, Lokasi, Barang, BarangMasuk, BarangKeluar, Pengembalian, PemeriksaanKondisi |
+| `app/Http/Requests/` | 9 class validasi form |
 | `app/Http/Middleware/CekRole.php` | Pembatas akses berdasarkan role |
-| `app/Models/` | 8 model: User, Kategori, Lokasi, Barang, StokBarang, BarangMasuk, BarangKeluar, Pengembalian |
+| `app/Models/` | 9 model: User, Kategori, Lokasi, Barang, StokBarang, BarangMasuk, BarangKeluar, Pengembalian, PemeriksaanKondisi |
 | `app/Models/Concerns/PunyaRincianKondisi.php` | Trait rincian kondisi (Baik / Rusak Ringan / Rusak Berat) yang dipakai 3 model transaksi |
 | `app/Services/` | `StokService` (ubah stok per lokasi & kondisi) dan `GambarService` (simpan/hapus gambar) |
 | `app/Support/Suasana.php` | Penentu suasana pagi/siang/sore/malam (salam, animasi login, audio) |
 | `app/Exceptions/StokTidakCukupException.php` | Error khusus saat stok kurang |
-| `app/Providers/AppServiceProvider.php` | Pengaturan awal aplikasi (https, pagination, jumlah Pending) |
+| `app/Providers/AppServiceProvider.php` | Pengaturan awal aplikasi (https, pagination, jumlah Pending barang keluar dan pemeriksaan kondisi) |
 | `bootstrap/app.php` | Pendaftaran middleware `role` dan penanganan error 419 |
-| `database/migrations/` | 8 file pembuat / pengubah tabel (terakhir: `2026_10_21_000001_tambah_lokasi_kondisi_peminjaman`) |
-| `database/seeders/DatabaseSeeder.php` | Data sampel (3 akun, 5 kategori, 7 lokasi, 11 barang dengan stok per lokasi & kondisi, transaksi, 1 pengembalian) |
+| `database/migrations/` | 9 file pembuat / pengubah tabel (terakhir: `2026_11_17_000001_create_pemeriksaan_kondisi_table`) |
+| `database/seeders/DatabaseSeeder.php` | Data sampel (3 akun, 5 kategori, 7 lokasi, 11 barang dengan stok per lokasi & kondisi, transaksi, 1 pengembalian, 1 pemeriksaan kondisi Pending) |
 | `resources/views/` | Tampilan Blade (layout, halaman, komponen) |
 | `resources/css/app.css` | Gaya tampilan (Tailwind CSS), animasi login, mode gelap |
-| `resources/js/` | `app.js` (Turbo & interaksi umum), `popup.js` (popup & panel kanan), `tema.js` (mode gelap), `suasana.js` (salam, jam & audio login), `musik.js` (musik Bad Apple!!), `form-kondisi.js` (total kondisi dan form barang keluar sesuai jenis) |
+| `resources/js/` | `app.js` (Turbo & interaksi umum), `popup.js` (popup & panel kanan), `tema.js` (mode gelap), `suasana.js` (salam, jam & audio login), `musik.js` (musik Bad Apple!!), `form-kondisi.js` (total kondisi, form barang keluar sesuai jenis, stok per lokasi di pilihan lokasi) |
 | `public/audio/` | 4 file suara suasana (`pagi.wav`, `siang.wav`, `sore.wav`, `malam.wav`) dan lagu `bad-apple.mp3` |
 | `public/images/siluet.png` | Gambar siluet karakter (login dan banner dashboard) |
 | `public/images/latar-karakter.png` | Karakter tersenyum bersayap untuk latar halaman aplikasi |
@@ -60,14 +60,14 @@ Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45)
 
 | Lokasi | Fungsi / Bagian | Untuk apa |
 |---|---|---|
-| `routes/web.php:15` | `Route::redirect('/', '/login')` | Alamat utama langsung diarahkan ke halaman login |
-| `routes/web.php:18` | grup `guest` | Halaman login hanya untuk yang belum login |
-| `routes/web.php:23` | grup `auth` | Semua halaman lain wajib login |
-| `routes/web.php:35` | grup `role:Admin,Operator` | Tambah barang |
-| `routes/web.php:41` | grup `role:Operator` | Catat barang masuk, ajukan barang keluar, catat pengembalian (baris 47) |
-| `routes/web.php:51` | grup `role:Admin` | Tambah / hapus pengguna (baris 53, `->only([...])`), kategori, lokasi (baris 56), ubah/hapus barang, koreksi barang masuk |
-| `routes/web.php:63` | grup `role:Manager` | Setujui / tolak barang keluar |
-| `routes/web.php:69-73` | tanpa grup role | Halaman lihat data, untuk semua role |
+| `routes/web.php:16` | `Route::redirect('/', '/login')` | Alamat utama langsung diarahkan ke halaman login |
+| `routes/web.php:19` | grup `guest` | Halaman login hanya untuk yang belum login |
+| `routes/web.php:24` | grup `auth` | Semua halaman lain wajib login |
+| `routes/web.php:36` | grup `role:Admin,Operator` | Tambah barang |
+| `routes/web.php:42` | grup `role:Operator` | Catat barang masuk, ajukan barang keluar, catat pengembalian (baris 48), ajukan pemeriksaan kondisi (baris 50-51) |
+| `routes/web.php:55` | grup `role:Admin` | Tambah / hapus pengguna (baris 57, `->only([...])`), kategori, lokasi (baris 60), ubah/hapus barang, koreksi barang masuk |
+| `routes/web.php:67` | grup `role:Manager` | Setujui / tolak barang keluar (baris 68-69) dan pemeriksaan kondisi (baris 70-71) |
+| `routes/web.php:75-81` | tanpa grup role | Halaman lihat data, untuk semua role |
 | `CekRole.php:17` | `handle($request, $next, ...$roles)` | Bila role pengguna tidak ada di daftar `$roles`, tampilkan error 403. `...$roles` = parameter variadic (bisa banyak role) |
 | `bootstrap/app.php:18` | `$middleware->alias(['role' => CekRole::class])` | Mendaftarkan nama pendek `role` agar bisa ditulis `role:Admin` di route |
 | `bootstrap/app.php:29` | `$exceptions->render(...)` | Gambar gagal disimpan → kembali ke form dengan pesan jelas, bukan error 500 |
@@ -94,7 +94,7 @@ Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45)
 | `BarangController.php:67` | `store()` | Simpan barang baru (stok 0), lalu stok awal ditambah per kondisi ke lokasi terpilih (`tambahRincian`) dalam satu `DB::transaction`; kode dibuat otomatis `Barang::generateKode()`; gambar disimpan `GambarService` |
 | `BarangController.php:93` | `show()` | Detail barang: stok per kondisi, stok per lokasi, jumlah dipinjam, riwayat masuk & keluar |
 | `BarangController.php:113` | `update()` | Ubah kategori, nama, satuan, gambar; stok tidak diubah dari sini |
-| `BarangController.php:135` | `destroy()` | Hapus barang, ditolak bila sudah punya riwayat transaksi |
+| `BarangController.php:135` | `destroy()` | Hapus barang, ditolak bila sudah punya riwayat transaksi atau pemeriksaan kondisi |
 | `BarangMasukController.php:34` | `index()` | Daftar barang masuk (kondisi & lokasi) dengan filter tanggal dari–sampai |
 | `BarangMasukController.php:59` | `store()` | Catat barang masuk ke lokasi + tambah stok per kondisi (`tambahRincian`) dalam satu `DB::transaction` |
 | `BarangMasukController.php:93` | `update()` | Koreksi oleh Admin: rincian lama dibatalkan dari lokasi lama (`kurangiRincian`), rincian baru ditambahkan; ditolak bila stok lama sudah terpakai |
@@ -109,8 +109,16 @@ Contoh: Operator mengajukan barang keluar → `POST /barang-keluar` (web.php:45)
 | `BarangKeluarController.php:216` | `kunciPermintaanPending()` | `lockForUpdate()` mengunci baris agar 2 Manager tidak menyetujui bersamaan (stok tidak terpotong dua kali) |
 | `BarangKeluarController.php:226` | `simpanVerifikasi()` | Mencatat hasil, id Manager, tanggal, dan catatan verifikasi |
 | `PengembalianController.php:27` | `store()` | Operator mencatat pengembalian pinjaman: kunci baris peminjaman, cek ulang sisa pinjaman (baris 40), simpan, lalu stok bertambah sesuai kondisi saat kembali (baris 54) |
+| `PemeriksaanKondisiController.php:37` | `index()` | Daftar pemeriksaan kondisi dengan tab status verifikasi |
+| `PemeriksaanKondisiController.php:51` | `show()` | Detail pemeriksaan + stok kondisi asal saat ini (untuk panel verifikasi Manager) |
+| `PemeriksaanKondisiController.php:62` | `create()` | Form pengajuan + peta stok `[id_barang][id_lokasi][kondisi]` untuk JavaScript |
+| `PemeriksaanKondisiController.php:77` | `store()` | Operator mengajukan perubahan kondisi; status Pending; foto bukti wajib (dihapus lagi bila simpan gagal) |
+| `PemeriksaanKondisiController.php:96` | `setujui()` | Manager menyetujui: di dalam `DB::transaction` memanggil `StokService::ubahKondisi()`; gagal dengan pesan bila stok kondisi asal sudah kurang |
+| `PemeriksaanKondisiController.php:126` | `tolak()` | Manager menolak → stok tetap, alasan wajib |
+| `PemeriksaanKondisiController.php:155` | `kunciPending()` | `lockForUpdate()` + cek masih Pending, agar tidak diverifikasi dua kali |
+| `PemeriksaanKondisiController.php:162` | `simpanVerifikasi()` | Mencatat hasil, id Manager, tanggal, dan catatan |
 
-Fungsi `__construct(private StokService $stok, ...)` di BarangController, BarangMasukController, BarangKeluarController, PengembalianController, ProfilController adalah **dependency injection**: Laravel otomatis membuatkan objek service dan memasukkannya ke controller.
+Fungsi `__construct(private StokService $stok, ...)` di BarangController, BarangMasukController, BarangKeluarController, PengembalianController, PemeriksaanKondisiController, ProfilController adalah **dependency injection**: Laravel otomatis membuatkan objek service dan memasukkannya ke controller.
 
 ### 3.3 Form Request (Validasi)
 
@@ -124,6 +132,8 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `BarangKeluarRequest.php:77` | `periksaRincian()` | Total minimal 1; Pemusnahan hanya Rusak Berat; tiap kondisi tidak boleh melebihi stok kondisi itu di lokasi asal. Dipakai juga saat Manager mengoreksi |
 | `BarangMasukRequest.php:39` | `after()` | Total rincian kondisi minimal 1 |
 | `PengembalianRequest.php:38` | `after()` | Total minimal 1 dan tidak boleh melebihi sisa pinjaman |
+| `PemeriksaanKondisiRequest.php:25` | `rules()` | `kondisi_baru` harus `different:kondisi_asal`; alasan dan foto wajib; kondisi harus salah satu `Barang::KONDISI` |
+| `PemeriksaanKondisiRequest.php:40` | `after()` | Jumlah tidak boleh melebihi stok kondisi asal di lokasi itu (`StokService::tersedia()`) |
 | `BarangRequest.php:33` | `if ($this->isMethod('post'))` | Stok awal (lokasi + rincian kondisi) hanya diisi saat tambah barang, bukan saat ubah; `after()` (baris 44) mewajibkan lokasi bila stok awal diisi |
 | `UserRequest.php:23` | `Rule::unique('user', 'username')` | Username tidak boleh sama dengan pengguna lain |
 | `ProfilRequest.php:25` | `current_password` | Password lama harus benar sebelum ganti password |
@@ -137,17 +147,18 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `User.php:92` | `inisial()` | "Marco Ivanos" → "MI" untuk avatar tanpa foto |
 | `User.php:110` | `fotoUrl()` | Accessor: `$user->foto_url` = alamat foto profil |
 | `User.php:116/122/128/134` | `barangMasuk()`, `barangKeluar()`, `verifikasiBarangKeluar()`, `pengembalian()` | Relasi 1 pengguna → banyak transaksi (`hasMany`) |
-| `User.php:140` | `punyaTransaksi()` | Cek apakah pengguna sudah punya transaksi: barang masuk, pengajuan / verifikasi barang keluar, atau pengembalian (tidak boleh dihapus) |
+| `User.php:140/146` | `pemeriksaanKondisi()`, `verifikasiPemeriksaanKondisi()` | Relasi 1 pengguna → banyak pemeriksaan kondisi (sebagai pengaju / Manager pemverifikasi) |
+| `User.php:152` | `punyaTransaksi()` | Cek apakah pengguna sudah punya transaksi: barang masuk, pengajuan / verifikasi barang keluar, pengembalian, atau pengajuan / verifikasi pemeriksaan kondisi (tidak boleh dihapus) |
 | `Barang.php:77` | `gambarUrl()` | Accessor: `$barang->gambar_url` |
 | `Barang.php:82` | `kategori()` | Relasi barang → kategori (`belongsTo`) |
-| `Barang.php:87/92` | `barangMasuk()`, `barangKeluar()` | Relasi barang → transaksi (`hasMany`) |
-| `Barang.php:98` | `stokBarang()` | Relasi barang → baris stok per lokasi & kondisi (`hasMany`) |
-| `Barang.php:108` | `stokPerKondisi()` | `['Baik' => 8, 'Rusak Ringan' => 0, 'Rusak Berat' => 2]` (semua lokasi) |
-| `Barang.php:124` | `stokPerLokasi()` | `['Gudang Utama' => ['Baik' => 110, ...], 'Gudang 2' => [...]]` untuk tabel Stok per Lokasi |
-| `Barang.php:136` | `jumlahDipinjam()` | Jumlah barang yang sedang dipinjam (belum kembali) |
-| `Barang.php:152` | `prefixKategori()` | Nama kategori → prefix kode, contoh "Alat Tulis" → "AT" |
-| `Barang.php:173` | `generateKode()` | Membuat kode berikutnya, contoh sudah ada AT-004 → AT-005 |
-| `Barang.php:185` | `stokMenipis()` | `true` bila stok ≤ 5 |
+| `Barang.php:87/92/97` | `barangMasuk()`, `barangKeluar()`, `pemeriksaanKondisi()` | Relasi barang → transaksi dan pemeriksaan kondisi (`hasMany`) |
+| `Barang.php:103` | `stokBarang()` | Relasi barang → baris stok per lokasi & kondisi (`hasMany`) |
+| `Barang.php:113` | `stokPerKondisi()` | `['Baik' => 8, 'Rusak Ringan' => 0, 'Rusak Berat' => 2]` (semua lokasi) |
+| `Barang.php:129` | `stokPerLokasi()` | `['Gudang Utama' => ['Baik' => 110, ...], 'Gudang 2' => [...]]` untuk tabel Stok per Lokasi |
+| `Barang.php:141` | `jumlahDipinjam()` | Jumlah barang yang sedang dipinjam (belum kembali) |
+| `Barang.php:157` | `prefixKategori()` | Nama kategori → prefix kode, contoh "Alat Tulis" → "AT" |
+| `Barang.php:178` | `generateKode()` | Membuat kode berikutnya, contoh sudah ada AT-004 → AT-005 |
+| `Barang.php:190` | `stokMenipis()` | `true` bila stok ≤ 5 |
 | `BarangKeluar.php:121/127/133` | `barang()`, `user()`, `verifikator()` | Relasi ke barang, pengaju, dan Manager pemverifikasi |
 | `BarangKeluar.php:138/143` | `lokasiAsal()`, `lokasiTujuan()` | Relasi ke lokasi asal dan lokasi tujuan (Pemindahan) |
 | `BarangKeluar.php:149` | `pengembalian()` | Relasi 1 peminjaman → banyak pengembalian (`hasMany`) |
@@ -159,7 +170,9 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `Pengembalian.php:63/68/73` | `barangKeluar()`, `user()`, `lokasi()` | Relasi ke peminjaman, pencatat, dan lokasi penyimpanan |
 | `StokBarang.php:38/43` | `barang()`, `lokasi()` | Satu baris stok milik satu barang di satu lokasi |
 | `Lokasi.php:34` | `stokBarang()` | Relasi 1 lokasi → banyak baris stok |
-| `Lokasi.php:40` | `sudahDipakai()` | Cek lokasi masih berisi stok atau tercatat di transaksi (tidak boleh dihapus) |
+| `Lokasi.php:40` | `sudahDipakai()` | Cek lokasi masih berisi stok atau tercatat di transaksi / pemeriksaan kondisi (tidak boleh dihapus) |
+| `PemeriksaanKondisi.php:79/84/90/96` | `barang()`, `lokasi()`, `user()`, `verifikator()` | Relasi ke barang, lokasi, Operator pengaju, dan Manager pemverifikasi |
+| `PemeriksaanKondisi.php:101` | `isPending()` | Cek masih menunggu verifikasi |
 | `PunyaRincianKondisi.php:19` | `rincian()` | Kolom `jumlah_baik`, `jumlah_rusak_ringan`, `jumlah_rusak_berat` → array `['Baik' => 5, ...]` |
 | `PunyaRincianKondisi.php:30` | `ringkasKondisi()` | Teks "5 Baik · 10 Rusak Ringan" |
 | `PunyaRincianKondisi.php:47` | `isiRincian()` | Mengisi tiga kolom kondisi dan total `jumlah` dari array rincian |
@@ -170,15 +183,16 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 
 | Lokasi | Fungsi | Untuk apa |
 |---|---|---|
-| `StokService.php:32` | `tersedia($idBarang, $idLokasi, $kondisi)` | Jumlah stok satu kondisi di satu lokasi |
-| `StokService.php:37` | `cukup()` | Cek stok kondisi itu di lokasi itu ≥ jumlah |
-| `StokService.php:42` | `tambah($barang, $idLokasi, $kondisi, $jumlah)` | Stok satu kondisi di satu lokasi bertambah |
-| `StokService.php:56` | `kurangi($barang, $idLokasi, $kondisi, $jumlah)` | Stok berkurang; bila tidak cukup lempar `StokTidakCukupException` |
-| `StokService.php:76` | `tambahRincian($barang, $idLokasi, $rincian)` | Menambah beberapa kondisi sekaligus (barang masuk, pengembalian, pemindahan ke tujuan) |
-| `StokService.php:93` | `kurangiRincian($barang, $idLokasi, $rincian)` | Memeriksa semua kondisi dulu, baru mengurangi (tidak ada pengurangan setengah jalan) |
-| `StokService.php:110` | `baris()` | Ambil / buat baris `stok_barang` dan kunci dengan `lockForUpdate()` |
-| `StokService.php:119` | `perbaruiTotal()` | Menghitung ulang `barang.stok` = jumlah semua baris stok barang itu |
-| `StokService.php:125` | `pastikanValid()` | Jumlah ≤ 0 atau kondisi tidak dikenal ditolak (`InvalidArgumentException`) |
+| `StokService.php:34` | `tersedia($idBarang, $idLokasi, $kondisi)` | Jumlah stok satu kondisi di satu lokasi |
+| `StokService.php:39` | `cukup()` | Cek stok kondisi itu di lokasi itu ≥ jumlah |
+| `StokService.php:44` | `tambah($barang, $idLokasi, $kondisi, $jumlah)` | Stok satu kondisi di satu lokasi bertambah |
+| `StokService.php:58` | `kurangi($barang, $idLokasi, $kondisi, $jumlah)` | Stok berkurang; bila tidak cukup lempar `StokTidakCukupException` |
+| `StokService.php:78` | `tambahRincian($barang, $idLokasi, $rincian)` | Menambah beberapa kondisi sekaligus (barang masuk, pengembalian, pemindahan ke tujuan) |
+| `StokService.php:95` | `kurangiRincian($barang, $idLokasi, $rincian)` | Memeriksa semua kondisi dulu, baru mengurangi (tidak ada pengurangan setengah jalan) |
+| `StokService.php:117` | `ubahKondisi($barang, $idLokasi, $kondisiAsal, $kondisiBaru, $jumlah)` | Pemeriksaan kondisi: `kurangi()` kondisi asal lalu `tambah()` kondisi baru di lokasi yang sama; total stok tetap |
+| `StokService.php:124` | `baris()` | Ambil / buat baris `stok_barang` dan kunci dengan `lockForUpdate()` |
+| `StokService.php:133` | `perbaruiTotal()` | Menghitung ulang `barang.stok` = jumlah semua baris stok barang itu |
+| `StokService.php:139` | `pastikanValid()` | Jumlah ≤ 0 atau kondisi tidak dikenal ditolak (`InvalidArgumentException`) |
 | `GambarService.php:27` | `disk()` | Memilih tempat simpan: `public` (lokal) atau `s3` (Supabase) |
 | `GambarService.php:38` | `simpan()` | Simpan file dengan nama acak, kembalikan path-nya; bila gagal lempar `GambarGagalDisimpanException` dan catat penyebabnya ke log |
 | `GambarService.php:59` | `ganti()` | Simpan file baru lalu hapus file lama |
@@ -189,8 +203,8 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `Suasana.php:69` | `untukBrowser()` | Data suasana + alamat file audio untuk JavaScript login |
 | `GambarGagalDisimpanException.php:16` | `__construct()` | Pesan "Gambar gagal disimpan ke penyimpanan…" |
 | `StokTidakCukupException.php:13` | `__construct()` | Menyusun pesan "Stok X kondisi Rusak Ringan di Gudang Utama tidak mencukupi..." |
-| `AppServiceProvider.php:18` | `boot()` | Paksa https di produksi, pakai tampilan pagination Indonesia, hitung jumlah Pending untuk sidebar (`View::composer`) |
-| `DatabaseSeeder.php:26` | `run()` | Mengisi data sampel: akun, kategori, lokasi, barang + stok per lokasi & kondisi, transaksi, pengembalian |
+| `AppServiceProvider.php:19` | `boot()` | Paksa https di produksi, pakai tampilan pagination Indonesia, hitung jumlah Pending barang keluar dan pemeriksaan kondisi untuk sidebar (`View::composer`, baris 31 dan 34) |
+| `DatabaseSeeder.php:28` | `run()` | Mengisi data sampel: akun, kategori, lokasi, barang + stok per lokasi & kondisi, transaksi, pengembalian, pemeriksaan kondisi |
 
 ### 3.6 JavaScript
 
@@ -204,10 +218,13 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `app.js:64` | `[data-toggle-password]` | Tampilkan / sembunyikan password |
 | `app.js:76` | `[data-pratinjau]` | Pratinjau gambar sebelum diunggah + cek ukuran maks 2 MB |
 | `app.js:105` | `turbo:load` | Dijalankan setiap halaman baru tampil (termasuk lewat Turbo) |
-| `popup.js:29` | `siapkanFrame()` | Membuat `<turbo-frame>` "modal" dan "laci" di dalam dialog |
-| `popup.js:40` | `pasangPopup()` | Mengatur popup dan panel kanan: buka saat isi dimuat, tutup dengan X / Esc / klik di luar |
-| `popup.js:46` | `turbo:before-fetch-request` | Permintaan dari popup memakai alamat popup sebagai Referer, dan mengirim alamat halaman asal (`X-Halaman-Asal`) |
-| `popup.js:68` | `turbo:frame-missing` | Setelah simpan berhasil: tutup popup lalu tampilkan halaman daftar beserta pesan sukses |
+| `popup.js:31` | `siapkanFrame()` | Membuat `<turbo-frame>` "modal" dan "laci" di dalam dialog |
+| `popup.js:14` | `kosongkan()` | Mengosongkan isi popup saat ditutup dengan `replaceChildren()` (tanpa parser HTML) |
+| `popup.js:42` | `pasangPopup()` | Mengatur popup dan panel kanan: buka saat isi dimuat, tutup dengan X / Esc / klik di luar (`closedby="any"`, cadangan untuk Safari di baris 93) |
+| `popup.js:48` | `turbo:before-fetch-request` | Permintaan dari popup memakai alamat popup sebagai Referer, dan mengirim alamat halaman asal (`X-Halaman-Asal`) |
+| `popup.js:61` | `turbo:frame-load` | Isi popup selesai dimuat → `showModal()`, lalu gulir ke `#bagian` yang dituju tautan (contoh tombol Kembalikan → `#catat-pengembalian`) |
+| `popup.js:74` | `click` (fase capture) | Mengingat `#bagian` dari tautan popup yang diklik, karena Turbo membuangnya dari alamat frame |
+| `popup.js:83` | `turbo:frame-missing` | Setelah simpan berhasil: tutup popup lalu tampilkan halaman daftar beserta pesan sukses |
 | `tema.js:9` | `simpanTema()` | Simpan pilihan `terang` / `gelap` di `sessionStorage` (berlaku selama tab terbuka) |
 | `tema.js:17` | `tukarTema()` | Tukar class `dark` pada `<html>` dan simpan pilihan |
 | `tema.js:27` | `gantiTema(tombol)` | Menjalankan pergantian tema dengan efek lingkaran (View Transitions API) |
@@ -220,10 +237,11 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `suasana.js:86` | `perbaruiTombolAudio()` | Mengganti ikon dan label tombol suara |
 | `musik.js:46` | `siapkanAudio()` | Memasang event pada elemen audio dan melanjutkan lagu setelah halaman dimuat ulang |
 | `musik.js:66` | `pasangMusik()` | Tombol musik (putar / jeda) dan penyimpanan posisi lagu |
-| `form-kondisi.js:9` | `hitungTotal()` | Menjumlahkan 3 kotak kondisi dan menampilkan totalnya |
-| `form-kondisi.js:18` | `aturFormKeluar()` | Menampilkan bagian sesuai jenis (`data-hanya-jenis`), mengunci Baik / Rusak Ringan untuk Pemusnahan, mengganti label Pemohon / Peminjam |
-| `form-kondisi.js:51` | `tampilkanStok()` | Membaca peta stok JSON, menampilkan stok tiap kondisi di lokasi asal, dan memasang batas `max` |
-| `form-kondisi.js:77` | `pasangFormKondisi()` | Memasang event `input` / `change` (event delegation) serta `turbo:load` dan `turbo:frame-load` |
+| `form-kondisi.js:10` | `hitungTotal()` | Menjumlahkan 3 kotak kondisi dan menampilkan totalnya |
+| `form-kondisi.js:19` | `aturFormKeluar()` | Menampilkan bagian sesuai jenis (`data-hanya-jenis`), mengunci Baik / Rusak Ringan untuk Pemusnahan, mengganti label Pemohon / Peminjam |
+| `form-kondisi.js:53` | `perbaruiPilihanLokasi()` | Menulis stok barang terpilih di setiap pilihan lokasi ("Gudang 2 (Gudang) — stok 10 buah (3 Baik, 7 Rusak Ringan)"), mengunci lokasi tanpa stok, memilih otomatis bila hanya satu lokasi |
+| `form-kondisi.js:98` | `tampilkanStok()` | Membaca peta stok JSON, menampilkan stok tiap kondisi di lokasi asal, dan memasang batas `max` (juga untuk form pemeriksaan kondisi) |
+| `form-kondisi.js:132` | `pasangFormKondisi()` | Memasang event `input` / `change` (event delegation) serta `turbo:load` dan `turbo:frame-load` |
 | `partials/tema-awal.blade.php` | skrip kecil di `<head>` | Menentukan tema (pilihan pengguna atau ikut jam) dan posisi sidebar sebelum halaman tampil |
 
 **Event delegation**: karena Turbo mengganti isi halaman tanpa memuat ulang, klik dipasang sekali di `document` lalu dicek dengan `event.target.closest('[data-...]')`. Dengan begitu tombol di halaman baru tetap berfungsi tanpa dipasang ulang.
@@ -242,16 +260,16 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `Barang.php:59` | `$fillable` | Array biasa | Kolom barang yang boleh diisi |
 | `BarangKeluar.php:48` | `JENIS` | Array biasa | `['Peminjaman', 'Pemindahan', 'Pemusnahan']` |
 | `BarangKeluar.php:51` | `INFO_JENIS` | Array asosiatif | Jenis keluar → keterangan yang tampil di form |
-| `BarangKeluar.php:64` | `VERIFIKASI` | Array biasa | `['Pending', 'Disetujui', 'Ditolak']` |
+| `BarangKeluar.php:64` | `VERIFIKASI` | Array biasa | `['Pending', 'Disetujui', 'Ditolak']`; juga dipakai pemeriksaan kondisi |
 | `Lokasi.php:23` | `JENIS` | Array biasa | `['Gudang', 'Ruangan']` |
 | `PunyaRincianKondisi.php:19` | hasil `rincian()` | Array asosiatif | Rincian kondisi satu transaksi, contoh `['Baik' => 5, 'Rusak Ringan' => 10, 'Rusak Berat' => 5]` |
-| `BarangKeluarController.php:81` | `$petaStok` | Array asosiatif 3 tingkat | `[id_barang][id_lokasi][kondisi] => jumlah`; dikirim ke form sebagai JSON |
-| `Barang.php:124` | hasil `stokPerLokasi()` | Array asosiatif bersarang | `nama_lokasi => [kondisi => jumlah]` |
-| `form-kondisi.js:7` | `KONDISI` | Array JavaScript | Urutan kondisi untuk menampilkan stok |
+| `BarangKeluarController.php:81`, `PemeriksaanKondisiController.php:65` | `$petaStok` | Array asosiatif 3 tingkat | `[id_barang][id_lokasi][kondisi] => jumlah`; dikirim ke form sebagai JSON |
+| `Barang.php:129` | hasil `stokPerLokasi()` | Array asosiatif bersarang | `nama_lokasi => [kondisi => jumlah]` |
+| `form-kondisi.js:8` | `KONDISI` | Array JavaScript | Urutan kondisi untuk menampilkan stok |
 | `GambarService.php:25` | `ATURAN` | Array biasa | Aturan validasi gambar: jenis file dan maks 2 MB; disisipkan ke Request dengan operator spread `...` |
 | `Suasana.php:16` | `DAFTAR` | Array asosiatif bersarang | Per waktu: jam mulai, salam, kalimat, file audio |
 | `DashboardController.php:20` | `$ringkasan` | Array asosiatif | 4 angka kartu statistik dashboard |
-| `DatabaseSeeder.php:52` | `$daftarBarang` | Array bersarang | 11 barang sampel beserta stok `lokasi => [Baik, Rusak Ringan, Rusak Berat]`; dibongkar dengan *destructuring* `[$kode, $idKategori, ...]` |
+| `DatabaseSeeder.php:54` | `$daftarBarang` | Array bersarang | 11 barang sampel beserta stok `lokasi => [Baik, Rusak Ringan, Rusak Berat]`; dibongkar dengan *destructuring* `[$kode, $idKategori, ...]` |
 | `api/index.php:11` | `$pengaturanVercel`, `$bawaan` | Array asosiatif | Pengaturan khusus hosting Vercel |
 | `layouts/app.blade.php:46` | `$menu` | Array asosiatif bersarang | Struktur menu sidebar: grup → [route, pola aktif, label, ikon, khusus admin, badge] |
 | `dashboard.blade.php:10` | `$aksiCepat` | Array 2 dimensi (dari `match`) | Tombol aksi cepat berbeda per role |
@@ -272,13 +290,13 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | `if / elseif` | `PengembalianRequest.php:53`, `BarangController.php:120` | Total 0 → error "minimal 1", melebihi sisa → error "melebihi sisa pinjaman"; gambar baru → ganti, centang hapus → hapus |
 | `match (true)` | `BarangKeluar.php:189` | Status pinjam berdasarkan jumlah yang sudah kembali |
 | `match` (PHP 8) | `dashboard.blade.php:10`, `badge.blade.php:5` | Pilih nilai berdasarkan role / status, lebih ringkas dari `switch` |
-| `foreach` | `Suasana.php:49`, `StokService.php:95`, `DatabaseSeeder.php:68` | Mengulang isi array (di StokService: memeriksa setiap kondisi dalam rincian) |
+| `foreach` | `Suasana.php:49`, `StokService.php:97`, `DatabaseSeeder.php:70` | Mengulang isi array (di StokService: memeriksa setiap kondisi dalam rincian) |
 | `@foreach` / `@forelse` (Blade) | `dashboard.blade.php:89` | Mengulang data di tampilan; `@forelse` punya bagian `@empty` bila data kosong |
 | `for ... of` (JS) | `suasana.js:12` | Mengulang data suasana di JavaScript |
 | `try / catch` | `BarangKeluarController.php:126`, `BarangMasukController.php:103` | Menangkap error stok kurang dan menghapus file yang terlanjur disimpan |
-| `throw` | `StokService.php:62` | Melempar error bila stok tidak cukup |
+| `throw` | `StokService.php:64` | Melempar error bila stok tidak cukup |
 | Operator ternary `? :` | `BarangMasukController.php:63` | Foto ada → simpan, tidak ada → `null` |
-| Null-safe `?->` | `StokService.php:62` | `Lokasi::find(...)?->nama_lokasi`: ambil nama lokasi hanya bila lokasinya ada |
+| Null-safe `?->` | `StokService.php:64` | `Lokasi::find(...)?->nama_lokasi`: ambil nama lokasi hanya bila lokasinya ada |
 
 ## 6. Konsep OOP di Kode
 
@@ -286,7 +304,7 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 |---|---|---|
 | Class & objek | `class StokService` | Cetakan; Laravel membuat objeknya otomatis |
 | Pewarisan (*inheritance*) | `class Barang extends Model`, `User extends Authenticatable`, `StokTidakCukupException extends RuntimeException` | Mewarisi kemampuan class induk |
-| Enkapsulasi | `private function pastikanValid()` (StokService:125), `private function kunciPermintaanPending()`, `private function terapkanStok()` | Hanya bisa dipanggil dari dalam class itu sendiri |
+| Enkapsulasi | `private function pastikanValid()` (StokService:139), `private function kunciPermintaanPending()`, `private function terapkanStok()` | Hanya bisa dipanggil dari dalam class itu sendiri |
 | Konstanta class | `User::ROLE_ADMIN`, `BarangKeluar::PENDING`, `BarangKeluar::PEMINJAMAN`, `Barang::RUSAK_BERAT` | Nilai tetap, menghindari salah ketik |
 | Method statis | `Barang::generateKode()`, `Suasana::dariJam()`, `BarangKeluarRequest::periksaRincian()` | Dipanggil tanpa membuat objek |
 | *Dependency injection* | `__construct(private StokService $stok)` | Objek service dimasukkan otomatis oleh Laravel |
@@ -301,20 +319,21 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 |---|---|---|
 | Turbo Drive | `resources/js/app.js:8` | Library **Hotwire Turbo**. Saat menu diklik atau form dikirim, halaman diambil di belakang layar lalu isi `<body>` diganti; tidak ada muat ulang penuh, musik tidak terputus |
 | Mode popup di layout | `layouts/app.blade.php:1-29` | Bila permintaan membawa header `Turbo-Frame: modal` / `laci` **dan** halamannya punya `@section('popup')`, layout hanya mengirim isi halaman di dalam `<turbo-frame>` tanpa sidebar |
-| Halaman yang bisa jadi popup | `barang/form`, `barang/show`, `barang-masuk/form`, `barang-keluar/form`, `barang-keluar/show`, `kategori/form`, `lokasi/form`, `user/form`, `profil/edit` | Diberi `@section('popup', true)`. Bila dibuka langsung (tanpa Turbo), halaman tetap tampil utuh seperti biasa |
+| Halaman yang bisa jadi popup | `barang/form`, `barang/show`, `barang-masuk/form`, `barang-keluar/form`, `barang-keluar/show`, `pemeriksaan-kondisi/form`, `pemeriksaan-kondisi/show`, `kategori/form`, `lokasi/form`, `user/form`, `profil/edit` | Diberi `@section('popup', true)`. Bila dibuka langsung (tanpa Turbo), halaman tetap tampil utuh seperti biasa |
 | Tautan pembuka popup | atribut `data-turbo-frame="modal"` di tombol Tambah, Ubah, Detail | Isi halaman dimuat ke popup tengah |
 | Panel profil kanan | foto profil di topbar dan kartu pengguna di sidebar (`data-turbo-frame="laci"`) | Menu "Profil Saya" diganti panel yang muncul dari kanan |
-| Wadah popup | `<dialog id="dialog-modal">` dan `<dialog id="dialog-laci">` di layout, frame dibuat `popup.js` | Elemen `<dialog>` bawaan browser: bisa ditutup dengan Esc, latar belakang digelapkan |
-| Validasi gagal | `popup.js:46` | Laravel kembali ke form di dalam popup dengan pesan error |
-| Simpan berhasil | `popup.js:68` | Server mengarahkan ke halaman daftar; popup ditutup dan halaman daftar tampil dengan pesan sukses |
+| Wadah popup | `<dialog id="dialog-modal">` dan `<dialog id="dialog-laci">` (`layouts/app.blade.php:190-191`), frame dibuat `popup.js` | Elemen `<dialog>` bawaan browser: bisa ditutup dengan Esc atau klik di luar (`closedby="any"`), latar belakang digelapkan; `aria-labelledby` menunjuk judul popup agar dibacakan pembaca layar; `app.css:553` (`.popup` + `::backdrop`) mencegah halaman di belakang ikut tergulir |
+| Validasi gagal | `popup.js:48` | Laravel kembali ke form di dalam popup dengan pesan error |
+| Simpan berhasil | `popup.js:83` | Server mengarahkan ke halaman daftar; popup ditutup dan halaman daftar tampil dengan pesan sukses |
 | Simpan profil | `ProfilController::update()` | Kembali ke halaman yang sedang dibuka (header `X-Halaman-Asal`, hanya alamat aplikasi sendiri) agar nama dan foto di sidebar ikut berubah |
 | Tombol burger | `app.js:43`, `app.css:456` (`html.sidebar-tutup`) | Layar besar: sidebar ditutup/dibuka, isi halaman melebar; posisi diingat di `localStorage`. HP: membuka menu geser |
-| Latar karakter | `public/images/latar-karakter.png`, `app.css:470` (`.latar-karakter`), `layouts/app.blade.php:66` | Karakter tersenyum bersayap, besar di tengah area isi. Warnanya kebalikan latar seperti di login: hitam di mode terang, putih di mode gelap |
-| Percikan cahaya | `layouts/app.blade.php:69` (34 titik), `app.css:501` (`.percikan`) | Titik cahaya dan bintang kecil naik lalu menghilang (`@keyframes percikan-naik`); putih di mode gelap, hitam di mode terang |
+| Latar karakter | `public/images/latar-karakter.png`, `app.css:470` (`.latar-karakter`), `layouts/app.blade.php:67` | Karakter tersenyum bersayap, besar di tengah area isi. Warnanya kebalikan latar seperti di login: hitam di mode terang, putih di mode gelap |
+| Percikan cahaya | `layouts/app.blade.php:70` (34 titik), `app.css:501` (`.percikan`) | Titik cahaya dan bintang kecil naik lalu menghilang (`@keyframes percikan-naik`); putih di mode gelap, hitam di mode terang |
 | Kotak ikut tema | `app.css:539` (`html.dark main .card`) | Kotak (kartu) mengikuti tema; di mode gelap diberi garis dan cahaya putih tipis di tepinya agar terpisah dari karakter latar |
-| Penyihir di banner | `public/images/penyihir.png`, `dashboard.blade.php:34`, `app.css:616` (`.penyihir-banner`) | Penyihir terbang diam dan samar; warnanya mengikuti tinta teks banner sehingga menyatu |
-| Karakter sidebar | `public/images/karakter-sidebar.png`, `layouts/app.blade.php:87`, `app.css:626` (`.karakter-sidebar`) | Karakter samar sebagai latar sidebar di belakang menu, tanpa bingkai; warnanya ikut tema |
+| Penyihir di banner | `public/images/penyihir.png`, `dashboard.blade.php:34`, `app.css:625` (`.penyihir-banner`) | Penyihir terbang diam dan samar; warnanya mengikuti tinta teks banner sehingga menyatu |
+| Karakter sidebar | `public/images/karakter-sidebar.png`, `layouts/app.blade.php:88`, `app.css:635` (`.karakter-sidebar`) | Karakter samar sebagai latar sidebar di belakang menu, tanpa bingkai; warnanya ikut tema |
 | Warna ikut tema | sidebar `bg-surface`, banner `app.css:548` (`.banner-sapaan`) | Sidebar dan banner sapaan berwarna terang di mode terang dan gelap di mode gelap |
+| Tabel bisa digeser dengan keyboard | pembungkus tabel `tabindex="0" role="region" aria-label="..."` di 9 tabel, `app.css:575` (garis fokus) | Tabel lebar dapat digeser dengan tombol panah setelah difokus dengan Tab; pembaca layar menyebut nama tabelnya |
 
 ### 7.1 Tema Monokrom ala Bad Apple!! dan Mode Terang / Gelap
 
@@ -322,10 +341,10 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 |---|---|---|
 | Warna dasar | `app.css:13` (dalam `@theme`) | Warna utama `brand` dibuat hitam dan `slate` dibuat abu-abu netral, sehingga seluruh aplikasi hitam-putih seperti video Bad Apple!!. Warna status (hijau, kuning, merah) tetap berwarna agar artinya jelas |
 | Teks di atas tombol utama | `--color-on-brand` (`app.css:47`) | Putih di mode terang, hitam di mode gelap; dipakai kelas `text-on-brand` |
-| Mode gelap | `app.css:664` (`html.dark`) | Nilai variabel warna ditukar: abu-abu dibalik, tinta menjadi putih. Semua halaman ikut berubah tanpa diubah satu per satu |
+| Mode gelap | `app.css:673` (`html.dark`) | Nilai variabel warna ditukar: abu-abu dibalik, tinta menjadi putih. Semua halaman ikut berubah tanpa diubah satu per satu |
 | Tema awal | `partials/tema-awal.blade.php` | Dijalankan di `<head>` sebelum halaman tampil. Bila pengguna sudah memilih di tab ini (`sessionStorage`), pakai pilihan itu; bila belum, **ikut jam**: malam (18.00-03.59) gelap, selain itu terang |
-| Tombol | `components/tombol-tema.blade.php` di topbar (`layouts/app.blade.php:151`) dan `login.blade.php:48` | Ikon bulan (mode terang) / matahari (mode gelap) |
-| Transisi lingkaran | `tema.js:27` `gantiTema()` + `app.css:642` | **View Transitions API**: tema baru muncul sebagai lingkaran yang membesar dari tombol yang diklik. Browser lama memakai transisi warna biasa |
+| Tombol | `components/tombol-tema.blade.php` di topbar (`layouts/app.blade.php:152`) dan `login.blade.php:48` | Ikon bulan (mode terang) / matahari (mode gelap) |
+| Transisi lingkaran | `tema.js:27` `gantiTema()` + `app.css:651` | **View Transitions API**: tema baru muncul sebagai lingkaran yang membesar dari tombol yang diklik. Browser lama memakai transisi warna biasa |
 
 ### 7.2 Halaman Login Siluet (Gambar, Animasi, Audio)
 
@@ -343,7 +362,7 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 | Jam berjalan | `suasana.js:64` | Diperbarui setiap detik; salam, warna cahaya apel, dan suara ikut berganti saat jamnya lewat |
 | Suara suasana (audio) | `public/audio/*.wav`, tag `<audio>` di `login.blade.php:110`, `suasana.js:72` | Tombol "Putar suara ..." memutar suara suasana (kicau burung pagi, angin & tonggeret siang, lonceng angin sore, jangkrik malam) secara berulang (`loop`) |
 | Layar kecil | `app.css` `@media (width < 1024px)` | Siluet menjadi hiasan samar di belakang kartu, teks raksasa pindah ke atas |
-| Aksesibilitas | `app.css:649` | Bila perangkat diatur "kurangi animasi", animasi dimatikan |
+| Aksesibilitas | `app.css:658` | Bila perangkat diatur "kurangi animasi", animasi dimatikan |
 
 ### 7.3 Musik Bad Apple!! (Audio MP3)
 
@@ -351,7 +370,7 @@ Fungsi `__construct(private StokService $stok, ...)` di BarangController, Barang
 |---|---|---|
 | File lagu | `public/audio/bad-apple.mp3` | Lagu Bad Apple!! dalam format MP3 |
 | Elemen audio | `partials/pemutar-musik.blade.php` | `<audio id="musik-bad-apple" loop preload="none">`; dipasang di layout aplikasi dan halaman login. `preload="none"` agar file 5 MB baru diunduh saat diputar |
-| Tombol | `components/tombol-musik.blade.php` di topbar (`layouts/app.blade.php:150`) dan `login.blade.php:44` | Ikon not musik; berubah menjadi ikon jeda saat diputar |
+| Tombol | `components/tombol-musik.blade.php` di topbar (`layouts/app.blade.php:151`) dan `login.blade.php:44` | Ikon not musik; berubah menjadi ikon jeda saat diputar |
 | Logika | `resources/js/musik.js` fungsi `pasangMusik()` | Klik = `play()` bila berhenti, `pause()` bila sedang diputar |
 | Lanjut antar halaman | `sessionStorage` (`musik-detik`, `musik-main`) | Posisi lagu disimpan saat meninggalkan halaman (`pagehide`); di halaman berikutnya lagu dilanjutkan dari detik terakhir. Bila browser menolak memutar otomatis, cukup klik tombol musik lagi |
 | Tidak bertabrakan | event `suasana-diputar` | Memutar suara suasana menjeda musik, dan sebaliknya |
@@ -369,11 +388,26 @@ Catatan: gambar siluet dan lagu berasal dari video Bad Apple!! (https://youtu.be
 | Tampilan kondisi | `components/rincian-kondisi.blade.php` | Label berwarna per kondisi (hijau Baik, kuning Rusak Ringan, merah Rusak Berat) |
 | Pilihan jenis keluar | `barang-keluar/form.blade.php` (kartu pilihan `data-pilih-jenis`) | Peminjaman (isi tanggal kembali), Pemindahan (isi lokasi tujuan), Pemusnahan (hanya Rusak Berat) |
 | Pemeriksaan Manager | `barang-keluar/show.blade.php` (panel verifikasi) | Menampilkan stok di lokasi asal; Manager boleh mengubah rincian sebelum Setujui; koreksi tercatat di catatan verifikasi |
-| Pengembalian | `barang-keluar/show.blade.php` (kartu Pengembalian), `PengembalianController::store()` | Riwayat pengembalian dan form untuk Operator selama masih ada sisa pinjaman |
+| Pengembalian | `barang-keluar/show.blade.php` (kartu Pengembalian, form `id="catat-pengembalian"`), `PengembalianController::store()` | Riwayat pengembalian dan form untuk Operator selama masih ada sisa pinjaman. Tombol **Kembalikan** di `barang-keluar/index.blade.php` (hanya Operator, hanya pinjaman belum lunas) langsung membuka form ini |
 | Status pinjam | `BarangKeluar::statusPinjam()`, `terlambat()`, `components/badge.blade.php` | Label Dipinjam / Dikembalikan Sebagian / Dikembalikan / Terlambat |
 | Tab "Sedang Dipinjam" | `BarangKeluarController::index()` | Menyaring peminjaman disetujui yang jumlah kembalinya masih kurang dari jumlah pinjam |
 | Detail barang | `barang/show.blade.php` | Label kondisi, jumlah sedang dipinjam, jumlah lokasi, tabel Stok per Lokasi |
 | Dashboard | `DashboardController::index()` | Kartu "Sedang Dipinjam" menggantikan kartu total barang masuk |
+| Stok di pilihan lokasi | `form-kondisi.js:53` `perbaruiPilihanLokasi()` | Operator tidak perlu menebak letak barang: setiap pilihan lokasi menulis stok barang terpilih, lokasi tanpa stok dikunci |
+
+### 7.5 Pemeriksaan Kondisi (Kondisi Fisik Berbeda dengan Data)
+
+| Bagian | Lokasi | Cara kerja |
+|---|---|---|
+| Struktur database | `database/migrations/2026_11_17_000001_create_pemeriksaan_kondisi_table.php` | Tabel `pemeriksaan_kondisi`: barang, lokasi, Operator pengaju, kondisi asal → kondisi baru, jumlah, alasan, foto, verifikasi Manager |
+| Model | `app/Models/PemeriksaanKondisi.php` | Relasi `barang()`, `lokasi()`, `user()`, `verifikator()`; accessor `foto_url` |
+| Validasi | `PemeriksaanKondisiRequest.php` | Kondisi baru harus berbeda, jumlah ≤ stok kondisi asal di lokasi itu, alasan dan foto wajib |
+| Alur | `PemeriksaanKondisiController.php` | Operator `store()` → Pending; Manager `setujui()` / `tolak()` |
+| Perubahan stok | `StokService.php:117` `ubahKondisi()` | Kurangi kondisi asal, tambah kondisi baru di lokasi yang sama; total stok tetap |
+| Tampilan | `resources/views/pemeriksaan-kondisi/` (`index`, `form`, `show`) | Daftar dengan tab status, form pengajuan (popup), detail + panel verifikasi Manager |
+| Menu | `layouts/app.blade.php:46` (`$menu`) | Menu "Pemeriksaan Kondisi" di grup Transaksi dengan penanda jumlah Pending |
+| Pengingat | `barang-keluar/form.blade.php` | Kotak kuning: kondisi fisik berbeda dengan data? Ajukan Pemeriksaan Kondisi lebih dulu |
+| Pengujian | `tests/Feature/PemeriksaanKondisiTest.php` | 11 test, termasuk kasus 20 meja (10 ternyata Rusak Ringan) dan pemusnahan barang yang di data Baik |
 
 ## 8. Pertanyaan Cepat "Di Mana...?"
 
@@ -382,13 +416,13 @@ Catatan: gambar siluet dan lagu berasal dari video Bad Apple!! (https://youtu.be
 | Di mana proses login? | `AuthController::login()` (`AuthController.php:25`) |
 | Di mana password di-hash? | `User.php:78`, cast `'password' => 'hashed'` (bcrypt) |
 | Di mana hak akses role dicek? | `CekRole.php:17`, dipasang di `routes/web.php` |
-| Di mana stok bertambah / berkurang? | Hanya di `StokService.php` (`tambah()` baris 42, `kurangi()` baris 56, `tambahRincian()` baris 76, `kurangiRincian()` baris 93) |
+| Di mana stok bertambah / berkurang? | Hanya di `StokService.php` (`tambah()` baris 44, `kurangi()` baris 58, `tambahRincian()` baris 78, `kurangiRincian()` baris 95, `ubahKondisi()` baris 117) |
 | Di mana stok dicek tidak boleh minus? | `StokService::kurangi()` / `kurangiRincian()` dan validasi `BarangKeluarRequest::periksaRincian()` |
-| Di mana kode barang dibuat otomatis? | `Barang::generateKode()` (`Barang.php:173`) |
+| Di mana kode barang dibuat otomatis? | `Barang::generateKode()` (`Barang.php:178`) |
 | Di mana validasi form? | `app/Http/Requests/` |
 | Di mana file gambar disimpan? | `GambarService::simpan()`; lokal di `storage/app/public`, online di Supabase Storage |
 | Di mana file audio? | `public/audio/` |
-| Di mana transaksi database (*transaction*)? | `BarangController::store()`, `BarangMasukController`, `BarangKeluarController`, `PengembalianController`, `DB::transaction(...)` |
+| Di mana transaksi database (*transaction*)? | `BarangController::store()`, `BarangMasukController`, `BarangKeluarController`, `PengembalianController`, `PemeriksaanKondisiController`, `DB::transaction(...)` |
 | Di mana relasi tabel? | Method `belongsTo` / `hasMany` di `app/Models/` dan *foreign key* di `database/migrations/` |
 | Di mana struktur tabel dibuat? | `database/migrations/` |
 | Di mana data sampel? | `database/seeders/DatabaseSeeder.php` |
@@ -397,11 +431,13 @@ Catatan: gambar siluet dan lagu berasal dari video Bad Apple!! (https://youtu.be
 | Di mana popup tambah/ubah/detail? | `resources/js/popup.js` dan bagian atas `layouts/app.blade.php` |
 | Di mana pindah halaman tanpa muat ulang? | Turbo, dipasang di `resources/js/app.js` |
 | Di mana musik Bad Apple!!? | File `public/audio/bad-apple.mp3`, elemen di `partials/pemutar-musik.blade.php`, logika di `resources/js/musik.js` |
-| Di mana pengaturan mode gelap? | `tema.js`, `partials/tema-awal.blade.php`, `app.css:664` |
+| Di mana pengaturan mode gelap? | `tema.js`, `partials/tema-awal.blade.php`, `app.css:673` |
 | Di mana pengujian? | `tests/Feature/` dan `tests/Unit/`; jalankan `php artisan test` |
 | Di mana error 419 ditangani? | `bootstrap/app.php:43` |
 | Di mana peminjaman / pemindahan / pemusnahan diproses? | `BarangKeluarController::terapkanStok()` (baris 199), dipanggil saat `setujui()` |
-| Di mana pengembalian dicatat? | `PengembalianController::store()`; route `pengembalian.store` (`routes/web.php:47`) |
+| Di mana pengembalian dicatat? | `PengembalianController::store()`; route `pengembalian.store` (`routes/web.php:48`); tombol Kembalikan di `barang-keluar/index.blade.php` |
 | Di mana Manager mengoreksi kondisi? | `BarangKeluarController::setujui()` (baris 118) dan panel verifikasi di `barang-keluar/show.blade.php` |
 | Di mana daftar lokasi? | Menu Lokasi: `LokasiController`, model `Lokasi`, tabel `lokasi` |
-| Di mana stok per lokasi ditampilkan? | `Barang::stokPerLokasi()`, tabel "Stok per Lokasi" di `barang/show.blade.php` |
+| Di mana stok per lokasi ditampilkan? | `Barang::stokPerLokasi()`, tabel "Stok per Lokasi" di `barang/show.blade.php`; di form barang keluar: `perbaruiPilihanLokasi()` |
+| Di mana kondisi barang disesuaikan dengan kondisi fisik? | Menu Pemeriksaan Kondisi: `PemeriksaanKondisiController`, `StokService::ubahKondisi()` (baris 117) |
+| Di mana container / wadah popup? | `<dialog>` di `layouts/app.blade.php:190-191`; isi halaman di `<main>` (`layouts/app.blade.php:165`) |

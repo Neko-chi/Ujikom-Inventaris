@@ -562,10 +562,19 @@ main .card {
     overflow-y: auto;
     overscroll-behavior: contain;
 
+    /* overflow + overscroll-behavior: scroll di area gelap tidak ikut menggeser halaman di belakang popup */
     &::backdrop {
         background: rgb(0 0 0 / 0.45);
         backdrop-filter: blur(3px);
+        overflow: hidden;
+        overscroll-behavior: contain;
     }
+}
+
+/* Tabel lebar yang bisa digeser dengan keyboard (tabindex="0"): tampilkan tanda fokus */
+[role='region'][tabindex]:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: -2px;
 }
 
 .popup-tengah {

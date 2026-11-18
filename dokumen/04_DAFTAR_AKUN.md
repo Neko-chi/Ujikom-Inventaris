@@ -10,8 +10,8 @@
 | No | Nama | Username | Password | Role | Tugas |
 |---|---|---|---|---|---|
 | 1 | Ibrahim Risyad | `admin_ohim` | `admin123` | Admin | Menambah / menghapus pengguna; mengelola kategori, lokasi, data barang; mengoreksi barang masuk |
-| 2 | Marco Ivanos | `manager_marco` | `@admin123` | Manager | Memeriksa rincian kondisi, menyetujui / menolak barang keluar; melihat semua data |
-| 3 | Siti Aminah | `operator_siti` | `operator123` | Operator | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar (pinjam / pindah / musnahkan), mencatat pengembalian |
+| 2 | Marco Ivanos | `manager_marco` | `@admin123` | Manager | Memeriksa lalu menyetujui / menolak barang keluar dan pemeriksaan kondisi; melihat semua data |
+| 3 | Siti Aminah | `operator_siti` | `operator123` | Operator | Mendaftarkan barang, mencatat barang masuk, mengajukan barang keluar (pinjam / pindah / musnahkan) dan pemeriksaan kondisi, mencatat pengembalian |
 
 Catatan:
 
@@ -32,8 +32,10 @@ Catatan:
 | Barang Masuk — koreksi | Ya | Tidak | Tidak |
 | Barang Keluar — ajukan Peminjaman / Pemindahan / Pemusnahan (foto wajib) | Tidak | Ya | Tidak |
 | Barang Keluar — periksa / koreksi rincian kondisi, Setujui / Tolak | Tidak | Tidak | Ya |
-| Pengembalian barang pinjaman — catat | Tidak | Ya | Tidak |
-| Barang masuk / keluar / pengembalian — lihat, cetak | Ya | Ya | Ya |
+| Pengembalian barang pinjaman — catat (tombol Kembalikan) | Tidak | Ya | Tidak |
+| Pemeriksaan Kondisi — ajukan (foto wajib) | Tidak | Ya | Tidak |
+| Pemeriksaan Kondisi — Setujui / Tolak | Tidak | Tidak | Ya |
+| Barang masuk / keluar / pengembalian / pemeriksaan kondisi — lihat, cetak | Ya | Ya | Ya |
 
 ## 3. Mengganti Password
 

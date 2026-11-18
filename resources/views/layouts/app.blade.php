@@ -12,7 +12,7 @@
     <turbo-frame id="{{ $bingkai }}">
         <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
             <div>
-                <h2 class="text-lg font-bold tracking-tight text-slate-900">@yield('title')</h2>
+                <h2 id="judul-popup-{{ $bingkai }}" class="text-lg font-bold tracking-tight text-slate-900">@yield('title')</h2>
                 @hasSection('subtitle')
                     <p class="mt-0.5 text-sm text-slate-500">@yield('subtitle')</p>
                 @endif
@@ -185,8 +185,10 @@
         Elemen <turbo-frame> di dalamnya dibuat oleh resources/js/popup.js, sehingga halaman biasa
         tidak pernah berisi frame "modal"/"laci" (penanda bahwa popup harus ditutup).
     --}}
-    <dialog id="dialog-modal" class="popup popup-tengah"></dialog>
-    <dialog id="dialog-laci" class="popup popup-laci"></dialog>
+    {{-- closedby="any": tutup dengan Esc atau klik di luar popup (cadangan untuk Safari ada di popup.js).
+         aria-labelledby: pembaca layar membacakan judul halaman di dalam popup. --}}
+    <dialog id="dialog-modal" class="popup popup-tengah" closedby="any" aria-labelledby="judul-popup-modal"></dialog>
+    <dialog id="dialog-laci" class="popup popup-laci" closedby="any" aria-labelledby="judul-popup-laci"></dialog>
 
     @include('partials.pemutar-musik')
 </body>
